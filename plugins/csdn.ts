@@ -24,12 +24,25 @@ function parseCSDNPage(html: string, limit: number): Item[] {
 
     const anchor = $(el);
     const href = anchor.attr('href') ?? '';
-    const title = anchor.text().trim();
 
     if (!isArticleUrl(href)) return;
-    if (title.length < 10) return;
     if (seen.has(href)) return;
     seen.add(href);
+
+    // Some cards wrap title in <p.project-title>; prefer that over full a.text()
+    // to avoid picking up category / star-count / "查看详情" noise text.
+    const titleEl = anchor.find('p.project-title, .article-title').first();
+    const title = (
+      titleEl.length
+        ? titleEl.text()
+        : anchor
+            .contents()
+            .filter((_, n) => n.type === 'text')
+            .first()
+            .text()
+    ).trim();
+
+    if (title.length < 10) return;
 
     items.push({ source: 'csdn', title, url: href, notes: 'CSDN' });
   });
