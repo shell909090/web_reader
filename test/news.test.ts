@@ -33,13 +33,17 @@ describe('main() exit codes', () => {
     assert.equal(code, 2);
   });
 
-  // TC-N5: exercise the full dispatch path using mocked fetch (no real network)
+  test('TC-N5: invalid --loglevel returns exit code 2', async () => {
+    const code = await callMain(['--sources', 'hn', '--loglevel', 'verbose']);
+    assert.equal(code, 2);
+  });
+
+  // TC-N6: full dispatch path with mocked fetch, stdout mode (no --out)
   test(
-    'TC-N5: hn list mode with mocked fetch succeeds → exit code 0',
+    'TC-N6: hn list stdout mode with mocked fetch → exit code 0',
     { timeout: 10000 },
     async () => {
       const origFetch = globalThis.fetch;
-      const tmpOut = await mkdtemp(join(tmpdir(), 'news-main-test-'));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis as any).fetch = async () =>
         new Response(hnFixture, {
@@ -47,21 +51,39 @@ describe('main() exit codes', () => {
           headers: { 'content-type': 'text/html; charset=utf-8' },
         });
       try {
-        const code = await callMain([
-          '--sources',
-          'hn',
-          '--mode',
-          'list',
-          '--out',
-          tmpOut,
-          '--limit',
-          '5',
-        ]);
+        const code = await callMain(['--sources', 'hn', '--mode', 'list', '--limit', '5']);
         assert.equal(code, 0);
       } finally {
         globalThis.fetch = origFetch;
-        await rm(tmpOut, { recursive: true, force: true });
       }
     },
   );
+
+  // TC-N7: file mode with mocked fetch writes index.json
+  test('TC-N7: hn list file mode writes index.json → exit code 0', { timeout: 10000 }, async () => {
+    const origFetch = globalThis.fetch;
+    const tmpOut = await mkdtemp(join(tmpdir(), 'news-main-test-'));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).fetch = async () =>
+      new Response(hnFixture, {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      });
+    try {
+      const code = await callMain([
+        '--sources',
+        'hn',
+        '--mode',
+        'list',
+        '--out',
+        tmpOut,
+        '--limit',
+        '5',
+      ]);
+      assert.equal(code, 0);
+    } finally {
+      globalThis.fetch = origFetch;
+      await rm(tmpOut, { recursive: true, force: true });
+    }
+  });
 });

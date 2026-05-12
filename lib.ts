@@ -289,21 +289,24 @@ export function extractMarkdown(html: string, url: string): string {
 // Logger
 // ---------------------------------------------------------------------------
 
-/** Create a logger that writes info/warn/error to stderr; debug only when level=debug. */
-export function makeLogger(level: 'debug' | 'info'): Logger {
-  const shouldDebug = level === 'debug';
-  const write = (prefix: string, msg: string, meta?: unknown) => {
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+const LOG_RANK: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
+
+/** Create a logger that writes to stderr; messages below `level` are suppressed. */
+export function makeLogger(level: LogLevel): Logger {
+  const minRank = LOG_RANK[level];
+  const write = (prefix: string, rank: number, msg: string, meta?: unknown) => {
+    if (rank < minRank) return;
     const line =
       meta !== undefined ? `${prefix} ${msg} ${JSON.stringify(meta)}` : `${prefix} ${msg}`;
     process.stderr.write(line + '\n');
   };
   return {
-    debug: (msg, meta) => {
-      if (shouldDebug) write('[DEBUG]', msg, meta);
-    },
-    info: (msg, meta) => write('[INFO]', msg, meta),
-    warn: (msg, meta) => write('[WARN]', msg, meta),
-    error: (msg, meta) => write('[ERROR]', msg, meta),
+    debug: (msg, meta) => write('[DEBUG]', 0, msg, meta),
+    info: (msg, meta) => write('[INFO]', 1, msg, meta),
+    warn: (msg, meta) => write('[WARN]', 2, msg, meta),
+    error: (msg, meta) => write('[ERROR]', 3, msg, meta),
   };
 }
 
@@ -311,10 +314,10 @@ export function makeLogger(level: 'debug' | 'info'): Logger {
 // Output writers
 // ---------------------------------------------------------------------------
 
-/** Write items to outDir/list.json (UTF-8, 2-space indent, creates dir if needed). */
+/** Write items to outDir/index.json (UTF-8, 2-space indent, creates dir if needed). */
 export async function writeListJson(outDir: string, items: Item[]): Promise<void> {
   await mkdir(outDir, { recursive: true });
-  await writeFile(join(outDir, 'list.json'), JSON.stringify(items, null, 2), 'utf-8');
+  await writeFile(join(outDir, 'index.json'), JSON.stringify(items, null, 2), 'utf-8');
 }
 
 /** Write a single article to outDir/{source}-{NNNN}.md and return the relative path. */

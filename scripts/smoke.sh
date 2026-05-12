@@ -16,14 +16,13 @@ trap cleanup EXIT
 echo "[smoke] Running HN list (limit=10)..."
 node --import tsx "$ROOT/news.ts" --sources hn --mode list --limit 10 --out "$OUT"
 
-# Verify list.json exists and has enough entries
-LIST_JSON="$OUT_DATE/list.json"
-if [ ! -f "$LIST_JSON" ]; then
-  echo "[smoke] FAIL: $LIST_JSON not found" >&2
+INDEX_JSON="$OUT_DATE/index.json"
+if [ ! -f "$INDEX_JSON" ]; then
+  echo "[smoke] FAIL: $INDEX_JSON not found" >&2
   exit 1
 fi
 
-COUNT=$(node -e "const d=JSON.parse(require('fs').readFileSync('$LIST_JSON','utf8')); console.log(d.filter(x=>x.source==='hn').length)")
+COUNT=$(node -e "const d=JSON.parse(require('fs').readFileSync('$INDEX_JSON','utf8')); console.log(d.filter(x=>x.source==='hn').length)")
 if [ "$COUNT" -lt 10 ]; then
   echo "[smoke] FAIL: expected >= 10 hn items, got $COUNT" >&2
   exit 1
@@ -40,10 +39,9 @@ if [ "$MD_COUNT" -lt 2 ]; then
 fi
 echo "[smoke] OK: bbc detail → $MD_COUNT markdown files"
 
-# Check _errors.log if it exists; warn but don't fail
 if [ -f "$OUT_DATE/_errors.log" ]; then
   ERR_COUNT=$(wc -l < "$OUT_DATE/_errors.log" | tr -d ' ')
-  echo "[smoke] WARN: $_errors.log has $ERR_COUNT error(s)" >&2
+  echo "[smoke] WARN: _errors.log has $ERR_COUNT error(s)" >&2
 fi
 
 echo "[smoke] All smoke tests passed."

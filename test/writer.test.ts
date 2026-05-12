@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 describe('writeListJson', () => {
-  test('TC-W1: writes list.json with correct content and encoding', async () => {
+  test('TC-W1: writes index.json with correct content and encoding', async () => {
     const dir = await makeTmp();
     const items: Item[] = [
       { source: 'hn', title: 'Hello World', url: 'https://example.com', notes: '100 points' },
@@ -27,7 +27,7 @@ describe('writeListJson', () => {
 
     await writeListJson(dir, items);
 
-    const raw = await readFile(join(dir, 'list.json'), 'utf-8');
+    const raw = await readFile(join(dir, 'index.json'), 'utf-8');
     const parsed = JSON.parse(raw) as Item[];
     assert.equal(parsed.length, 2);
     assert.equal(parsed[0].source, 'hn');
@@ -39,7 +39,7 @@ describe('writeListJson', () => {
   test('TC-W2: creates directory if it does not exist', async () => {
     const dir = join(await makeTmp(), 'nested', 'sub');
     await writeListJson(dir, []);
-    const raw = await readFile(join(dir, 'list.json'), 'utf-8');
+    const raw = await readFile(join(dir, 'index.json'), 'utf-8');
     assert.deepEqual(JSON.parse(raw), []);
   });
 });

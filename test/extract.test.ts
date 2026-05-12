@@ -29,10 +29,10 @@ describe('extractMarkdown', () => {
     assert.ok(md.length > 200);
   });
 
-  test('TC-E4: short-content fixture throws ExtractError', async () => {
+  test('TC-E4: short-content fixture throws ExtractError', () => {
     const html = fixture('short-content.html');
-    await assert.rejects(
-      async () => extractMarkdown(html, 'https://example.com/short'),
+    assert.throws(
+      () => extractMarkdown(html, 'https://example.com/short'),
       (err: unknown) => {
         assert.ok(err instanceof ExtractError);
         assert.equal(err.name, 'ExtractError');
@@ -41,9 +41,9 @@ describe('extractMarkdown', () => {
     );
   });
 
-  test('TC-E5: empty body html throws ExtractError', async () => {
-    await assert.rejects(
-      async () => extractMarkdown('<html><body></body></html>', 'https://example.com/empty'),
+  test('TC-E5: empty body html throws ExtractError', () => {
+    assert.throws(
+      () => extractMarkdown('<html><body></body></html>', 'https://example.com/empty'),
       (err: unknown) => {
         assert.ok(err instanceof ExtractError);
         return true;

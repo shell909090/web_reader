@@ -41,7 +41,7 @@ describe('makeLogger', () => {
     assert.ok(out.includes('verbose'));
   });
 
-  test('TC-L4: warn and error always output', () => {
+  test('TC-L4: warn and error always output at info level', () => {
     const log = makeLogger('info');
     const out = captureStderr(() => {
       log.warn('caution');
@@ -56,5 +56,28 @@ describe('makeLogger', () => {
     const out = captureStderr(() => log.info('msg', { key: 'val' }));
     assert.ok(out.includes('"key"'));
     assert.ok(out.includes('"val"'));
+  });
+
+  test('TC-L6: warn level suppresses info and debug', () => {
+    const log = makeLogger('warn');
+    const out = captureStderr(() => {
+      log.debug('d');
+      log.info('i');
+      log.warn('w');
+    });
+    assert.ok(!out.includes('[DEBUG]') && !out.includes('[INFO]'));
+    assert.ok(out.includes('[WARN]'));
+  });
+
+  test('TC-L7: error level suppresses everything below', () => {
+    const log = makeLogger('error');
+    const out = captureStderr(() => {
+      log.debug('d');
+      log.info('i');
+      log.warn('w');
+      log.error('e');
+    });
+    assert.ok(!out.includes('[DEBUG]') && !out.includes('[INFO]') && !out.includes('[WARN]'));
+    assert.ok(out.includes('[ERROR]'));
   });
 });
