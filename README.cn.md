@@ -1,38 +1,44 @@
-# news-scraper
+# web_reader
 
-一个 Node.js 新闻抓取工具，通过 HTTP 从多家新闻网站抓取最新文章，统一输出为 Markdown 和 JSON，供 LLM 或人工处理。
+Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全文 Markdown、搜索参考资料，以及 MCP server 模式供 AI agent 集成。
 
 > [English](README.md)
 
 ## 功能特点
 
-- **开箱即用 16 个数据源**——详见下表
-- **纯 HTTP**：无浏览器依赖，速度快、轻量
-- **结构化输出**：`index.json`（元数据）+ 每篇文章独立 `.md` 文件（detail 模式）
-- **GB2312/GBK 支持**：中文源编码正确处理
-- **故障隔离**：单个源失败不影响其他源
-- **可组合**：list 模式输出 JSON，detail 模式从参数或 stdin 读取 URL
+- **22 个数据源**，涵盖中英文——详见下表
+- **三个预置组合**：`news`（综合）、`tech`（科技）、`fin`（财经）
+- **三种模式**：list（新闻列表）· detail（抓全文）· query（参考搜索）
+- **MCP server 模式**，供 AI agent 调用（`--mcp`）
+- **纯 HTTP**：无浏览器依赖
+- **GB2312/GBK 支持**：中文源编码自动处理
 
 ## 数据源
 
 | ID | 网站 | 语言 | 备注 |
 |---|---|---|---|
-| `hn` | Hacker News | 英文 | notes 含评分和评论数 |
+| `hn` | Hacker News | 英文 | 含评分和评论数 |
 | `bbc` | BBC News | 英文 | |
 | `techcrunch` | TechCrunch | 英文 | |
-| `ars` | Ars Technica | 英文 | 含频道名和摘要字段 |
-| `theverge` | The Verge（AI 版块）| 英文 | Atom feed，约 10 条最新 |
-| `wiki` | Wikipedia 时事 | 英文 | 含日期、分类和摘要 |
-| `nytimes` | 纽约时报中文网 | 中文 | |
-| `huggingface` | HuggingFace Papers | 英文 | 每日 ML 论文 |
-| `cnbc-tech` | CNBC Technology | 英文 | |
-| `cnbc-ai` | CNBC AI | 英文 | |
+| `ars` | Ars Technica | 英文 | 含 `summary` 字段 |
+| `theverge` | The Verge（AI 版块）| 英文 | Atom feed |
+| `mittr` | MIT Technology Review | 英文 | 分类：ai computing space biotech |
+| `wiki` | Wikipedia 时事 | 英文 | 含 `summary`，支持搜索 |
+| `zhwiki` | 中文维基百科新闻动态 | 中文 | 含 `summary`，支持搜索 |
+| `reddit` | Reddit | 英文 | 分类：ml llm ai tech prog investing stocks worldnews |
+| `wsj` | 华尔街日报 | 英文 | RSS（⚠️ 内容已冻结，仅历史参考）|
+| `cnbc` | CNBC | 英文 | 分类：top world markets tech finance us health politics intl ai |
+| `nytimes` | 纽约时报中文网 | 中文 | detail 可读全文 |
+| `xinhua` | 新华社 | 中文 | 分类：politics world society finance tech mil legal health edu |
+| `thepaper` | 澎湃新闻 | 中文 | 国内突发新闻 |
+| `caixin` | 财新 | 中文 | 独立财经报道，detail 可用 |
 | `sina` | 新浪新闻 | 中文 | GB2312 自动转码 |
 | `infoq` | InfoQ 中文 | 中文 | |
 | `people` | 人民网 | 中文 | |
-| `csdn` | CSDN | 中文 | 技术博客聚合 |
-| `oschina` | 开源中国 | 中文 | 开源项目新闻 |
-| `juejin` | 稀土掘金 | 中文 | POST 推荐接口 |
+| `huggingface` | HuggingFace Papers | 英文 | 每日 ML 论文 |
+| `csdn` | CSDN | 中文 | |
+| `oschina` | 开源中国 | 中文 | |
+| `juejin` | 稀土掘金 | 中文 | |
 
 ## 环境要求
 
@@ -43,47 +49,75 @@
 
 ```bash
 npm install
+make install   # 通过 npm link 将 web_reader 安装为全局命令
 ```
+
+安装后可在任意目录使用 `web_reader` 命令。
 
 ## 使用方法
 
+模式推断规则：`-s` → list，`-q` → query，否则 → detail。
+
 ```bash
-# 列表模式——输出 JSON 到 stdout
-npx tsx news.ts -s hn -n 10
-npx tsx news.ts -s hn,bbc,techcrunch
-npx tsx news.ts -s all -o data/news/
+# 列表模式——抓取新闻，输出 JSON 到 stdout
+web_reader -s news                       # bbc + nytimes + xinhua + thepaper
+web_reader -s tech                       # hn + ars + mittr + infoq
+web_reader -s fin                        # caixin + wsj + cnbc:markets
+web_reader -s wsj:markets,cnbc:tech -n 30
+web_reader -s fin -o fin.json            # 写入文件
 
-# 详情模式——抓取指定 URL 的全文
-npx tsx news.ts -m detail https://arstechnica.com/tech-policy/2026/05/article
+# 详情模式——抓取指定 URL 全文（Markdown 输出）
+web_reader https://arstechnica.com/...
+web_reader -o article.md https://...
 
-# 管道：获取列表，挑选 URL，抓取全文
-npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts -m detail
+# 管道：列表 → 挑选 URL → 读全文
+web_reader -s hn -n 5 | jq -r '.[].url' | web_reader
+web_reader -s tech | jq -r '.[].url' | web_reader -o articles.md
+
+# 查询模式——检索参考资料
+web_reader -q wiki transformer architecture
+web_reader -q zhwiki 注意力机制
+web_reader -q reddit "open source LLM"
+web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 ```
 
 ### 参数说明
 
 | 短参数 | 长参数 | 默认值 | 说明 |
 |--------|--------|--------|------|
-| `-s` | `--sources` | （list 模式必填）| 逗号分隔的 ID 或 `all` |
-| `-m` | `--mode` | `list` | `list` 或 `detail` |
-| `-n` | `--limit` | `20` | 每源最多抓取条数（list 模式）|
-| `-o` | `--out` | stdout | 写文件到 DIR/YYYYMMDD/ |
+| `-s` | `--sources` | — | 数据源 ID、预置名（`news`/`tech`/`fin`）或 `all` |
+| `-q` | `--query` | — | 查询数据源（`wiki`/`zhwiki`/`reddit`），关键词跟在后面 |
+| `-n` | `--limit` | `50` | 最大结果数 |
+| `-o` | `--out` | stdout | 输出到文件 |
 | `-c` | `--concurrency` | `2` | 并发数（list 模式）|
-| `-l` | `--loglevel` | `info` | `debug\|info\|warn\|error` |
+| `-l` | `--loglevel` | `warn` | `debug\|info\|warn\|error` |
 | `-h` | `--help` | | 显示帮助 |
+
+## MCP Server（AI agent 集成）
+
+```bash
+web_reader --mcp   # 以 MCP server 模式启动
+```
+
+在 `.claude/settings.json` 中配置：
+```json
+{
+  "mcpServers": {
+    "web_reader": {
+      "command": "web_reader",
+      "args": ["--mcp"]
+    }
+  }
+}
+```
+
+暴露三个工具：`list_news`、`read_url`、`search`。详细 AI 使用说明见 `llms.txt`。
 
 ## 输出格式
 
-**列表模式**（stdout）：JSON 数组，每条含 `source`、`title`、`url`、`notes`，部分源有 `summary` 等扩展字段。
+**列表 / 查询**：JSON 数组，每条含 `source`、`title`、`url`、`notes`，部分含 `summary`。
 
-**详情模式**（stdout）：各篇文章 Markdown，以 `---` 分隔，首行为 `# 标题`。
-
-**带 `--out DIR`**：在 `DIR/YYYYMMDD/` 下写 `index.json` + `{source}-NNNN.md`；错误写入 `_errors.log`。
-
-## 新增数据源
-
-1. 创建 `plugins/{id}.ts`，导出含 `id` 和 `list()` 的 `Plugin` 对象（类型定义见 `lib.ts`）
-2. 在 `news.ts` 的 `KNOWN_SOURCES` 里添加该 ID
+**详情**：Markdown 文章，以 `---` 分隔，首行为 `# 标题`。
 
 ## 开发
 
@@ -91,8 +125,15 @@ npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts -m detail
 make fmt        # Prettier 格式化
 make lint       # tsc + ESLint
 make unittest   # 单元测试（含覆盖率）
-make test       # unittest + smoke 测试
+make clean      # 清理 node_modules/ coverage/ data/ dist/
+make install    # npm install + npm link
+make bundle     # esbuild 打包到 dist/web_reader.js
 ```
+
+## 新增数据源
+
+1. 创建 `plugins/{id}.ts`，导出含 `id` 和 `list()` 的 `Plugin` 对象（类型见 `lib.ts`）
+2. 在 `read.ts` 的 `KNOWN_SOURCES` 里添加该 ID
 
 ## 作者
 
