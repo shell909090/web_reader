@@ -43,24 +43,24 @@ const USAGE = `\
 Usage: npx tsx news.ts --sources <ids|all> [options]
 
 Options:
-  --sources <ids|all>      Comma-separated source IDs or "all"
+  -s, --sources <ids|all>  Comma-separated source IDs or "all"
                            HTTP: hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn
                            Browser: reuters, cnbc-ai
-                           Multiple: --sources hn,bbc,techcrunch
-  --mode list|detail       Fetch mode (default: list)
-  --limit N                Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
-  --out DIR                Write output files to DIR/YYYYMMDD/
+                           Multiple: -s hn,bbc,techcrunch
+  -m, --mode list|detail   Fetch mode (default: list)
+  -n, --limit N            Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
+  -o, --out DIR            Write output files to DIR/YYYYMMDD/
                            (default: print JSON/markdown to stdout)
-  --concurrency N          Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})
-  --loglevel LEVEL         Log verbosity: debug|info|warn|error (default: info)
-  --help                   Show this help
+  -c, --concurrency N      Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})
+  -l, --loglevel LEVEL     Log verbosity: debug|info|warn|error (default: info)
+  -h, --help               Show this help
 
 Examples:
-  npx tsx news.ts --sources hn --mode list --limit 10
-  npx tsx news.ts --sources hn,bbc,techcrunch --mode list
-  npx tsx news.ts --sources bbc --mode detail --limit 3
-  npx tsx news.ts --sources all --mode list --out data/news/
-  npx tsx news.ts --sources hn --loglevel debug`;
+  npx tsx news.ts -s hn -m list -n 10
+  npx tsx news.ts -s hn,bbc,techcrunch
+  npx tsx news.ts -s bbc -m detail -n 3
+  npx tsx news.ts -s all -o data/news/
+  npx tsx news.ts -s hn -l debug`;
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing
@@ -82,13 +82,13 @@ function parseCLI(argv: string[]): ParsedArgs | null {
     raw = parseArgs({
       args: argv,
       options: {
-        sources: { type: 'string' },
-        mode: { type: 'string', default: 'list' },
-        limit: { type: 'string', default: String(CONFIG.DEFAULT_LIMIT) },
-        out: { type: 'string' }, // no default — stdout when absent
-        concurrency: { type: 'string', default: String(CONFIG.DEFAULT_CONCURRENCY) },
-        loglevel: { type: 'string', default: 'info' },
-        help: { type: 'boolean', default: false },
+        sources: { type: 'string', short: 's' },
+        mode: { type: 'string', short: 'm', default: 'list' },
+        limit: { type: 'string', short: 'n', default: String(CONFIG.DEFAULT_LIMIT) },
+        out: { type: 'string', short: 'o' },
+        concurrency: { type: 'string', short: 'c', default: String(CONFIG.DEFAULT_CONCURRENCY) },
+        loglevel: { type: 'string', short: 'l', default: 'info' },
+        help: { type: 'boolean', short: 'h', default: false },
       },
       strict: true,
     });
