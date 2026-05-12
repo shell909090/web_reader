@@ -31,6 +31,7 @@ const KNOWN_SOURCES = [
   'people',
   'csdn',
   'wiki',
+  'caixin',
   'mittr',
   'wsj',
   'cnbc',
@@ -56,7 +57,7 @@ Options:
                            cnbc categories:  top world markets tech finance us health politics ai
                            mittr categories: ai computing space biotech (default: main RSS)
                            Other: hn bbc techcrunch sina ars theverge infoq people csdn
-                                  wiki nytimes huggingface oschina juejin
+                                  caixin wiki nytimes huggingface oschina juejin
   -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
                            list mode: JSON file; detail mode: markdown file
