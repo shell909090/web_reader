@@ -33,6 +33,7 @@ const KNOWN_SOURCES = [
   'csdn',
   'wiki',
   'caixin',
+  'thepaper',
   'mittr',
   'wsj',
   'cnbc',
