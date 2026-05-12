@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "web_reader": "./read.ts"
+    "web_reader": "./web_reader"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
