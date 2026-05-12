@@ -67,7 +67,8 @@ Options:
                            Presets: news (bbc+nytimes+xinhua+thepaper)
                                     tech (hn+ars+mittr+infoq)
                                     fin  (caixin+wsj+cnbc:markets)
-                           Categories: wsj:world/us/markets/opinion/main
+                           Categories: wiki:cn (中文新闻动态)
+                                       wsj:world/us/markets/opinion/main
                                        cnbc:top/world/markets/tech/finance/us/health/politics/intl/ai
                                        mittr:ai/computing/space/biotech (default: main RSS)
                                        xinhua:politics/world/society/finance/tech/mil/legal/health/edu
