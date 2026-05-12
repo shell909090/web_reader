@@ -29,10 +29,18 @@ function parseArsPage(html: string, limit: number): Item[] {
 
     seen.add(url);
 
-    // Channel is the first path segment, e.g. 'security', 'tech', 'science'
-    const notes = match[1];
+    const channel = match[1];
 
-    items.push({ source: 'ars', title, url, notes });
+    // Summary and date live in the card container around the title link
+    const card = $(el).closest('div.grow, li, article');
+    const summary = card.find('p').first().text().trim().replace(/\s+/g, ' ');
+    const date = card.find('time, [class*="date"]').first().text().trim();
+
+    const noteParts = [channel];
+    if (date) noteParts.push(date);
+    const notes = noteParts.join(' · ');
+
+    items.push({ source: 'ars', title, url, notes, summary: summary || undefined });
   });
 
   return items;
