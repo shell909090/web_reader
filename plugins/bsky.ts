@@ -1,17 +1,56 @@
-// Bluesky plugin — author feeds and post search via the public AT Protocol API.
+// Bluesky plugin — author feeds and post search via the AT Protocol API.
+// Search requires auth: set BSKY_IDENTIFIER and BSKY_APP_PASSWORD env vars.
 
 import type { Plugin, Item, Ctx } from '../lib.ts';
 
 const BSKY_XRPC = 'https://public.api.bsky.app/xrpc';
 const AUTHOR_FEED_URL = `${BSKY_XRPC}/app.bsky.feed.getAuthorFeed`;
 const SEARCH_POSTS_URL = `${BSKY_XRPC}/app.bsky.feed.searchPosts`;
+const CREATE_SESSION_URL = 'https://bsky.social/xrpc/com.atproto.server.createSession';
 
 const ACCOUNT_GROUPS: Record<string, string[]> = {
-  news: ['bbc.com', 'apnews.com', 'reuters.com', 'theguardian.com'],
+  // Verified-domain handles (DNS TXT record on bsky.app)
+  news: ['nytimes.com', 'apnews.com', 'reuters.com', 'theguardian.com'],
   tech: ['theverge.com', 'arstechnica.com', 'techcrunch.com'],
 };
 
 const ALL_ACCOUNTS = [...ACCOUNT_GROUPS.news, ...ACCOUNT_GROUPS.tech];
+
+// ---------------------------------------------------------------------------
+// Optional auth — required for searchPosts
+// ---------------------------------------------------------------------------
+
+let _tokenPromise: Promise<string | null> | null = null;
+
+/** Obtain an AT Protocol session JWT from env vars; returns null if not configured. */
+async function fetchSessionToken(): Promise<string | null> {
+  const identifier = process.env.BSKY_IDENTIFIER;
+  const password = process.env.BSKY_APP_PASSWORD;
+  if (!identifier || !password) return null;
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10_000);
+    const resp = await fetch(CREATE_SESSION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!resp.ok) return null;
+    const data = (await resp.json()) as { accessJwt: string };
+    return data.accessJwt ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Return cached session token (one auth call per process). */
+function getToken(): Promise<string | null> {
+  if (!_tokenPromise) _tokenPromise = fetchSessionToken();
+  return _tokenPromise;
+}
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -89,7 +128,9 @@ function postToItem(post: BskyPost): Item | null {
 async function fetchAuthorFeed(ctx: Ctx, handle: string, limit: number): Promise<Item[]> {
   const url = `${AUTHOR_FEED_URL}?actor=${encodeURIComponent(handle)}&limit=${limit}`;
   ctx.log.debug('Fetching Bluesky author feed', { handle, url });
-  const { status, html } = await ctx.httpGet(url);
+  const token = await getToken();
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+  const { status, html } = await ctx.httpGet(url, { headers });
   if (status !== 200) throw new Error(`Bluesky getAuthorFeed(${handle}) returned HTTP ${status}`);
 
   let data: AuthorFeedResponse;
@@ -162,7 +203,16 @@ const plugin: Plugin = {
   async search(ctx: Ctx, query: string, limit: number): Promise<Item[]> {
     const url = `${SEARCH_POSTS_URL}?q=${encodeURIComponent(query)}&limit=${limit}`;
     ctx.log.debug('Searching Bluesky posts', { query, url });
-    const { status, html } = await ctx.httpGet(url);
+    const token = await getToken();
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const { status, html } = await ctx.httpGet(url, { headers });
+    if (status === 401 || status === 403) {
+      throw new Error(
+        'Bluesky search requires authentication. ' +
+          'Set BSKY_IDENTIFIER (your handle, e.g. user.bsky.social) and ' +
+          'BSKY_APP_PASSWORD (from https://bsky.app/settings/app-passwords) env vars.',
+      );
+    }
     if (status !== 200) throw new Error(`Bluesky searchPosts returned HTTP ${status}`);
 
     let data: SearchPostsResponse;
