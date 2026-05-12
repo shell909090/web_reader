@@ -51,8 +51,8 @@ Usage: npx tsx news.ts --sources <ids|all> [options]
 Options:
   -s, --sources <ids|all>  Comma-separated source IDs or "all"
                            HTTP: hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn,
-                                 wikipedia, nytimes, huggingface, oschina, cnbc-tech, juejin
-                           Browser: reuters, cnbc-ai
+                                 wikipedia, nytimes, huggingface, oschina, cnbc-tech, juejin, cnbc-ai
+                           Browser: reuters
                            Multiple: -s hn,bbc,techcrunch
   -m, --mode list|detail   Fetch mode (default: list)
   -n, --limit N            Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
