@@ -26,7 +26,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `wiki` | Wikipedia Current Events | EN | `summary` field |
 | `zhwiki` | 中文维基百科新闻动态 | ZH | `summary` field |
 | `reddit` | Reddit | EN | categories: ml llm ai tech prog investing stocks worldnews |
-| `wsj` | Wall Street Journal | EN | RSS summaries; categories: world us markets opinion main |
+| `yahoo` | Yahoo Finance | EN | RSS, 48 items, current |
 | `cnbc` | CNBC | EN | categories: top world markets tech finance us health politics intl ai |
 | `nytimes` | NYT Chinese 纽约时报 | ZH | full text accessible |
 | `xinhua` | 新华社 | ZH | categories: politics world society finance tech mil legal health edu |
@@ -62,8 +62,8 @@ Mode is inferred: `-s` → list, `-q` → query, otherwise → detail.
 # List mode — fetch news, output JSON to stdout
 web_reader -s news                       # bbc + nytimes + xinhua + thepaper
 web_reader -s tech                       # hn + ars + mittr + infoq
-web_reader -s fin                        # caixin + wsj + cnbc:markets
-web_reader -s wsj:markets,cnbc:tech -n 30
+web_reader -s fin                        # caixin + yahoo + cnbc:markets
+web_reader -s cnbc:markets,cnbc:tech -n 30
 web_reader -s fin -o fin.json            # write to file
 
 # Detail mode — fetch full text as Markdown

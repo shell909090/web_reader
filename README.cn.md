@@ -26,7 +26,7 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `wiki` | Wikipedia 时事 | 英文 | 含 `summary`，支持搜索 |
 | `zhwiki` | 中文维基百科新闻动态 | 中文 | 含 `summary`，支持搜索 |
 | `reddit` | Reddit | 英文 | 分类：ml llm ai tech prog investing stocks worldnews |
-| `wsj` | 华尔街日报 | 英文 | RSS（⚠️ 内容已冻结，仅历史参考）|
+| \`yahoo\` | Yahoo Finance | 英文 | RSS，48条，实时 |
 | `cnbc` | CNBC | 英文 | 分类：top world markets tech finance us health politics intl ai |
 | `nytimes` | 纽约时报中文网 | 中文 | detail 可读全文 |
 | `xinhua` | 新华社 | 中文 | 分类：politics world society finance tech mil legal health edu |
@@ -62,8 +62,8 @@ make install   # 通过 npm link 将 web_reader 安装为全局命令
 # 列表模式——抓取新闻，输出 JSON 到 stdout
 web_reader -s news                       # bbc + nytimes + xinhua + thepaper
 web_reader -s tech                       # hn + ars + mittr + infoq
-web_reader -s fin                        # caixin + wsj + cnbc:markets
-web_reader -s wsj:markets,cnbc:tech -n 30
+web_reader -s fin                        # caixin + yahoo + cnbc:markets
+web_reader -s cnbc:markets,cnbc:tech -n 30
 web_reader -s fin -o fin.json            # 写入文件
 
 # 详情模式——抓取指定 URL 全文（Markdown 输出）

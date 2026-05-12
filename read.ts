@@ -38,7 +38,7 @@ const KNOWN_SOURCES = [
   'thepaper',
   'xinhua',
   'mittr',
-  'wsj',
+  'yahoo',
   'cnbc',
   'nytimes',
   'huggingface',
@@ -50,7 +50,7 @@ const KNOWN_SOURCES = [
 const SETS: Record<string, string[]> = {
   news: ['bbc', 'nytimes', 'xinhua', 'thepaper'],
   tech: ['hn', 'ars', 'mittr', 'infoq'],
-  fin: ['caixin', 'wsj', 'cnbc:markets'],
+  fin: ['caixin', 'yahoo', 'cnbc:markets'],
 };
 
 const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
@@ -68,14 +68,13 @@ Options:
   -s, --sources <ids|all>  Comma-separated source IDs, set names, or "all"
                            Presets: news (bbc+nytimes+xinhua+thepaper)
                                     tech (hn+ars+mittr+infoq)
-                                    fin  (caixin+wsj+cnbc:markets)
+                                    fin  (caixin+yahoo+cnbc:markets)
                            Categories: reddit:ml/llm/ai/tech/prog/investing/stocks/worldnews
-                                       wsj:world/us/markets/opinion/main
                                        cnbc:top/world/markets/tech/finance/us/health/politics/intl/ai
                                        mittr:ai/computing/space/biotech (default: main RSS)
                                        xinhua:politics/world/society/finance/tech/mil/legal/health/edu
                            Others: hn bbc techcrunch sina ars theverge infoq people csdn
-                                   caixin wiki nytimes huggingface oschina juejin
+                                   caixin yahoo wiki nytimes huggingface oschina juejin
   -q, --query SOURCE       Query a data source; keywords follow as positional args
                            Searchable sources: wiki (EN), zhwiki (中文), reddit
   -n, --limit N            Max results (default: ${CONFIG.DEFAULT_LIMIT})
@@ -500,7 +499,7 @@ export async function startMcp(): Promise<void> {
         .string()
         .describe(
           'Comma-separated source IDs or preset names (news/tech/fin). ' +
-            'Examples: "news", "tech", "hn,bbc", "wsj:markets", "reddit:ml"',
+            'Examples: "news", "tech", "hn,bbc", "cnbc:markets", "reddit:ml"',
         ),
       limit: z
         .number()
