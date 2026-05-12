@@ -21,10 +21,16 @@
 | `techcrunch` | TechCrunch | 英文 | HTTP | |
 | `ars` | Ars Technica | 英文 | HTTP | notes 含频道名 |
 | `theverge` | The Verge（AI 版块）| 英文 | HTTP（Atom）| 约 10 条最新 |
+| `wikipedia` | Wikipedia | 英文 | HTTP | "In the news" 新闻条目 |
+| `nytimes` | 纽约时报中文网 | 中文 | HTTP | |
+| `huggingface` | HuggingFace Papers | 英文 | HTTP | 每日 ML 论文 |
+| `cnbc-tech` | CNBC Technology | 英文 | HTTP | |
 | `sina` | 新浪新闻 | 中文 | HTTP | GB2312 自动转码 |
 | `infoq` | InfoQ 中文 | 中文 | HTTP | |
 | `people` | 人民网 | 中文 | HTTP | |
 | `csdn` | CSDN | 中文 | HTTP | 技术博客聚合 |
+| `oschina` | 开源中国 | 中文 | HTTP | 开源项目新闻 |
+| `juejin` | 稀土掘金 | 中文 | HTTP（API）| POST 推荐接口 |
 | `reuters` | Reuters | 英文 | 浏览器 | 部分 IP 被 DataDome 拦截 |
 | `cnbc-ai` | CNBC AI | 英文 | 浏览器 | |
 

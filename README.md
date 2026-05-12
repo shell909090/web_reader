@@ -19,12 +19,18 @@ A Node.js news scraper that fetches articles from multiple sources and outputs s
 | `hn` | Hacker News | EN | HTTP | Top stories, score + comments |
 | `bbc` | BBC News | EN | HTTP | |
 | `techcrunch` | TechCrunch | EN | HTTP | |
-| `ars` | Ars Technica | EN | HTTP | Channel shown in notes |
-| `theverge` | The Verge (AI feed) | EN | HTTP (Atom) | ~10 latest entries |
-| `sina` | Sina News 新浪新闻 | ZH | HTTP | GB2312 auto-decoded |
+| `ars` | Ars Technica | EN | HTTP | Channel in notes |
+| `theverge` | The Verge (AI) | EN | HTTP (Atom) | ~10 latest |
+| `wikipedia` | Wikipedia | EN | HTTP | "In the news" bullets |
+| `nytimes` | NYT Chinese 纽约时报 | ZH | HTTP | |
+| `huggingface` | HuggingFace Papers | EN | HTTP | Daily ML papers |
+| `cnbc-tech` | CNBC Technology | EN | HTTP | |
+| `sina` | Sina 新浪新闻 | ZH | HTTP | GB2312 auto-decoded |
 | `infoq` | InfoQ CN | ZH | HTTP | |
 | `people` | People Daily 人民网 | ZH | HTTP | |
 | `csdn` | CSDN | ZH | HTTP | Tech blog aggregator |
+| `oschina` | OSChina 开源中国 | ZH | HTTP | Open source news |
+| `juejin` | 稀土掘金 | ZH | HTTP (API) | POST recommend API |
 | `reuters` | Reuters | EN | Browser | Blocked by DataDome on some IPs |
 | `cnbc-ai` | CNBC AI | EN | Browser | |
 

@@ -36,6 +36,12 @@ const KNOWN_SOURCES = [
   'infoq',
   'people',
   'csdn',
+  'wikipedia',
+  'nytimes',
+  'huggingface',
+  'oschina',
+  'cnbc-tech',
+  'juejin',
 ] as const;
 const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
@@ -44,7 +50,8 @@ Usage: npx tsx news.ts --sources <ids|all> [options]
 
 Options:
   -s, --sources <ids|all>  Comma-separated source IDs or "all"
-                           HTTP: hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn
+                           HTTP: hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn,
+                                 wikipedia, nytimes, huggingface, oschina, cnbc-tech, juejin
                            Browser: reuters, cnbc-ai
                            Multiple: -s hn,bbc,techcrunch
   -m, --mode list|detail   Fetch mode (default: list)
