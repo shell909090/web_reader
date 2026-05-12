@@ -24,7 +24,19 @@ import {
 // Constants
 // ---------------------------------------------------------------------------
 
-const KNOWN_SOURCES = ['hn', 'bbc', 'techcrunch', 'sina', 'reuters', 'cnbc-ai'] as const;
+const KNOWN_SOURCES = [
+  'hn',
+  'bbc',
+  'techcrunch',
+  'sina',
+  'reuters',
+  'cnbc-ai',
+  'ars',
+  'theverge',
+  'infoq',
+  'people',
+  'csdn',
+] as const;
 const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
 const USAGE = `\
@@ -32,8 +44,9 @@ Usage: npx tsx news.ts --sources <ids|all> [options]
 
 Options:
   --sources <ids|all>      Comma-separated source IDs or "all"
-                           Available: hn, bbc, techcrunch, sina, reuters, cnbc-ai
-                           Multiple sources: --sources hn,bbc,techcrunch
+                           HTTP: hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn
+                           Browser: reuters, cnbc-ai
+                           Multiple: --sources hn,bbc,techcrunch
   --mode list|detail       Fetch mode (default: list)
   --limit N                Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
   --out DIR                Write output files to DIR/YYYYMMDD/

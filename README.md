@@ -6,11 +6,27 @@ A Node.js news scraper that fetches articles from multiple sources and outputs s
 
 ## Features
 
-- **6 sources out of the box**: Hacker News, BBC, TechCrunch, Sina News, Reuters, CNBC AI
+- **11 sources out of the box** — see table below
 - **HTTP-first**: Playwright is only launched when a source actually needs it
 - **Structured output**: `index.json` (metadata) + per-article `.md` files
 - **GB2312/GBK support**: Chinese sources decoded correctly
 - **Fault-isolated**: one source failing never blocks the others
+
+## Sources
+
+| ID | Site | Language | Method | Notes |
+|---|---|---|---|---|
+| `hn` | Hacker News | EN | HTTP | Top stories, score + comments |
+| `bbc` | BBC News | EN | HTTP | |
+| `techcrunch` | TechCrunch | EN | HTTP | |
+| `ars` | Ars Technica | EN | HTTP | Channel shown in notes |
+| `theverge` | The Verge (AI feed) | EN | HTTP (Atom) | ~10 latest entries |
+| `sina` | Sina News 新浪新闻 | ZH | HTTP | GB2312 auto-decoded |
+| `infoq` | InfoQ CN | ZH | HTTP | |
+| `people` | People Daily 人民网 | ZH | HTTP | |
+| `csdn` | CSDN | ZH | HTTP | Tech blog aggregator |
+| `reuters` | Reuters | EN | Browser | Blocked by DataDome on some IPs |
+| `cnbc-ai` | CNBC AI | EN | Browser | |
 
 ## Requirements
 

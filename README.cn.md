@@ -6,11 +6,27 @@
 
 ## 功能特点
 
-- **开箱即用 6 个数据源**：Hacker News、BBC、TechCrunch、新浪新闻、Reuters、CNBC AI
+- **开箱即用 11 个数据源**——详见下表
 - **HTTP 优先**：只有确实需要 JS 渲染的源才会启动 Playwright
 - **结构化输出**：`index.json`（元数据）+ 每篇文章独立 `.md` 文件
 - **GB2312/GBK 支持**：中文源编码正确处理
 - **故障隔离**：单个源失败不影响其他源
+
+## 数据源
+
+| ID | 网站 | 语言 | 方式 | 备注 |
+|---|---|---|---|---|
+| `hn` | Hacker News | 英文 | HTTP | 含评分和评论数 |
+| `bbc` | BBC News | 英文 | HTTP | |
+| `techcrunch` | TechCrunch | 英文 | HTTP | |
+| `ars` | Ars Technica | 英文 | HTTP | notes 含频道名 |
+| `theverge` | The Verge（AI 版块）| 英文 | HTTP（Atom）| 约 10 条最新 |
+| `sina` | 新浪新闻 | 中文 | HTTP | GB2312 自动转码 |
+| `infoq` | InfoQ 中文 | 中文 | HTTP | |
+| `people` | 人民网 | 中文 | HTTP | |
+| `csdn` | CSDN | 中文 | HTTP | 技术博客聚合 |
+| `reuters` | Reuters | 英文 | 浏览器 | 部分 IP 被 DataDome 拦截 |
+| `cnbc-ai` | CNBC AI | 英文 | 浏览器 | |
 
 ## 环境要求
 

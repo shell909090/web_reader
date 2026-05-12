@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>The Verge - AI / Artificial Intelligence</title>
+  <link href="https://www.theverge.com/ai-artificial-intelligence" rel="alternate"/>
+  <id>https://www.theverge.com/rss/ai-artificial-intelligence/index.xml</id>
+  <updated>2026-05-12T12:00:00Z</updated>
+
+  <entry>
+    <title><![CDATA[OpenAI launches GPT-5 with multimodal reasoning and real-time voice]]></title>
+    <link rel="alternate" href="https://www.theverge.com/ai-artificial-intelligence/2026/05/12/openai-gpt-5-multimodal-reasoning-voice"/>
+    <id>https://www.theverge.com/ai-artificial-intelligence/2026/05/12/openai-gpt-5</id>
+    <published>2026-05-12T10:00:00Z</published>
+    <updated>2026-05-12T10:30:00Z</updated>
+    <summary>OpenAI's latest model brings improved reasoning and live voice interaction.</summary>
+  </entry>
+
+  <entry>
+    <title>Google DeepMind reveals Gemini Ultra 2 benchmark results</title>
+    <link rel="alternate" href="https://www.theverge.com/ai-artificial-intelligence/2026/05/11/google-deepmind-gemini-ultra-2-benchmarks"/>
+    <id>https://www.theverge.com/ai-artificial-intelligence/2026/05/11/gemini-ultra-2</id>
+    <published>2026-05-11T14:00:00Z</published>
+    <updated>2026-05-11T15:00:00Z</updated>
+    <summary>DeepMind claims Gemini Ultra 2 outperforms all rivals on standard AI benchmarks.</summary>
+  </entry>
+
+  <entry>
+    <title><![CDATA[Anthropic's Claude 4 gains memory and tool-use improvements]]></title>
+    <link rel="alternate" href="https://www.theverge.com/ai-artificial-intelligence/2026/05/10/anthropic-claude-4-memory-tools"/>
+    <id>https://www.theverge.com/ai-artificial-intelligence/2026/05/10/claude-4</id>
+    <published>2026-05-10T09:00:00Z</published>
+    <updated>2026-05-10T09:45:00Z</updated>
+    <summary>Claude 4 introduces persistent memory and improved agentic tool calling.</summary>
+  </entry>
+
+  <entry>
+    <title>Meta releases open-source Llama 4 with 400 billion parameters</title>
+    <link rel="alternate" href="https://www.theverge.com/ai-artificial-intelligence/2026/05/09/meta-llama-4-open-source-400b"/>
+    <id>https://www.theverge.com/ai-artificial-intelligence/2026/05/09/llama-4</id>
+    <published>2026-05-09T16:00:00Z</published>
+    <updated>2026-05-09T16:30:00Z</updated>
+    <summary>Meta's newest open-weights model targets enterprise and research use cases.</summary>
+  </entry>
+
+  <entry>
+    <title>EU AI Act enforcement begins with first wave of compliance audits</title>
+    <link rel="alternate" href="https://www.theverge.com/ai-artificial-intelligence/2026/05/08/eu-ai-act-enforcement-compliance-audits"/>
+    <id>https://www.theverge.com/ai-artificial-intelligence/2026/05/08/eu-ai-act</id>
+    <published>2026-05-08T11:00:00Z</published>
+    <updated>2026-05-08T12:00:00Z</updated>
+    <summary>Regulators issue first set of compliance requirements under the EU AI Act.</summary>
+  </entry>
+
+  <entry>
+    <title>Microsoft Copilot gets autonomous agent mode for enterprise workflows</title>
+    <link rel="alternate" href="https://www.theverge.com/ai-artificial-intelligence/2026/05/07/microsoft-copilot-autonomous-agent-enterprise"/>
+    <id>https://www.theverge.com/ai-artificial-intelligence/2026/05/07/copilot-agent</id>
+    <published>2026-05-07T08:00:00Z</published>
+    <updated>2026-05-07T08:30:00Z</updated>
+    <summary>Copilot can now chain tasks across Office apps without human prompting.</summary>
+  </entry>
+</feed>
