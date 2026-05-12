@@ -209,10 +209,14 @@ const MULTI_BLANK_RE = /\n{3,}/g;
 /** Extract the main article body from raw HTML and return it as Markdown. */
 export function extractMarkdown(html: string, url: string): string {
   // Dynamic require to avoid circular ESM/CJS issues with jsdom and readability
-  const { JSDOM } = _require('jsdom') as typeof import('jsdom');
+  const { JSDOM, VirtualConsole } = _require('jsdom') as typeof import('jsdom');
   const { Readability } = _require('@mozilla/readability') as typeof import('@mozilla/readability');
 
-  const dom = new JSDOM(html, { url });
+  // Suppress CSS/resource parse errors (common with complex modern sites like Reddit)
+  const vc = new VirtualConsole();
+  vc.on('jsdomError', () => undefined);
+
+  const dom = new JSDOM(html, { url, virtualConsole: vc });
   const reader = new Readability(dom.window.document);
   const article = reader.parse();
 
