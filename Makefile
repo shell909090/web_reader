@@ -1,4 +1,4 @@
-.PHONY: fmt lint build unittest test
+.PHONY: fmt lint build unittest clean install bundle
 
 fmt:
 	npx prettier --write "**/*.ts" "**/*.js" --ignore-path .gitignore
@@ -18,5 +18,26 @@ unittest:
 		npx c8 --reporter=text-summary node --test --import tsx $$test_files; \
 	fi
 
-test: unittest
-	bash scripts/smoke.sh
+clean:
+	rm -rf node_modules/ coverage/ data/ dist/
+
+install: clean
+	npm install
+	npm link
+	@echo "Installed: web_reader command is now available globally"
+
+bundle:
+	@mkdir -p dist
+	npx esbuild read.ts \
+		--bundle \
+		--platform=node \
+		--target=node20 \
+		--format=esm \
+		--outfile=dist/web_reader.js \
+		--external:@mozilla/readability \
+		--external:jsdom \
+		--external:cheerio \
+		--external:turndown \
+		--external:@modelcontextprotocol/sdk
+	@echo "Bundle: dist/web_reader.js (deps still required in node_modules)"
+	@echo "For a self-contained build use: npm pack"

@@ -6,3 +6,4 @@ docs/log.md
 .env
 _errors.log
 coverage/
+dist/
