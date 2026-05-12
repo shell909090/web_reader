@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>新华网</title></head>
+<body>
+<div class="topnews">
+  <a href="https://www.news.cn/politics/leaders/20260512/e3a25ec8/c.html">引领中美关系这艘大船穿越风浪、平稳前行</a>
+  <a href="https://www.news.cn/politics/leaders/20260511/efb76041/c.html">总书记引领美丽中国建设迈出新步伐</a>
+  <a href="https://www.news.cn/world/20260512/641f1a18/c.html">中国和塔吉克斯坦签署永久睦邻友好合作条约</a>
+  <a href="https://www.news.cn/politics/20260512/4d70e2ea/c.html">习近平同塔吉克斯坦总统拉赫蒙共同出席合作文件签字仪式</a>
+  <a href="https://www.news.cn/politics/20260512/08b73dff/c.html">习近平同塔吉克斯坦总统拉赫蒙举行会谈</a>
+  <a href="https://www.news.cn/society/20260512/3836dc1e/c.html">全国多地迎来"五月天"旅游热潮</a>
+  <a href="https://www.news.cn/finance/20260511/abd12345/c.html">央行宣布下调存款准备金率释放流动性约1.1万亿元</a>
+  <a href="https://www.news.cn/politics/20260511/cde67890/c.html">国务院常务会议研究促进外贸稳增长有关举措</a>
+  <a href="https://www.news.cn/world/20260511/fgh11111/c.html">中美贸易谈判取得阶段性进展</a>
+  <a href="https://www.news.cn/society/20260510/ijk22222/c.html">各地扎实推进"五一"假期防灾减灾工作</a>
+  <a href="https://www.news.cn/politics/20260510/lmn33333/c.html">商务部：对美加征关税清单适用税率将恢复至原有水平</a>
+  <a href="https://www.news.cn/finance/20260509/opq44444/c.html">一季度GDP增长5.3%，超出市场预期</a>
+  <!-- nav link — no date pattern, filtered -->
+  <a href="https://www.news.cn/politics/">时政频道</a>
+  <!-- short title — filtered -->
+  <a href="https://www.news.cn/politics/20260509/rst55555/c.html">要闻</a>
+</div>
+</body></html>

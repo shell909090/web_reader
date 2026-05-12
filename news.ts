@@ -34,6 +34,7 @@ const KNOWN_SOURCES = [
   'wiki',
   'caixin',
   'thepaper',
+  'xinhua',
   'mittr',
   'wsj',
   'cnbc',
@@ -67,6 +68,7 @@ Options:
                            Categories: wsj:world/us/markets/opinion/main
                                        cnbc:top/world/markets/tech/finance/us/health/politics/intl/ai
                                        mittr:ai/computing/space/biotech (default: main RSS)
+                                       xinhua:politics/world/society/finance/tech/mil/legal/health/edu
                            Others: hn bbc techcrunch sina ars theverge infoq people csdn
                                    caixin wiki nytimes huggingface oschina juejin
   -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
