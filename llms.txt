@@ -136,6 +136,60 @@ If invoked as `web_reader --mcp`, exposes three tools to the MCP client:
 
 ---
 
+## Source characteristics — when to use which
+
+### For understanding current events
+
+| Need | Best sources | Why |
+|---|---|---|
+| Global news, neutral | `bbc` | Western mainstream, broad coverage, reliable facts |
+| China news, independent | `nytimes` | NYT Chinese edition, full text accessible, independent editorial |
+| China official stance | `xinhua` | State wire service — use to understand what Beijing is saying |
+| China domestic events | `thepaper` | Breaking social/investigative news inside China |
+| Curated digest | `wiki`, `zhwiki` | Human-edited summaries, events cross-referenced, good for "what happened" |
+| Financial / markets | `caixin` + `wsj` | Caixin for China finance (independent), WSJ for global (summaries only) |
+
+### For tech topics
+
+| Need | Best sources | Why |
+|---|---|---|
+| Community signal | `hn` | What the tech industry finds important right now; upvote-ranked |
+| Technical accuracy | `ars` | Written by domain experts; best for "how does X actually work" |
+| Broader implications | `mittr` | Tech policy, society, ethics; deeper than news |
+| AI/ML research | `huggingface` | Daily ML papers; most current research |
+| China tech / dev | `infoq` | Enterprise and developer community in China |
+| Practitioner opinions | `reddit:ml`, `reddit:llm` | Real practitioners discussing what works in practice |
+
+### Detail mode (full text): what works
+
+| Works well | Paywalled / blocked |
+|---|---|
+| bbc, nytimes, thepaper | wsj (paywall) |
+| ars, mittr, theverge | reddit /comments/ (login required) |
+| caixin, xinhua, infoq | bloomberg, ft (not indexed) |
+| wiki article pages | most Chinese portal detail pages |
+
+### Query mode: when to use `-q`
+
+- `-q wiki` — background on a concept, person, event, technology (EN)
+- `-q zhwiki` — same for Chinese topics; also covers Chinese political/historical context
+- `-q reddit` — community perspective on a topic; good for "what do practitioners think about X"
+
+### Perspective map
+
+```
+Independent ←————————————————————→ Official
+   nytimes · caixin · thepaper       xinhua · people
+
+Deep ←——————————————————————→ Fast
+ mittr · wiki                  hn · thepaper · xinhua
+
+EN ←————————————————————→ ZH
+ bbc · ars · wsj · hn     nytimes · caixin · thepaper · xinhua · zhwiki
+```
+
+---
+
 ## Notes for LLMs
 
 - **list mode** is passive: subscribe to sources to get a stream of article metadata
@@ -146,3 +200,4 @@ If invoked as `web_reader --mcp`, exposes three tools to the MCP client:
 - `wiki` and `zhwiki` are the most reliable data sources: structured, full-text accessible
 - `nytimes` (Chinese) provides high-quality full text; most other sources may be paywalled at detail level
 - Reddit comment pages (URLs containing `/comments/`) require login and return a block page
+- When uncertain which source to use, `web_reader -s news` gives a balanced multi-perspective starting point
