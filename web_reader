@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-exec node --import tsx "$(dirname "$(realpath "$0")")/read.ts" "$@"
+DIR="$(dirname "$(realpath "$0")")"
+exec "$DIR/node_modules/.bin/tsx" "$DIR/read.ts" "$@"
