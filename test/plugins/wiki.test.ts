@@ -1,14 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import plugin from '../../plugins/wikipedia.ts';
+import plugin from '../../plugins/wiki.ts';
 import { makeLogger } from '../../lib.ts';
 import type { Ctx } from '../../lib.ts';
 
-const fixtureHtml = readFileSync(
-  new URL('../fixtures/wikipedia/main.html', import.meta.url),
-  'utf-8',
-);
+const fixtureHtml = readFileSync(new URL('../fixtures/wiki/main.html', import.meta.url), 'utf-8');
 
 const ctx: Ctx = {
   mode: 'http',
@@ -20,7 +17,7 @@ const ctx: Ctx = {
   log: makeLogger('info'),
 };
 
-describe('wikipedia plugin', () => {
+describe('wiki plugin', () => {
   it('TC-WIKI1: list returns >= 8 items from fixture (2 days × categories)', async () => {
     const items = await plugin.list(ctx, { limit: 20 });
     assert.ok(items.length >= 8, `Expected >= 8 items, got ${items.length}`);

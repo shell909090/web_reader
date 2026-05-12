@@ -63,7 +63,7 @@ function parseWikiPage(html: string, limit: number): Item[] {
           if (category) noteParts.push(category);
 
           items.push({
-            source: 'wikipedia',
+            source: 'wiki',
             title,
             url,
             notes: noteParts.join(' · '),
@@ -77,7 +77,7 @@ function parseWikiPage(html: string, limit: number): Item[] {
 }
 
 const plugin: Plugin = {
-  id: 'wikipedia',
+  id: 'wiki',
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
     ctx.log.debug('Fetching Wikipedia Current Events', { url: WIKI_URL });

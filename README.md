@@ -22,7 +22,7 @@ A Node.js news scraper that fetches articles from multiple sources via HTTP and 
 | `techcrunch` | TechCrunch | EN | |
 | `ars` | Ars Technica | EN | Channel + summary field |
 | `theverge` | The Verge (AI) | EN | Atom feed, ~10 latest |
-| `wikipedia` | Wikipedia Current Events | EN | Date + category + summary |
+| `wiki` | Wikipedia Current Events | EN | Date + category + summary |
 | `nytimes` | NYT Chinese 纽约时报 | ZH | |
 | `huggingface` | HuggingFace Papers | EN | Daily ML papers |
 | `cnbc-tech` | CNBC Technology | EN | |

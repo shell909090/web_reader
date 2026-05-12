@@ -22,7 +22,7 @@
 | `techcrunch` | TechCrunch | 英文 | |
 | `ars` | Ars Technica | 英文 | 含频道名和摘要字段 |
 | `theverge` | The Verge（AI 版块）| 英文 | Atom feed，约 10 条最新 |
-| `wikipedia` | Wikipedia 时事 | 英文 | 含日期、分类和摘要 |
+| `wiki` | Wikipedia 时事 | 英文 | 含日期、分类和摘要 |
 | `nytimes` | 纽约时报中文网 | 中文 | |
 | `huggingface` | HuggingFace Papers | 英文 | 每日 ML 论文 |
 | `cnbc-tech` | CNBC Technology | 英文 | |

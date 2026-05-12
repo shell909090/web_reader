@@ -34,7 +34,7 @@ const KNOWN_SOURCES = [
   'infoq',
   'people',
   'csdn',
-  'wikipedia',
+  'wiki',
   'nytimes',
   'huggingface',
   'oschina',
@@ -52,7 +52,7 @@ Usage:
 Options:
   -s, --sources <ids|all>  [list] Comma-separated source IDs or "all"
                            hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn,
-                           wikipedia, nytimes, huggingface, oschina, cnbc-tech, juejin, cnbc-ai
+                           wiki, nytimes, huggingface, oschina, cnbc-tech, juejin, cnbc-ai
   -m, --mode list|detail   Fetch mode (default: list)
   -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out DIR            Write output files to DIR/YYYYMMDD/
