@@ -1,38 +1,44 @@
-# news-scraper
+# web_reader
 
-A Node.js news scraper that fetches articles from multiple sources via HTTP and outputs structured Markdown and JSON.
+A Node.js tool for fetching news feeds, reading web pages as Markdown, and searching reference sources.
 
 > [中文说明](README.cn.md)
 
 ## Features
 
-- **16 sources out of the box** — see table below
-- **Pure HTTP**: no browser dependency, fast and lightweight
-- **Structured output**: `index.json` (metadata) + per-article `.md` files (detail mode)
+- **21 sources** across EN and ZH — see table below
+- **Three presets**: `news`, `tech`, `fin`
+- **Three modes**: list (news feeds) · detail (full text) · query (reference search)
+- **MCP server mode** for AI agent integration (`--mcp`)
+- **Pure HTTP**: no browser dependency
 - **GB2312/GBK support**: Chinese sources decoded correctly
-- **Fault-isolated**: one source failing never blocks the others
-- **Composable**: list mode outputs JSON; detail mode reads URLs from args or stdin
 
 ## Sources
 
 | ID | Site | Language | Notes |
 |---|---|---|---|
-| `hn` | Hacker News | EN | Score + comments in notes |
+| `hn` | Hacker News | EN | Score + comments |
 | `bbc` | BBC News | EN | |
 | `techcrunch` | TechCrunch | EN | |
-| `ars` | Ars Technica | EN | Channel + summary field |
-| `theverge` | The Verge (AI) | EN | Atom feed, ~10 latest |
-| `wiki` | Wikipedia Current Events | EN | Date + category + summary |
-| `nytimes` | NYT Chinese 纽约时报 | ZH | |
-| `huggingface` | HuggingFace Papers | EN | Daily ML papers |
-| `cnbc-tech` | CNBC Technology | EN | |
-| `cnbc-ai` | CNBC AI | EN | |
-| `sina` | Sina 新浪新闻 | ZH | GB2312 auto-decoded |
+| `ars` | Ars Technica | EN | `summary` field |
+| `theverge` | The Verge (AI) | EN | Atom feed |
+| `mittr` | MIT Technology Review | EN | categories: ai computing space biotech |
+| `wiki` | Wikipedia Current Events | EN | `summary` field |
+| `zhwiki` | 中文维基百科新闻动态 | ZH | `summary` field |
+| `reddit` | Reddit | EN | categories: ml llm ai tech prog investing stocks worldnews |
+| `wsj` | Wall Street Journal | EN | RSS summaries; categories: world us markets opinion main |
+| `cnbc` | CNBC | EN | categories: top world markets tech finance us health politics intl ai |
+| `nytimes` | NYT Chinese 纽约时报 | ZH | full text accessible |
+| `xinhua` | 新华社 | ZH | categories: politics world society finance tech mil legal health edu |
+| `thepaper` | 澎湃新闻 | ZH | breaking news |
+| `caixin` | 财新 | ZH | financial journalism |
+| `sina` | 新浪新闻 | ZH | GB2312 auto-decoded |
 | `infoq` | InfoQ CN | ZH | |
-| `people` | People Daily 人民网 | ZH | |
-| `csdn` | CSDN | ZH | Tech blog aggregator |
-| `oschina` | OSChina 开源中国 | ZH | Open source news |
-| `juejin` | 稀土掘金 | ZH | POST recommend API |
+| `people` | 人民网 | ZH | |
+| `huggingface` | HuggingFace Papers | EN | daily ML papers |
+| `csdn` | CSDN | ZH | |
+| `oschina` | 开源中国 | ZH | |
+| `juejin` | 稀土掘金 | ZH | |
 
 ## Requirements
 
@@ -43,78 +49,75 @@ A Node.js news scraper that fetches articles from multiple sources via HTTP and 
 
 ```bash
 npm install
+make install   # installs web_reader as a global command via npm link
 ```
+
+After `make install`, `web_reader` is available from any directory.
 
 ## Usage
 
-Mode is inferred: `-s` → list, `-q` → query, otherwise → detail (URLs from args or stdin).
+Mode is inferred: `-s` → list, `-q` → query, otherwise → detail.
 
 ```bash
-# List mode — fetch news feeds, output JSON to stdout
-npx tsx read.ts -s news              # preset: bbc + nytimes + xinhua + thepaper
-npx tsx read.ts -s tech              # preset: hn + ars + mittr + infoq
-npx tsx read.ts -s fin               # preset: caixin + wsj + cnbc:markets
-npx tsx read.ts -s wsj:markets,wsj:world -n 50
-npx tsx read.ts -s fin -o fin.json   # write to file
+# List mode — fetch news, output JSON to stdout
+web_reader -s news                       # bbc + nytimes + xinhua + thepaper
+web_reader -s tech                       # hn + ars + mittr + infoq
+web_reader -s fin                        # caixin + wsj + cnbc:markets
+web_reader -s wsj:markets,cnbc:tech -n 30
+web_reader -s fin -o fin.json            # write to file
 
-# Detail mode — fetch full text for URLs (markdown output)
-npx tsx read.ts https://arstechnica.com/tech-policy/2026/05/article
-npx tsx read.ts -o article.md https://...
+# Detail mode — fetch full text as Markdown
+web_reader https://arstechnica.com/...
+web_reader -o article.md https://...
 
-# Pipe: list → pick URLs → fetch full text
-npx tsx read.ts -s hn -n 5 | jq -r '.[].url' | npx tsx read.ts
-npx tsx read.ts -s tech | jq -r '.[].url' | npx tsx read.ts -o articles.md
+# Pipe: list → pick URLs → read full text
+web_reader -s hn -n 5 | jq -r '.[].url' | web_reader
+web_reader -s tech | jq -r '.[].url' | web_reader -o articles.md
 
-# Query mode — search a data source by keyword
-npx tsx read.ts -q wiki transformer architecture
-npx tsx read.ts -q wiki attention mechanism | jq -r '.[0].url' | npx tsx read.ts
+# Query mode — search a reference source
+web_reader -q wiki transformer architecture
+web_reader -q zhwiki 注意力机制
+web_reader -q reddit "open source LLM"
+web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 ```
 
 ### Options
 
 | Short | Long | Default | Description |
 |-------|------|---------|-------------|
-| `-s` | `--sources` | — | Source IDs, set names, or `all`; triggers list mode |
-| `-q` | `--query` | — | Query a data source; keywords follow as args |
+| `-s` | `--sources` | — | Source IDs, preset names (`news`/`tech`/`fin`), or `all` |
+| `-q` | `--query` | — | Query source (`wiki`/`zhwiki`/`reddit`); keywords follow |
 | `-n` | `--limit` | `50` | Max results |
 | `-o` | `--out` | stdout | Write output to FILE |
 | `-c` | `--concurrency` | `2` | Parallel sources (list mode) |
 | `-l` | `--loglevel` | `warn` | `debug\|info\|warn\|error` |
 | `-h` | `--help` | | Show help |
 
-### Presets
+## MCP Server (AI agent integration)
 
-| Set | Sources |
-|-----|---------|
-| `news` | bbc · nytimes · xinhua · thepaper |
-| `tech` | hn · ars · mittr · infoq |
-| `fin` | caixin · wsj · cnbc:markets |
+```bash
+web_reader --mcp   # start as MCP server on stdio
+```
 
-### Sources with categories
+Configure in `.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "web_reader": {
+      "command": "web_reader",
+      "args": ["--mcp"]
+    }
+  }
+}
+```
 
-| Source | Categories |
-|--------|-----------|
-| `wsj` | `world` `us` `markets` `opinion` `main` |
-| `cnbc` | `top` `world` `markets` `tech` `finance` `us` `health` `politics` `intl` `ai` |
-| `mittr` | `ai` `computing` `space` `biotech` (default: main RSS) |
-| `xinhua` | `politics` `world` `society` `finance` `tech` `mil` `legal` `health` `edu` |
-
-### Searchable data sources (`-q`)
-
-| Source | Backend |
-|--------|---------|
-| `wiki` | Wikipedia full-text search API |
+Exposes three tools: `list_news`, `read_url`, `search`. See `llms.txt` for full AI usage guide.
 
 ## Output
 
-**List mode**: JSON array to stdout (or `-o file.json`). Each record has `source`, `title`, `url`, `notes`, plus optional fields like `summary`.
+**List / query**: JSON array. Each record: `source`, `title`, `url`, `notes`, optional `summary`.
 
-**Detail mode**: Markdown articles to stdout (or `-o file.md`), separated by `---`. Fetch errors go to stderr.
-
-## Adding a new source
-
-1. Create `plugins/{id}.ts` — export a `Plugin` with `id` and `list()` (see `lib.ts` for types)
-2. Add the ID to `KNOWN_SOURCES` in `news.ts`
+**Detail**: Markdown articles separated by `---`, starting with `# title`.
 
 ## Development
 
@@ -122,8 +125,15 @@ npx tsx read.ts -q wiki attention mechanism | jq -r '.[0].url' | npx tsx read.ts
 make fmt        # Prettier
 make lint       # tsc + ESLint
 make unittest   # unit tests with coverage
-make test       # unittest + smoke tests
+make clean      # remove node_modules/ coverage/ data/ dist/
+make install    # npm install + npm link
+make bundle     # esbuild bundle to dist/web_reader.js
 ```
+
+## Adding a new source
+
+1. Create `plugins/{id}.ts` — export a `Plugin` with `id` and `list()` (see `lib.ts`)
+2. Add the ID to `KNOWN_SOURCES` in `read.ts`
 
 ## Author
 

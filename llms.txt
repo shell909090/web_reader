@@ -1,7 +1,9 @@
-# read.ts — LLM Usage Guide
+# web_reader — LLM Usage Guide
 
-`read.ts` is a command-line tool for fetching news and reading web content.
-It has three modes, inferred from the arguments.
+`web_reader` is a command-line tool for fetching news feeds, reading web pages as Markdown,
+and searching reference sources. Installed globally via `npm link`; run from any directory.
+
+Three modes are inferred from arguments: `-s` → list, `-q` → query, otherwise → detail.
 
 ---
 
@@ -10,7 +12,7 @@ It has three modes, inferred from the arguments.
 Fetch article lists from news sources. Output is a JSON array on stdout.
 
 ```
-npx tsx read.ts -s <sources> [-n limit] [-o output.json]
+web_reader -s <sources> [-n limit] [-o output.json]
 ```
 
 **Presets** (recommended):
@@ -18,21 +20,21 @@ npx tsx read.ts -s <sources> [-n limit] [-o output.json]
 - `-s tech` → hn + ars + mittr + infoq           (tech news, EN+ZH)
 - `-s fin`  → caixin + wsj + cnbc:markets        (financial news, EN+ZH)
 
-**Individual sources** (all HTTP, no browser required):
+**Individual sources** (all HTTP):
 - `hn` Hacker News (EN) — score + comments in notes
 - `bbc` BBC News (EN)
 - `nytimes` NYT Chinese 纽约时报中文 (ZH) — full text accessible
 - `xinhua` 新华社 (ZH) — official Chinese news wire
 - `thepaper` 澎湃新闻 (ZH) — breaking domestic news
 - `caixin` 财新 (ZH) — independent financial journalism
-- `wsj` Wall Street Journal (EN) — RSS, summaries only (paywalled full text)
+- `wsj` Wall Street Journal (EN) — RSS summaries (full text paywalled)
 - `cnbc` CNBC (EN) — categories: top world markets tech finance us health politics intl ai
 - `ars` Ars Technica (EN) — deep tech reporting, has `summary` field
 - `mittr` MIT Technology Review (EN) — tech analysis
 - `theverge` The Verge AI section (EN) — ~10 items
 - `wiki` Wikipedia Current Events (EN) — curated digest, has `summary` field
-- `reddit` Reddit (EN) — subreddit categories: ml llm ai tech prog investing stocks worldnews
 - `zhwiki` 中文维基百科新闻动态 (ZH) — curated digest, has `summary` field
+- `reddit` Reddit (EN) — categories: ml llm ai tech prog investing stocks worldnews
 - `infoq` InfoQ CN (ZH)
 - `techcrunch` TechCrunch (EN)
 - `sina` 新浪新闻 (ZH)
@@ -42,11 +44,12 @@ npx tsx read.ts -s <sources> [-n limit] [-o output.json]
 - `oschina` 开源中国 (ZH)
 - `juejin` 稀土掘金 (ZH)
 
-**Category syntax**: `source:category` e.g. `wsj:markets`, `cnbc:tech`, `xinhua:world`
+**Category syntax**: `source:category` e.g. `wsj:markets`, `cnbc:tech`, `reddit:ml`
 - `wsj`: world us markets opinion main
 - `cnbc`: top world markets tech finance us health politics intl ai
 - `mittr`: ai computing space biotech (default: main RSS)
 - `xinhua`: politics world society finance tech mil legal health edu
+- `reddit`: ml llm ai tech prog investing stocks worldnews
 
 **Output format** (JSON array):
 ```json
@@ -56,7 +59,7 @@ npx tsx read.ts -s <sources> [-n limit] [-o output.json]
     "title": "Article title",
     "url": "https://...",
     "notes": "412 points · 187 comments",
-    "summary": "Optional excerpt (ars, wiki, zhwiki, wsj, caixin)"
+    "summary": "Optional excerpt (ars, wiki, zhwiki, wsj, reddit self-posts)"
   }
 ]
 ```
@@ -68,16 +71,17 @@ npx tsx read.ts -s <sources> [-n limit] [-o output.json]
 Pass URLs as arguments or via stdin. Output is Markdown on stdout.
 
 ```
-npx tsx read.ts <url1> [url2 ...]
-npx tsx read.ts -s hn -n 5 | jq -r '.[].url' | npx tsx read.ts
-npx tsx read.ts <url> -o article.md
+web_reader <url1> [url2 ...]
+web_reader -s hn -n 5 | jq -r '.[].url' | web_reader
+web_reader <url> -o article.md
 ```
 
 - Extracts main article body using Readability + Turndown
 - Strips navigation, ads, "Read more" sections
 - Output format: `---\n# title\n\nmarkdown body\n`
-- Multiple URLs are separated by `---`
-- Works well with: bbc, nytimes, ars, mittr, thepaper, caixin, xinhua, cnbc, wsj (summaries only)
+- Multiple URLs separated by `---`
+- Reddit link posts resolve to the external article (detail works); self-posts include body in `summary`
+- Works well with: bbc, nytimes, ars, mittr, thepaper, caixin, xinhua, cnbc
 
 ---
 
@@ -86,36 +90,24 @@ npx tsx read.ts <url> -o article.md
 Search a reference source by keyword. Returns a JSON list of matching articles.
 
 ```
-npx tsx read.ts -q wiki <keywords...>
-npx tsx read.ts -q zhwiki <Chinese keywords...>
-npx tsx read.ts -q wiki transformer architecture -n 8
+web_reader -q wiki <keywords...>
+web_reader -q zhwiki <Chinese keywords...>
+web_reader -q reddit <keywords...>
+web_reader -q wiki transformer architecture -n 8
 ```
 
 **Searchable sources:**
 - `wiki` — English Wikipedia full-text search
 - `zhwiki` — Chinese Wikipedia (中文维基百科) full-text search
-- `reddit` — global Reddit search (returns posts sorted by relevance; use `-s reddit:ml` etc. for subreddit-specific content)
-
-**Output format** (same as list mode):
-```json
-[
-  {
-    "source": "wiki",
-    "title": "Transformer (deep learning)",
-    "url": "https://en.wikipedia.org/wiki/Transformer_(deep_learning)",
-    "notes": "Wikipedia",
-    "summary": "In deep learning, the transformer is..."
-  }
-]
-```
+- `reddit` — global Reddit search (sorted by relevance)
 
 **Typical usage pattern:**
 ```bash
 # Find Wikipedia article, then read it in full
-npx tsx read.ts -q wiki attention mechanism | jq -r '.[0].url' | npx tsx read.ts
+web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 
 # Search Chinese Wikipedia
-npx tsx read.ts -q zhwiki 注意力机制 | jq -r '.[0].url' | npx tsx read.ts
+web_reader -q zhwiki 注意力机制 | jq -r '.[0].url' | web_reader
 ```
 
 ---
@@ -134,12 +126,23 @@ npx tsx read.ts -q zhwiki 注意力机制 | jq -r '.[0].url' | npx tsx read.ts
 
 ---
 
+## MCP tools (when run as MCP server)
+
+If invoked as `web_reader --mcp`, exposes three tools to the MCP client:
+
+- **`list_news(sources, limit?)`** — same as `-s` mode, returns JSON string
+- **`read_url(urls[])`** — same as detail mode, returns Markdown string
+- **`search(source, query, limit?)`** — same as `-q` mode, returns JSON string
+
+---
+
 ## Notes for LLMs
 
 - **list mode** is passive: subscribe to sources to get a stream of article metadata
 - **detail mode** is active: give it URLs from list output to get full readable text
-- **query mode** is for reference lookup, not news; combine with detail for full articles
-- All output is UTF-8; Chinese content is handled natively (GB2312 auto-decoded for Sina)
+- **query mode** is for reference lookup; combine with detail for full articles
+- All output is UTF-8; Chinese content handled natively (GB2312 auto-decoded for Sina)
 - Errors go to stderr; stdout is always clean JSON or markdown
-- `wiki` and `zhwiki` are the best data sources: structured, reliable, full-text accessible
+- `wiki` and `zhwiki` are the most reliable data sources: structured, full-text accessible
 - `nytimes` (Chinese) provides high-quality full text; most other sources may be paywalled at detail level
+- Reddit comment pages (URLs containing `/comments/`) require login and return a block page
