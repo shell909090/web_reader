@@ -31,8 +31,8 @@ A Node.js news scraper that fetches articles from multiple sources and outputs s
 | `csdn` | CSDN | ZH | HTTP | Tech blog aggregator |
 | `oschina` | OSChina 开源中国 | ZH | HTTP | Open source news |
 | `juejin` | 稀土掘金 | ZH | HTTP (API) | POST recommend API |
+| `cnbc-ai` | CNBC AI | EN | HTTP | |
 | `reuters` | Reuters | EN | Browser | Blocked by DataDome on some IPs |
-| `cnbc-ai` | CNBC AI | EN | Browser | |
 
 ## Requirements
 

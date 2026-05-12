@@ -25,15 +25,17 @@ function parseHFPage(html: string, limit: number): Item[] {
 
     const url = `${HF_BASE}${href}`;
     if (seen.has(url)) return;
-    seen.add(url);
 
-    // Try direct text first; if short, look for a heading element inside the anchor
+    // Try direct text; fall back to a heading element inside the anchor
     let title = anchor.text().trim();
     if (title.length < 10) {
       const inner = anchor.find('h1, h2, h3, h4, [class*="title"], [class*="heading"]').first();
       if (inner.length) title = inner.text().trim();
     }
+    // Only mark as seen after confirming we have a usable title, so a later
+    // anchor for the same URL with better text can still be picked up.
     if (title.length < 10) return;
+    seen.add(url);
 
     items.push({ source: 'huggingface', title, url, notes: 'HuggingFace Papers' });
   });

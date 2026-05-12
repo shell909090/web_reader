@@ -1,52 +1,32 @@
-// CNBC AI news list plugin — browser-based, uses Playwright + cheerio to parse the CNBC AI page.
+// CNBC AI news list plugin — HTTP-based (no browser needed; date-path links present in static HTML).
 
 import * as cheerio from 'cheerio';
 import type { Plugin, Item, Ctx } from '../lib.ts';
-import { CONFIG } from '../lib.ts';
 
 const CNBC_BASE = 'https://www.cnbc.com';
 const CNBC_AI_URL = `${CNBC_BASE}/ai-artificial-intelligence/`;
 
-/** Parse CNBC AI page HTML into Item list, truncated to limit. */
+const ARTICLE_RE = /cnbc\.com\/\d{4}\/\d{2}\/\d{2}\//;
+
+/** Parse CNBC AI page HTML into an Item list. */
 function parseCnbcAiPage(html: string, limit: number): Item[] {
   const $ = cheerio.load(html);
   const seen = new Set<string>();
   const items: Item[] = [];
 
-  // Selector priority: Card-titleContainer > card-title > year-path links
-  const primaryLinks = $('.Card-titleContainer a');
-  const cardTitleLinks = $('.card-title a');
-  const yearPathLinks = $('a[href*="cnbc.com/202"]');
-
-  const anchors =
-    primaryLinks.length > 0
-      ? primaryLinks
-      : cardTitleLinks.length > 0
-        ? cardTitleLinks
-        : yearPathLinks;
-
-  anchors.each((_i, el) => {
+  $('a[href]').each((_i, el) => {
     if (items.length >= limit) return false;
 
     const anchor = $(el);
-    const rawHref = anchor.attr('href') ?? '';
-
-    // Resolve relative URLs
-    const url = rawHref.startsWith('http') ? rawHref : `${CNBC_BASE}${rawHref}`;
-
-    if (!url || seen.has(url)) return;
-    seen.add(url);
+    const href = anchor.attr('href') ?? '';
+    if (!ARTICLE_RE.test(href)) return;
+    if (seen.has(href)) return;
 
     const title = anchor.text().trim();
-    if (title.length < 5) return;
+    if (title.length < 15) return;
+    seen.add(href);
 
-    // Try to extract timestamp from sibling time element or .Card-time
-    const card = anchor.closest('[class*="Card"], article, [class*="card"]');
-    const timeEl = card.find('time, .Card-time').first();
-    const timeText = timeEl.attr('datetime') ?? timeEl.text().trim();
-    const notes = timeText ? timeText : 'CNBC AI';
-
-    items.push({ source: 'cnbc-ai', title, url, notes });
+    items.push({ source: 'cnbc-ai', title, url: href, notes: 'CNBC AI' });
   });
 
   return items;
@@ -54,37 +34,19 @@ function parseCnbcAiPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'cnbc-ai',
-  needsBrowser: true,
+  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'browser') throw new Error('cnbc-ai requires browser mode');
-    const { page, log } = ctx;
+    if (ctx.mode !== 'http') throw new Error('cnbc-ai requires http mode');
 
-    log.debug('Navigating to CNBC AI page', { url: CNBC_AI_URL });
-    // Use domcontentloaded — networkidle times out on CNBC (persistent background requests)
-    const response = await page.goto(CNBC_AI_URL, {
-      waitUntil: 'domcontentloaded',
-      timeout: CONFIG.NAV_TIMEOUT_MS,
-    });
+    ctx.log.debug('Fetching CNBC AI page', { url: CNBC_AI_URL });
+    const { status, html } = await ctx.httpGet(CNBC_AI_URL);
 
-    const status = response?.status() ?? 0;
-    if (status === 401 || status === 403) {
-      log.warn(`cnbc-ai: blocked by bot-detection (HTTP ${status}); returning 0 items`);
-      return [];
-    }
+    if (status !== 200) throw new Error(`CNBC AI returned HTTP ${status}`);
 
-    const cardSelector =
-      '.Card-titleContainer a, .card-title a, [class*="card"] a[href*="cnbc.com"]';
-    await page.waitForSelector(cardSelector, { timeout: 15000 }).catch(() => {
-      log.warn('cnbc-ai: card selector not found, using page.content() fallback');
-    });
-
-    const html = await page.content();
     const items = parseCnbcAiPage(html, opts.limit);
-    if (items.length === 0) {
-      log.warn('cnbc-ai: 0 items parsed — page may have changed structure or be behind a paywall');
-    }
-    log.debug(`Parsed ${items.length} items from CNBC AI page`);
+    if (items.length === 0) ctx.log.warn('cnbc-ai: 0 items — page structure may have changed');
+    ctx.log.debug(`Parsed ${items.length} items from CNBC AI`);
     return items;
   },
 };

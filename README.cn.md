@@ -31,8 +31,8 @@
 | `csdn` | CSDN | 中文 | HTTP | 技术博客聚合 |
 | `oschina` | 开源中国 | 中文 | HTTP | 开源项目新闻 |
 | `juejin` | 稀土掘金 | 中文 | HTTP（API）| POST 推荐接口 |
+| `cnbc-ai` | CNBC AI | 英文 | HTTP | |
 | `reuters` | Reuters | 英文 | 浏览器 | 部分 IP 被 DataDome 拦截 |
-| `cnbc-ai` | CNBC AI | 英文 | 浏览器 | |
 
 ## 环境要求
 
