@@ -6,7 +6,9 @@ import type { Plugin, Item, Ctx } from '../lib.ts';
 const BBC_BASE = 'https://www.bbc.com';
 const BBC_HOME = `${BBC_BASE}/news`;
 
-const NOISE_PATH_RE = /\/(live|video|av|topics|sport)\//;
+// BBC article URLs follow /news/articles/<hash> or /news/videos/<hash>
+// Navigation section links like /news/us-canada, /news/world/africa are not articles.
+const ARTICLE_PATH_RE = /\/news\/(articles|videos)\/[a-z0-9]+/;
 
 /** Parse BBC News homepage HTML into Item list, truncated to limit. */
 function parseBBCPage(html: string, limit: number): Item[] {
@@ -19,8 +21,8 @@ function parseBBCPage(html: string, limit: number): Item[] {
 
     const href = $(el).attr('href') ?? '';
 
-    // Skip noise paths (live, video, av, topics, sport)
-    if (NOISE_PATH_RE.test(href)) return;
+    // Only keep actual article/video pages, skip all navigation links
+    if (!ARTICLE_PATH_RE.test(href)) return;
 
     const url = `${BBC_BASE}${href}`;
 
