@@ -31,6 +31,7 @@ npx tsx read.ts -s <sources> [-n limit] [-o output.json]
 - `mittr` MIT Technology Review (EN) — tech analysis
 - `theverge` The Verge AI section (EN) — ~10 items
 - `wiki` Wikipedia Current Events (EN) — curated digest, has `summary` field
+- `reddit` Reddit (EN) — subreddit categories: ml llm ai tech prog investing stocks worldnews
 - `zhwiki` 中文维基百科新闻动态 (ZH) — curated digest, has `summary` field
 - `infoq` InfoQ CN (ZH)
 - `techcrunch` TechCrunch (EN)
@@ -93,6 +94,7 @@ npx tsx read.ts -q wiki transformer architecture -n 8
 **Searchable sources:**
 - `wiki` — English Wikipedia full-text search
 - `zhwiki` — Chinese Wikipedia (中文维基百科) full-text search
+- `reddit` — global Reddit search (returns posts sorted by relevance; use `-s reddit:ml` etc. for subreddit-specific content)
 
 **Output format** (same as list mode):
 ```json

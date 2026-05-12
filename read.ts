@@ -33,6 +33,7 @@ const KNOWN_SOURCES = [
   'csdn',
   'wiki',
   'zhwiki',
+  'reddit',
   'caixin',
   'thepaper',
   'xinhua',
@@ -68,14 +69,15 @@ Options:
                            Presets: news (bbc+nytimes+xinhua+thepaper)
                                     tech (hn+ars+mittr+infoq)
                                     fin  (caixin+wsj+cnbc:markets)
-                           Categories: wsj:world/us/markets/opinion/main
+                           Categories: reddit:ml/llm/ai/tech/prog/investing/stocks/worldnews
+                                       wsj:world/us/markets/opinion/main
                                        cnbc:top/world/markets/tech/finance/us/health/politics/intl/ai
                                        mittr:ai/computing/space/biotech (default: main RSS)
                                        xinhua:politics/world/society/finance/tech/mil/legal/health/edu
                            Others: hn bbc techcrunch sina ars theverge infoq people csdn
                                    caixin wiki nytimes huggingface oschina juejin
   -q, --query SOURCE       Query a data source; keywords follow as positional args
-                           Searchable sources: wiki (EN), zhwiki (中文)
+                           Searchable sources: wiki (EN), zhwiki (中文), reddit
   -n, --limit N            Max results (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})

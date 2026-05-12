@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>r/MachineLearning</title>
+  <entry>
+    <title>[R] Tiny transformers (&lt;100 params) can add two 10-digit numbers</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh84o0/r_tiny_transformers/"/>
+    <updated>2026-05-12T10:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[D] Discussion: scaling laws for language models in 2026</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh7000/d_scaling_laws/"/>
+    <updated>2026-05-12T09:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[P] Released an open-source tool for evaluating LLM reasoning</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh6000/p_llm_reasoning/"/>
+    <updated>2026-05-11T20:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[N] DeepMind announces new protein folding model outperforming AlphaFold 3</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh5000/n_deepmind_protein/"/>
+    <updated>2026-05-11T18:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[R] Attention Is All You Need — revisited after 9 years</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh4000/r_attention_revisited/"/>
+    <updated>2026-05-11T15:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[D] Best practices for fine-tuning on small datasets in 2026</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh3000/d_finetuning/"/>
+    <updated>2026-05-10T14:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[P] Open-sourcing our multi-modal benchmark suite for vision-language models</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh2000/p_multimodal/"/>
+    <updated>2026-05-10T12:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[R] New architecture achieves SOTA on reasoning benchmarks with 70B parameters</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh1000/r_new_architecture/"/>
+    <updated>2026-05-09T10:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[D] Has anyone successfully reproduced the results from the GPT-5 technical report?</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rh0000/d_gpt5_repro/"/>
+    <updated>2026-05-09T08:00:00+00:00</updated>
+  </entry>
+  <entry>
+    <title>[N] EU AI Act enforcement begins — first company fined for non-compliance</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/1rg9000/n_eu_ai_act/"/>
+    <updated>2026-05-08T16:00:00+00:00</updated>
+  </entry>
+  <!-- megathread — should be filtered -->
+  <entry>
+    <title>Daily General Discussion Thread</title>
+    <link rel="alternate" href="https://www.reddit.com/r/MachineLearning/comments/daily123/daily/"/>
+    <updated>2026-05-12T00:00:00+00:00</updated>
+  </entry>
+</feed>
