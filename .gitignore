@@ -1,0 +1,8 @@
+node_modules/
+data/
+docs/tasks.md
+docs/review.md
+docs/log.md
+.env
+_errors.log
+coverage/
