@@ -1,13 +1,18 @@
-// Wall Street Journal plugin — uses official RSS feeds (wsj.com homepage is 401).
-// Combines World, Digest, and Markets feeds for broader coverage.
+// Wall Street Journal plugin — RSS feeds from feeds.a.dj.com (wsj.com homepage is 401).
 
 import type { Plugin, Item, Ctx } from '../lib.ts';
 
-const FEEDS = [
-  'https://feeds.a.dj.com/rss/RSSWorldNews.xml',
-  'https://feeds.a.dj.com/rss/RSSWSJD.xml',
-  'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
-];
+const FEED_BASE = 'https://feeds.a.dj.com/rss';
+
+const CATEGORY_FEEDS: Record<string, string> = {
+  world: `${FEED_BASE}/RSSWorldNews.xml`,
+  us: `${FEED_BASE}/WSJcomUSBusiness.xml`,
+  markets: `${FEED_BASE}/RSSMarketsMain.xml`,
+  opinion: `${FEED_BASE}/RSSOpinion.xml`,
+  main: `${FEED_BASE}/RSSWSJD.xml`,
+};
+
+const DEFAULT_CATEGORIES = ['world', 'us', 'markets', 'main'];
 
 function extractText(block: string, tag: string): string {
   const m = block.match(
@@ -16,7 +21,7 @@ function extractText(block: string, tag: string): string {
   return m ? m[1].trim() : '';
 }
 
-function parseFeed(xml: string): Item[] {
+function parseFeed(xml: string, source: string): Item[] {
   const items: Item[] = [];
   for (const m of xml.matchAll(/<item>([\s\S]+?)<\/item>/gi)) {
     const block = m[1];
@@ -26,12 +31,11 @@ function parseFeed(xml: string): Item[] {
     if (!link) continue;
     const pubDate = extractText(block, 'pubDate');
     const summary = extractText(block, 'description');
-    const notes = pubDate ? `WSJ · ${pubDate.slice(0, 16)}` : 'WSJ';
     items.push({
-      source: 'wsj',
+      source,
       title,
       url: link,
-      notes,
+      notes: pubDate ? `WSJ · ${pubDate.slice(0, 16)}` : 'WSJ',
       summary: summary || undefined,
     });
   }
@@ -40,26 +44,43 @@ function parseFeed(xml: string): Item[] {
 
 const plugin: Plugin = {
   id: 'wsj',
+  categories: {
+    world: 'World News',
+    us: 'US Business',
+    markets: 'Markets',
+    opinion: 'Opinion',
+    main: 'WSJ Digest',
+  },
 
-  async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    // Fetch all feeds concurrently
+  async list(ctx: Ctx, opts: { limit: number; categories?: string[] }): Promise<Item[]> {
+    const cats = opts.categories?.length ? opts.categories : DEFAULT_CATEGORIES;
+    const feedUrls = cats
+      .filter((c) => CATEGORY_FEEDS[c])
+      .map((c) => ({ cat: c, url: CATEGORY_FEEDS[c] }));
+
+    if (feedUrls.length === 0) {
+      ctx.log.warn(
+        `wsj: no valid categories in [${cats.join(', ')}]. Available: ${Object.keys(CATEGORY_FEEDS).join(', ')}`,
+      );
+      return [];
+    }
+
     const results = await Promise.allSettled(
-      FEEDS.map((url) => {
-        ctx.log.debug('Fetching WSJ RSS feed', { url });
+      feedUrls.map(({ cat, url }) => {
+        ctx.log.debug(`Fetching WSJ RSS [${cat}]`, { url });
         return ctx.httpGet(url).then((r) => {
           if (r.status !== 200) throw new Error(`HTTP ${r.status}`);
-          return parseFeed(r.html);
+          return parseFeed(r.html, 'wsj');
         });
       }),
     );
 
     const seen = new Set<string>();
     const allItems: Item[] = [];
-
     for (const r of results) {
       if (r.status === 'rejected') {
         ctx.log.warn(
-          `WSJ feed failed: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`,
+          `WSJ feed error: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`,
         );
         continue;
       }
@@ -70,8 +91,7 @@ const plugin: Plugin = {
         }
       }
     }
-
-    ctx.log.debug(`Parsed ${allItems.length} unique items from WSJ RSS feeds`);
+    ctx.log.debug(`Parsed ${allItems.length} unique WSJ items`);
     return allItems.slice(0, opts.limit);
   },
 };

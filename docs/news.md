@@ -6,14 +6,14 @@
 - Ars Technica: `https://arstechnica.com/`
 - Wikipedia: `https://en.wikipedia.org/wiki/Portal:Current_events`
 - 新浪: `https://news.sina.com.cn/`
-- 纽约时报中文版: `https://cn.nytimes.com/`
 - 纽约时报中文版: `https://cn.nytimes.com/rss/`
 
 ## 财经政治
 - Bloomberg Markets: `https://www.bloomberg.com/markets`
 - The Wall Street Journal: `https://www.wsj.com/`
-- CNBC Tech: `https://www.cnbc.com/technology/`
-- CNBC AI: `https://www.cnbc.com/ai-artificial-intelligence/`
+- The Wall Street Journal RSS: `https://www.wsj.com/news/rss-news-and-feeds`
+- CNBC: `https://www.cnbc.com/`
+- CNBC RSS: `https://www.cnbc.com/rss-feeds/`
 - 人民网: `https://www.people.com.cn/`
 - 雪球: `https://xueqiu.com/`
 

@@ -15,7 +15,7 @@ export const CONFIG = {
   TIMEZONE: 'America/New_York',
   HTTP_TIMEOUT_MS: 30_000,
   TOTAL_TIMEOUT_MS: 600_000,
-  DEFAULT_LIMIT: 20,
+  DEFAULT_LIMIT: 50,
   DEFAULT_CONCURRENCY: 2,
 } as const;
 
@@ -45,7 +45,9 @@ export type Ctx = {
 
 export type Plugin = {
   id: string;
-  list(ctx: Ctx, opts: { limit: number }): Promise<Item[]>;
+  /** Available sub-feeds: slug → human label. If absent, plugin has a single feed. */
+  categories?: Record<string, string>;
+  list(ctx: Ctx, opts: { limit: number; categories?: string[] }): Promise<Item[]>;
   detail?(ctx: Ctx, item: Item): Promise<string>;
 };
 

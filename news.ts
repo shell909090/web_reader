@@ -28,7 +28,6 @@ const KNOWN_SOURCES = [
   'bbc',
   'techcrunch',
   'sina',
-  'cnbc-ai',
   'ars',
   'theverge',
   'infoq',
@@ -36,10 +35,10 @@ const KNOWN_SOURCES = [
   'csdn',
   'wiki',
   'wsj',
+  'cnbc',
   'nytimes',
   'huggingface',
   'oschina',
-  'cnbc-tech',
   'juejin',
 ] as const;
 const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
@@ -51,9 +50,12 @@ Usage:
                npx tsx news.ts -s hn | jq -r '.[].url' | npx tsx news.ts -m detail
 
 Options:
-  -s, --sources <ids|all>  [list] Comma-separated source IDs or "all"
-                           hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn,
-                           wiki, wsj, nytimes, huggingface, oschina, cnbc-tech, juejin, cnbc-ai
+  -s, --sources <ids|all>  [list] Comma-separated source IDs, or "all"
+                           Sources with categories use id:category syntax, e.g. wsj:markets
+                           wsj categories:  world us markets opinion main
+                           cnbc categories: top world markets tech finance us health politics ai
+                           Other: hn bbc techcrunch sina ars theverge infoq people csdn
+                                  wiki nytimes huggingface oschina juejin
   -m, --mode list|detail   Fetch mode (default: list)
   -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out DIR            Write output files to DIR/YYYYMMDD/
@@ -63,26 +65,50 @@ Options:
   -h, --help               Show this help
 
 Examples:
-  npx tsx news.ts -s hn -n 10
-  npx tsx news.ts -s hn,bbc,techcrunch
+  npx tsx news.ts -s hn,bbc,wsj
+  npx tsx news.ts -s wsj:markets,wsj:world -n 50
+  npx tsx news.ts -s cnbc:tech,cnbc:ai -n 30
   npx tsx news.ts -s all -o data/news/
-  npx tsx news.ts -m detail https://arstechnica.com/tech-policy/2026/05/article
   npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts -m detail`;
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing
 // ---------------------------------------------------------------------------
 
+/** One entry per unique source ID with all requested categories merged. */
+type SourceRequest = { id: string; categories: string[] };
+
 type ParsedArgs =
   | {
       mode: 'list';
-      sources: string[];
+      sources: SourceRequest[];
       limit: number;
       concurrency: number;
       out: string | null;
       loglevel: LogLevel;
     }
   | { mode: 'detail'; urls: string[]; out: string | null; loglevel: LogLevel };
+
+/** Parse "id" or "id:category" tokens, grouping categories per source ID. */
+function parseSourceTokens(input: string): SourceRequest[] | null {
+  const tokens = input
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const grouped = new Map<string, string[]>();
+  for (const tok of tokens) {
+    const colon = tok.indexOf(':');
+    const id = colon >= 0 ? tok.slice(0, colon) : tok;
+    const cat = colon >= 0 ? tok.slice(colon + 1) : '';
+    if (!(KNOWN_SOURCES as readonly string[]).includes(id)) {
+      process.stderr.write(`[ERROR] Unknown source: ${id}\n`);
+      return null;
+    }
+    if (!grouped.has(id)) grouped.set(id, []);
+    if (cat) grouped.get(id)!.push(cat);
+  }
+  return [...grouped.entries()].map(([id, categories]) => ({ id, categories }));
+}
 
 /** Parse and validate CLI arguments; returns ParsedArgs or null on error. */
 function parseCLI(argv: string[]): ParsedArgs | null {
@@ -137,23 +163,17 @@ function parseCLI(argv: string[]): ParsedArgs | null {
     return null;
   }
 
-  let sources: string[];
+  let sources: SourceRequest[];
   if (v.sources === 'all') {
-    sources = [...KNOWN_SOURCES];
+    sources = [...KNOWN_SOURCES].map((id) => ({ id, categories: [] }));
   } else {
-    sources = (v.sources as string)
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const unknown = sources.filter((s) => !(KNOWN_SOURCES as readonly string[]).includes(s));
-    if (unknown.length > 0) {
-      process.stderr.write(`[ERROR] Unknown source(s): ${unknown.join(', ')}\n`);
-      return null;
-    }
-    if (sources.length === 0) {
+    const parsed = parseSourceTokens(v.sources as string);
+    if (!parsed) return null;
+    if (parsed.length === 0) {
       process.stderr.write('[ERROR] --sources cannot be empty\n');
       return null;
     }
+    sources = parsed;
   }
 
   const limit = Number(v.limit);
@@ -355,17 +375,20 @@ export async function main(argv: string[]): Promise<number> {
     // ------------------------------------------------------------------
     // List mode: fetch article lists from sources
     // ------------------------------------------------------------------
-    log.info(
-      `Sources: ${args.sources.join(', ')} | limit=${args.limit} concurrency=${args.concurrency}`,
-    );
+    const srcStr = args.sources
+      .map((s) => (s.categories.length ? `${s.id}:${s.categories.join('+')}` : s.id))
+      .join(', ');
+    log.info(`Sources: ${srcStr} | limit=${args.limit} concurrency=${args.concurrency}`);
 
-    const plugins: Plugin[] = [];
-    for (const id of args.sources) {
-      const plugin = await loadPlugin(id, log);
-      if (plugin) plugins.push(plugin);
+    // Load plugins for each requested source
+    type LoadedSource = { plugin: Plugin; categories: string[] };
+    const loaded: LoadedSource[] = [];
+    for (const req of args.sources) {
+      const plugin = await loadPlugin(req.id, log);
+      if (plugin) loaded.push({ plugin, categories: req.categories });
     }
 
-    if (plugins.length === 0) {
+    if (loaded.length === 0) {
       log.error('No plugins could be loaded; aborting.');
       return 3;
     }
@@ -374,16 +397,17 @@ export async function main(argv: string[]): Promise<number> {
     const errors: string[] = [];
 
     const ctx: Ctx = { mode: 'http', httpGet, log };
-    await pConcurrent(plugins, args.concurrency, async (plugin) => {
-      log.info(`[${plugin.id}] Fetching list`);
+    await pConcurrent(loaded, args.concurrency, async ({ plugin, categories }) => {
+      const label = categories.length ? `${plugin.id}:${categories.join('+')}` : plugin.id;
+      log.info(`[${label}] Fetching list`);
       try {
-        const items = await plugin.list(ctx, { limit: args.limit });
-        log.info(`[${plugin.id}] ${items.length} items`);
+        const items = await plugin.list(ctx, { limit: args.limit, categories });
+        log.info(`[${label}] ${items.length} items`);
         allItems.push(...items);
       } catch (err) {
-        log.error(`[${plugin.id}] failed: ${err instanceof Error ? err.message : String(err)}`);
-        errors.push(plugin.id);
-        await logError(outDir, { source: plugin.id, stage: 'list', err });
+        log.error(`[${label}] failed: ${err instanceof Error ? err.message : String(err)}`);
+        errors.push(label);
+        await logError(outDir, { source: label, stage: 'list', err });
       }
     });
 
@@ -395,7 +419,7 @@ export async function main(argv: string[]): Promise<number> {
     }
 
     if (errors.length > 0) log.warn(`Failed sources: ${errors.join(', ')}`);
-    if (errors.length === plugins.length) {
+    if (errors.length === loaded.length) {
       log.error('All sources failed.');
       return 3;
     }
