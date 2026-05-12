@@ -1,35 +1,41 @@
-// NYTimes Chinese edition plugin — HTTP-based, uses cheerio to parse the homepage.
+// NYTimes Chinese edition plugin — parses the RSS feed for stable, structured output.
+// Feed URL: https://cn.nytimes.com/rss/
 
-import * as cheerio from 'cheerio';
 import type { Plugin, Item, Ctx } from '../lib.ts';
 
-const NYT_CN_BASE = 'https://cn.nytimes.com';
-const NYT_CN_HOME = `${NYT_CN_BASE}/`;
+const RSS_URL = 'https://cn.nytimes.com/rss/';
 
-// Relative href pattern: /section/YYYYMMDD/slug/
-const DATE_HREF_RE = /^\/\w+\/\d{8}\//;
+/** Extract text from a CDATA block or plain text within an XML tag value. */
+function extractText(block: string, tag: string): string {
+  const m = block.match(
+    new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]+?)(?:\\]\\]>)?</${tag}>`, 'i'),
+  );
+  return m ? m[1].trim() : '';
+}
 
-/** Parse NYTimes Chinese homepage HTML into Item list, deduplicated and truncated to limit. */
-function parseNYTimesPage(html: string, limit: number): Item[] {
-  const $ = cheerio.load(html);
-  const seen = new Set<string>();
+/** Parse RSS 2.0 XML into an Item list. */
+function parseRss(xml: string, limit: number): Item[] {
+  const itemBlocks = [...xml.matchAll(/<item>([\s\S]+?)<\/item>/gi)];
   const items: Item[] = [];
+  const seen = new Set<string>();
 
-  $('a[href]').each((_i, el) => {
-    if (items.length >= limit) return false;
+  for (const m of itemBlocks) {
+    if (items.length >= limit) break;
+    const block = m[1];
 
-    const href = $(el).attr('href') ?? '';
-    if (!DATE_HREF_RE.test(href)) return;
+    const title = extractText(block, 'title');
+    if (title.length < 4) continue;
 
-    const title = $(el).text().trim();
-    if (title.length < 8) return;
+    // <link> in RSS is often a text node between tags (not an attribute)
+    const link = block.match(/<link>\s*([^<\s]+)/i)?.[1]?.trim() ?? extractText(block, 'guid');
+    if (!link || seen.has(link)) continue;
+    seen.add(link);
 
-    const url = `${NYT_CN_BASE}${href}`;
-    if (seen.has(url)) return;
-    seen.add(url);
+    const pubDate = extractText(block, 'pubDate');
+    const notes = pubDate ? `纽约时报中文网 · ${pubDate.slice(0, 16)}` : '纽约时报中文网';
 
-    items.push({ source: 'nytimes', title, url, notes: '纽约时报中文网' });
-  });
+    items.push({ source: 'nytimes', title, url: link, notes });
+  }
 
   return items;
 }
@@ -38,15 +44,13 @@ const plugin: Plugin = {
   id: 'nytimes',
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    ctx.log.debug('Fetching NYTimes Chinese homepage', { url: NYT_CN_HOME });
-    const { status, html } = await ctx.httpGet(NYT_CN_HOME);
+    ctx.log.debug('Fetching NYTimes Chinese RSS', { url: RSS_URL });
+    const { status, html: xml } = await ctx.httpGet(RSS_URL);
 
-    if (status !== 200) {
-      throw new Error(`NYTimes Chinese homepage returned HTTP ${status}`);
-    }
+    if (status !== 200) throw new Error(`NYTimes RSS returned HTTP ${status}`);
 
-    const items = parseNYTimesPage(html, opts.limit);
-    ctx.log.debug(`Parsed ${items.length} items from NYTimes Chinese homepage`);
+    const items = parseRss(xml, opts.limit);
+    ctx.log.debug(`Parsed ${items.length} items from NYTimes Chinese RSS`);
     return items;
   },
 };

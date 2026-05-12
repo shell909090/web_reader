@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>纽约时报中文网</title>
+    <link>https://cn.nytimes.com</link>
+    <description>NYTimes Chinese Edition</description>
+
+    <item>
+      <title><![CDATA[特朗普访华北京严阵以待]]></title>
+      <link>https://cn.nytimes.com/business/20260512/trump-xi-economic-warfare/</link>
+      <pubDate>Mon, 12 May 2026 08:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[习近平或就对台军售问题向特朗普施压]]></title>
+      <link>https://cn.nytimes.com/world/20260512/china-taiwan-arms-sales/</link>
+      <pubDate>Mon, 12 May 2026 07:30:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[美联储官员暗示今年可能减少降息次数]]></title>
+      <link>https://cn.nytimes.com/business/20260511/fed-rate-cut-outlook/</link>
+      <pubDate>Sun, 11 May 2026 20:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[人工智能时代的新闻业：机遇与挑战并存]]></title>
+      <link>https://cn.nytimes.com/technology/20260511/ai-journalism-future/</link>
+      <pubDate>Sun, 11 May 2026 18:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[气候变化加剧全球粮食危机，农业大国应对压力]]></title>
+      <link>https://cn.nytimes.com/world/20260511/climate-food-crisis/</link>
+      <pubDate>Sun, 11 May 2026 15:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[欧洲各国加速推动可再生能源转型]]></title>
+      <link>https://cn.nytimes.com/world/20260510/europe-renewable-energy/</link>
+      <pubDate>Sat, 10 May 2026 12:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[中国经济数据显示复苏势头放缓]]></title>
+      <link>https://cn.nytimes.com/business/20260510/china-economy-slowdown/</link>
+      <pubDate>Sat, 10 May 2026 10:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[以色列加沙停火谈判再度陷入僵局]]></title>
+      <link>https://cn.nytimes.com/world/20260509/israel-gaza-ceasefire-talks/</link>
+      <pubDate>Fri, 09 May 2026 22:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[美国科技巨头财报超预期，市场信心回升]]></title>
+      <link>https://cn.nytimes.com/technology/20260509/tech-earnings-beat/</link>
+      <pubDate>Fri, 09 May 2026 20:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[东南亚国家寻求在中美竞争中保持平衡]]></title>
+      <link>https://cn.nytimes.com/world/20260509/southeast-asia-us-china/</link>
+      <pubDate>Fri, 09 May 2026 16:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[印度大选结果揭晓，执政党保住多数席位]]></title>
+      <link>https://cn.nytimes.com/world/20260508/india-election-results/</link>
+      <pubDate>Thu, 08 May 2026 14:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[全球芯片短缺问题持续，汽车业受冲击最大]]></title>
+      <link>https://cn.nytimes.com/technology/20260508/chip-shortage-auto/</link>
+      <pubDate>Thu, 08 May 2026 10:00:00 +0800</pubDate>
+    </item>
+  </channel>
+</rss>
