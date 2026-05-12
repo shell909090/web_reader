@@ -90,6 +90,7 @@ function parseFeed(xml: string, source: string): Item[] {
       notes: extUrl ? notes : `${notes} (discussion)`,
       ...(extUrl ? { reddit_url: redditUrl } : {}),
       ...(summary ? { summary } : {}),
+      published_at: date || undefined,
     });
   }
   return items;

@@ -29,6 +29,7 @@ function parseRss(xml: string, limit: number): Item[] {
     const pubDate = extractText(block, 'pubDate');
     const date = pubDate ? pubDate.slice(0, 16) : '';
     const summary = extractText(block, 'description');
+    const published_at = pubDate ? pubDate.slice(0, 10) : undefined;
 
     items.push({
       source: 'yahoo',
@@ -36,6 +37,7 @@ function parseRss(xml: string, limit: number): Item[] {
       url: link,
       notes: date ? `Yahoo Finance · ${date}` : 'Yahoo Finance',
       summary: summary || undefined,
+      published_at,
     });
   }
 

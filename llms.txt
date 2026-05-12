@@ -59,10 +59,16 @@ web_reader -s <sources> [-n limit] [-o output.json]
     "title": "Article title",
     "url": "https://...",
     "notes": "412 points · 187 comments",
-    "summary": "Optional excerpt (ars, wiki, zhwiki, wsj, reddit self-posts)"
+    "published_at": "2026-05-12",
+    "summary": "Optional excerpt"
   }
 ]
 ```
+
+**`published_at` availability** (ISO 8601 date string):
+- ✅ Present: nytimes, yahoo, mittr, cnbc, caixin, xinhua, reddit, ars (year-month only)
+- ❌ Not available in list mode: bbc, thepaper (dates only on individual article pages)
+- ❌ Not available: hn, infoq, people, sina, techcrunch, theverge, csdn, oschina, juejin
 
 ---
 

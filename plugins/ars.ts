@@ -6,7 +6,7 @@ import type { Plugin, Item, Ctx } from '../lib.ts';
 const ARS_HOME = 'https://arstechnica.com/';
 
 // Matches article URLs with a channel and year/month path, e.g. /security/2026/05/...
-const ARTICLE_PATH_RE = /arstechnica\.com\/(\w+)\/\d{4}\/\d{2}\//;
+const ARTICLE_PATH_RE = /arstechnica\.com\/(\w+)\/(\d{4})\/(\d{2})\//;
 
 /** Parse Ars Technica homepage HTML into Item list, truncated to limit. */
 function parseArsPage(html: string, limit: number): Item[] {
@@ -30,6 +30,7 @@ function parseArsPage(html: string, limit: number): Item[] {
     seen.add(url);
 
     const channel = match[1];
+    const published_at = `${match[2]}-${match[3]}`;
 
     // Summary and date live in the card container around the title link
     const card = $(el).closest('div.grow, li, article');
@@ -40,7 +41,7 @@ function parseArsPage(html: string, limit: number): Item[] {
     if (date) noteParts.push(date);
     const notes = noteParts.join(' · ');
 
-    items.push({ source: 'ars', title, url, notes, summary: summary || undefined });
+    items.push({ source: 'ars', title, url, notes, summary: summary || undefined, published_at });
   });
 
   return items;

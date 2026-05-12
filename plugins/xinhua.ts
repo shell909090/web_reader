@@ -29,8 +29,9 @@ function parsePage(html: string, limit: number): Item[] {
     // Extract date from URL
     const date = href.match(/\/(\d{4})(\d{2})(\d{2})\//);
     const notes = date ? `新华社 · ${date[1]}-${date[2]}-${date[3]}` : '新华社';
+    const published_at = date ? `${date[1]}-${date[2]}-${date[3]}` : undefined;
 
-    items.push({ source: 'xinhua', title, url: href, notes });
+    items.push({ source: 'xinhua', title, url: href, notes, published_at });
   });
 
   return items;

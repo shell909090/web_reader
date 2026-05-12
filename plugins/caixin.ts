@@ -37,7 +37,7 @@ function parsePage(html: string, limit: number): Item[] {
     const date = href.match(/\/(\d{4}-\d{2}-\d{2})\//)?.[1] ?? '';
     const notes = date ? `财新 · ${date}` : '财新';
 
-    items.push({ source: 'caixin', title, url: href, notes });
+    items.push({ source: 'caixin', title, url: href, notes, published_at: date || undefined });
   });
 
   return items;

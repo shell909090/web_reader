@@ -33,8 +33,9 @@ function parseRss(xml: string, limit: number): Item[] {
 
     const pubDate = extractText(block, 'pubDate');
     const notes = pubDate ? `纽约时报中文网 · ${pubDate.slice(0, 16)}` : '纽约时报中文网';
+    const published_at = pubDate ? new Date(pubDate).toISOString().slice(0, 10) : undefined;
 
-    items.push({ source: 'nytimes', title, url: link, notes });
+    items.push({ source: 'nytimes', title, url: link, notes, published_at });
   }
 
   return items;

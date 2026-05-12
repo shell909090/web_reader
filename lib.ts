@@ -35,6 +35,7 @@ export type Item = {
   title: string;
   url: string;
   notes: string;
+  published_at?: string; // ISO 8601 date when available (not all sources provide this)
 } & Record<string, unknown>;
 
 export type Ctx = {

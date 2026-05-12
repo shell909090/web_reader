@@ -30,12 +30,14 @@ function parseFeed(xml: string): Item[] {
     if (!link) continue;
     const pubDate = extractText(block, 'pubDate');
     const summary = extractText(block, 'description');
+    const published_at = pubDate ? new Date(pubDate).toISOString().slice(0, 10) : undefined;
     items.push({
       source: 'mittr',
       title,
       url: link,
       notes: pubDate ? `MIT TR · ${pubDate.slice(0, 16)}` : 'MIT Technology Review',
       summary: summary || undefined,
+      published_at,
     });
   }
   return items;
