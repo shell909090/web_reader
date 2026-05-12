@@ -27,10 +27,9 @@ describe('main() exit codes', () => {
     assert.equal(code, 2);
   });
 
-  test('TC-N5: valid args but plugin load fails returns exit code 3', async () => {
-    // hn plugin does not exist yet, so all sources fail to load
-    const code = await callMain(['--sources', 'hn', '--mode', 'list']);
-    // Either 2 (param error for unknown source) or 3 (all sources failed)
-    assert.ok(code === 2 || code === 3, `expected exit code 2 or 3, got ${code}`);
+  // sina plugin is not yet implemented; tests plugin-load-failure path → exit code 3
+  test('TC-N5: all-sources-fail when plugin file missing returns exit code 3', async () => {
+    const code = await callMain(['--sources', 'sina', '--mode', 'list']);
+    assert.equal(code, 3, `expected 3 (all sources failed), got ${code}`);
   });
 });
