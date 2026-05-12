@@ -19,4 +19,4 @@ unittest:
 	fi
 
 test: unittest
-	@if [ -f scripts/smoke.sh ]; then bash scripts/smoke.sh; else echo "Smoke tests: not yet implemented."; fi
+	bash scripts/smoke.sh
