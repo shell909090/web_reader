@@ -48,6 +48,8 @@ export type Plugin = {
   /** Available sub-feeds: slug → human label. If absent, plugin has a single feed. */
   categories?: Record<string, string>;
   list(ctx: Ctx, opts: { limit: number; categories?: string[] }): Promise<Item[]>;
+  /** Full-text search; only implemented by data-source plugins (e.g. wiki). */
+  search?(ctx: Ctx, query: string, limit: number): Promise<Item[]>;
   detail?(ctx: Ctx, item: Item): Promise<string>;
 };
 

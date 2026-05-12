@@ -1,4 +1,4 @@
-// CLI entry point for the news fetching tool.
+// read.ts — fetch news feeds, read URLs as markdown, query data sources.
 
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -55,11 +55,12 @@ const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
 const USAGE = `\
 Usage:
-  list mode:   npx tsx news.ts -s <ids|all> [options]
-  detail mode: npx tsx news.ts <url…>
-               npx tsx news.ts -s hn | jq -r '.[].url' | npx tsx news.ts
+  list mode:   npx tsx read.ts -s <ids|all> [options]
+  detail mode: npx tsx read.ts <url…>
+               npx tsx read.ts -s hn | jq -r '.[].url' | npx tsx read.ts
+  query mode:  npx tsx read.ts -q wiki <keywords…>
 
-  Mode is inferred: -s present → list, no -s → detail (URLs from args or stdin).
+  Mode is inferred: -s → list, -q → query, otherwise → detail.
 
 Options:
   -s, --sources <ids|all>  Comma-separated source IDs, set names, or "all"
@@ -72,20 +73,21 @@ Options:
                                        xinhua:politics/world/society/finance/tech/mil/legal/health/edu
                            Others: hn bbc techcrunch sina ars theverge infoq people csdn
                                    caixin wiki nytimes huggingface oschina juejin
-  -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
+  -q, --query SOURCE       Query a data source; keywords follow as positional args
+                           Searchable sources: wiki
+  -n, --limit N            Max results (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
-                           list mode: JSON file; detail mode: markdown file
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})
   -l, --loglevel LEVEL     Log verbosity: debug|info|warn|error (default: warn)
   -h, --help               Show this help
 
 Examples:
-  npx tsx news.ts -s hn,bbc,wsj
-  npx tsx news.ts -s wsj:markets,wsj:world -n 50
-  npx tsx news.ts -s cnbc:tech,cnbc:ai -n 30
-  npx tsx news.ts -s all -o news.json
-  npx tsx news.ts https://arstechnica.com/tech/2026/05/article
-  npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts -o articles.md`;
+  npx tsx read.ts -s news
+  npx tsx read.ts -s tech -n 30
+  npx tsx read.ts -s fin -o fin.json
+  npx tsx read.ts https://arstechnica.com/tech/2026/05/article
+  npx tsx read.ts -q wiki transformer architecture
+  npx tsx read.ts -q wiki large language models | jq -r '.[0].url' | npx tsx read.ts`;
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing
@@ -103,7 +105,15 @@ type ParsedArgs =
       out: string | null;
       loglevel: LogLevel;
     }
-  | { mode: 'detail'; urls: string[]; out: string | null; loglevel: LogLevel };
+  | { mode: 'detail'; urls: string[]; out: string | null; loglevel: LogLevel }
+  | {
+      mode: 'query';
+      source: string;
+      keywords: string[];
+      limit: number;
+      out: string | null;
+      loglevel: LogLevel;
+    };
 
 /** Parse "id", "id:category", or set name tokens, grouping categories per source ID. */
 function parseSourceTokens(input: string): SourceRequest[] | null {
@@ -145,6 +155,7 @@ function parseCLI(argv: string[]): ParsedArgs | null {
       args: argv,
       options: {
         sources: { type: 'string', short: 's' },
+        query: { type: 'string', short: 'q' },
         limit: { type: 'string', short: 'n', default: String(CONFIG.DEFAULT_LIMIT) },
         out: { type: 'string', short: 'o' },
         concurrency: { type: 'string', short: 'c', default: String(CONFIG.DEFAULT_CONCURRENCY) },
@@ -171,6 +182,32 @@ function parseCLI(argv: string[]): ParsedArgs | null {
   }
 
   const out = v.out !== undefined ? (v.out as string) : null;
+
+  // -q: query mode
+  if (v.query !== undefined) {
+    const source = (v.query as string).trim();
+    if (!source) {
+      process.stderr.write('[ERROR] -q requires a source name\n');
+      return null;
+    }
+    if (raw.positionals.length === 0) {
+      process.stderr.write('[ERROR] -q requires keywords\n');
+      return null;
+    }
+    const limit = Number(v.limit);
+    if (!Number.isInteger(limit) || limit < 1) {
+      process.stderr.write(`[ERROR] --limit must be a positive integer\n`);
+      return null;
+    }
+    return {
+      mode: 'query',
+      source,
+      keywords: raw.positionals,
+      limit,
+      out,
+      loglevel: loglevel as LogLevel,
+    };
+  }
 
   // Mode is inferred: -s present → list, absent → detail
   if (!v.sources) {
@@ -326,6 +363,32 @@ export async function main(argv: string[]): Promise<number> {
     }
 
     const log = makeLogger(args.loglevel);
+
+    // ------------------------------------------------------------------
+    // Query mode: search a data source by keyword
+    // ------------------------------------------------------------------
+    if (args.mode === 'query') {
+      const plugin = await loadPlugin(args.source, log);
+      if (!plugin) {
+        log.error(`Unknown or unavailable query source: ${args.source}`);
+        return 2;
+      }
+      if (!plugin.search) {
+        log.error(`Source "${args.source}" does not support search. Searchable: wiki`);
+        return 2;
+      }
+      const query = args.keywords.join(' ');
+      log.debug(`Querying ${args.source}: "${query}"`);
+      const ctx: Ctx = { mode: 'http', httpGet, log };
+      const items = await plugin.search(ctx, query, args.limit);
+      const json = JSON.stringify(items, null, 2) + '\n';
+      if (args.out) {
+        await writeFile(args.out, json, 'utf-8');
+      } else {
+        process.stdout.write(json);
+      }
+      return 0;
+    }
 
     // ------------------------------------------------------------------
     // Detail mode: fetch full content for given URLs

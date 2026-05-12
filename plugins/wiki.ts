@@ -89,6 +89,25 @@ const plugin: Plugin = {
     ctx.log.debug(`Parsed ${items.length} items from Wikipedia Current Events`);
     return items;
   },
+
+  async search(ctx: Ctx, query: string, limit: number): Promise<Item[]> {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=${limit}&format=json`;
+    ctx.log.debug('Searching Wikipedia', { query });
+    const { status, html } = await ctx.httpGet(url);
+    if (status !== 200) throw new Error(`Wikipedia search returned HTTP ${status}`);
+
+    const data = JSON.parse(html) as {
+      query: { search: Array<{ title: string; snippet: string; pageid: number }> };
+    };
+
+    return data.query.search.map((r) => ({
+      source: 'wiki',
+      title: r.title,
+      url: `https://en.wikipedia.org/wiki/${encodeURIComponent(r.title.replace(/ /g, '_'))}`,
+      notes: 'Wikipedia',
+      summary: r.snippet.replace(/<[^>]+>/g, '').trim() || undefined,
+    }));
+  },
 };
 
 export default plugin;
