@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>MIT Technology Review</title>
+    <link>https://www.technologyreview.com</link>
+    <item>
+      <title><![CDATA[Three things in AI to watch, according to a Nobel-winning economist]]></title>
+      <link>https://www.technologyreview.com/2026/05/11/1137090/three-things-in-ai/</link>
+      <pubDate>Mon, 11 May 2026 10:00:00 +0000</pubDate>
+      <description><![CDATA[This story originally appeared in The Algorithm, our weekly newsletter on AI.]]></description>
+    </item>
+    <item>
+      <title><![CDATA[The balcony solar boom is coming to the US]]></title>
+      <link>https://www.technologyreview.com/2026/05/07/1136933/balcony-solar-boom/</link>
+      <pubDate>Wed, 07 May 2026 12:00:00 +0000</pubDate>
+      <description><![CDATA[Plug-in solar panels have transformed energy in Europe. Can they do the same here?]]></description>
+    </item>
+    <item>
+      <title><![CDATA[A blueprint for using AI to strengthen democracy]]></title>
+      <link>https://www.technologyreview.com/2026/05/05/1136843/ai-democracy-blueprint/</link>
+      <pubDate>Mon, 05 May 2026 09:00:00 +0000</pubDate>
+      <description><![CDATA[Researchers are developing frameworks to ensure AI enhances rather than undermines democratic institutions.]]></description>
+    </item>
+    <item>
+      <title><![CDATA[What's next for IVF]]></title>
+      <link>https://www.technologyreview.com/2026/05/07/1136946/whats-next-for-ivf/</link>
+      <pubDate>Wed, 07 May 2026 08:00:00 +0000</pubDate>
+      <description><![CDATA[New techniques in embryo selection and genetic testing are transforming fertility treatment.]]></description>
+    </item>
+    <item>
+      <title><![CDATA[The quantum computing milestone that could change everything]]></title>
+      <link>https://www.technologyreview.com/2026/05/04/1136800/quantum-computing-milestone/</link>
+      <pubDate>Mon, 04 May 2026 10:00:00 +0000</pubDate>
+      <description><![CDATA[A new error-correction technique brings fault-tolerant quantum computing closer to reality.]]></description>
+    </item>
+    <item>
+      <title><![CDATA[How AI is reshaping drug discovery]]></title>
+      <link>https://www.technologyreview.com/2026/05/03/1136750/ai-drug-discovery/</link>
+      <pubDate>Sun, 03 May 2026 10:00:00 +0000</pubDate>
+      <description><![CDATA[Machine learning models are dramatically accelerating the search for new medicines.]]></description>
+    </item>
+    <item>
+      <title><![CDATA[The hidden environmental cost of large language models]]></title>
+      <link>https://www.technologyreview.com/2026/05/02/1136700/llm-environmental-cost/</link>
+      <pubDate>Sat, 02 May 2026 09:00:00 +0000</pubDate>
+      <description><![CDATA[Training and running AI systems consumes enormous amounts of water and energy.]]></description>
+    </item>
+    <item>
+      <title><![CDATA[Inside the race to build a brain-computer interface]]></title>
+      <link>https://www.technologyreview.com/2026/05/01/1136650/brain-computer-interface-race/</link>
+      <pubDate>Fri, 01 May 2026 08:00:00 +0000</pubDate>
+      <description><![CDATA[Multiple companies are competing to connect human brains directly to computers.]]></description>
+    </item>
+    <item>
+      <title><![CDATA[Why nuclear fusion keeps being 30 years away]]></title>
+      <link>https://www.technologyreview.com/2026/04/30/1136600/nuclear-fusion-progress/</link>
+      <pubDate>Thu, 30 Apr 2026 10:00:00 +0000</pubDate>
+      <description><![CDATA[Despite recent breakthroughs, commercial fusion power still faces enormous engineering challenges.]]></description>
+    </item>
+    <item>
+      <title><![CDATA[The CRISPR revolution enters its second decade]]></title>
+      <link>https://www.technologyreview.com/2026/04/29/1136550/crispr-second-decade/</link>
+      <pubDate>Wed, 29 Apr 2026 09:00:00 +0000</pubDate>
+      <description><![CDATA[Gene editing is moving from research labs to clinics, with dozens of therapies now approved.]]></description>
+    </item>
+  </channel>
+</rss>
