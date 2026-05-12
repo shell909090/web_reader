@@ -27,9 +27,9 @@ describe('main() exit codes', () => {
     assert.equal(code, 2);
   });
 
-  // sina plugin is not yet implemented; tests plugin-load-failure path → exit code 3
+  // cnbc-ai plugin is not yet implemented; tests plugin-load-failure path → exit code 3
   test('TC-N5: all-sources-fail when plugin file missing returns exit code 3', async () => {
-    const code = await callMain(['--sources', 'sina', '--mode', 'list']);
+    const code = await callMain(['--sources', 'cnbc-ai', '--mode', 'list']);
     assert.equal(code, 3, `expected 3 (all sources failed), got ${code}`);
   });
 });
