@@ -8,7 +8,7 @@
 
 - **开箱即用 6 个数据源**：Hacker News、BBC、TechCrunch、新浪新闻、Reuters、CNBC AI
 - **HTTP 优先**：只有确实需要 JS 渲染的源才会启动 Playwright
-- **结构化输出**：`list.json`（元数据）+ 每篇文章独立 `.md` 文件
+- **结构化输出**：`index.json`（元数据）+ 每篇文章独立 `.md` 文件
 - **GB2312/GBK 支持**：中文源编码正确处理
 - **故障隔离**：单个源失败不影响其他源
 
@@ -25,6 +25,30 @@ npx playwright install chromium   # 仅 Reuters 和 CNBC AI 需要
 ```
 
 Playwright 浏览器二进制文件存放于 `~/.cache/ms-playwright/`。升级 `playwright` npm 包后必须重新执行 `npx playwright install chromium`。
+
+### Linux 系统库（Playwright 依赖）
+
+Playwright 的 Chromium 需要若干系统共享库，首次使用前安装一次：
+
+```bash
+# Debian / Ubuntu
+sudo apt-get install -y \
+  libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+  libxkbcommon0 libxcomposite1 libxdamage1 \
+  libxfixes3 libxrandr2 libgbm1 libasound2
+```
+
+也可使用官方工具（需要 sudo）：
+
+```bash
+npx playwright install-deps chromium
+```
+
+缺少系统库时 Playwright 会报 `error while loading shared libraries`，工具会将错误写入 stderr / `_errors.log`，不影响其他数据源继续运行。
+
+### Reuters / CNBC AI 访问限制
+
+这两个源使用 Playwright 绕过 JS 渲染，但在无头浏览器或数据中心 IP 环境中仍可能被反爬机制拦截（HTTP 401/403）。若返回 0 条结果，其他数据源不受影响。
 
 ## 使用方法
 

@@ -8,7 +8,7 @@ A Node.js news scraper that fetches articles from multiple sources and outputs s
 
 - **6 sources out of the box**: Hacker News, BBC, TechCrunch, Sina News, Reuters, CNBC AI
 - **HTTP-first**: Playwright is only launched when a source actually needs it
-- **Structured output**: `list.json` (metadata) + per-article `.md` files
+- **Structured output**: `index.json` (metadata) + per-article `.md` files
 - **GB2312/GBK support**: Chinese sources decoded correctly
 - **Fault-isolated**: one source failing never blocks the others
 
@@ -25,6 +25,30 @@ npx playwright install chromium   # only needed for Reuters and CNBC AI
 ```
 
 Playwright binaries are stored in `~/.cache/ms-playwright/`. If you upgrade the `playwright` npm package, re-run `npx playwright install chromium`.
+
+### System libraries for Playwright (Linux only)
+
+Playwright's Chromium requires several shared libraries. Install them once with:
+
+```bash
+# Debian / Ubuntu
+sudo apt-get install -y \
+  libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+  libxkbcommon0 libxcomposite1 libxdamage1 \
+  libxfixes3 libxrandr2 libgbm1 libasound2
+```
+
+Or use the official helper (requires sudo):
+
+```bash
+npx playwright install-deps chromium
+```
+
+If libraries are missing, Playwright will crash with `error while loading shared libraries`. The tool catches this and writes the error to stderr / `_errors.log` rather than aborting other sources.
+
+### Reuters / CNBC AI access
+
+These sources use Playwright to bypass JS rendering, but may still be blocked by bot-detection (HTTP 401/403) in headless environments or data-centre IPs. If they return 0 items, the other sources are unaffected.
 
 ## Usage
 

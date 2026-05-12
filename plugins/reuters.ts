@@ -54,18 +54,27 @@ const plugin: Plugin = {
     const { page, log } = ctx;
 
     log.debug('Navigating to Reuters homepage', { url: REUTERS_BASE });
-    await page.goto(REUTERS_BASE + '/', {
+    const response = await page.goto(REUTERS_BASE + '/', {
       waitUntil: 'networkidle',
       timeout: CONFIG.NAV_TIMEOUT_MS,
     });
 
-    // Wait for article cards to appear; log a warning if not found
+    const status = response?.status() ?? 0;
+    if (status === 401 || status === 403) {
+      log.warn(`reuters: blocked by bot-detection (HTTP ${status}); returning 0 items`);
+      return [];
+    }
+
+    // Wait for article cards; silently fall back to other selectors if not found
     await page.waitForSelector('[data-testid="MediaStoryCard"]', { timeout: 10000 }).catch(() => {
-      log.warn('reuters: MediaStoryCard not found, trying fallback selector');
+      log.warn('reuters: MediaStoryCard not found, trying fallback selectors');
     });
 
     const html = await page.content();
     const items = parseReutersPage(html, opts.limit);
+    if (items.length === 0) {
+      log.warn('reuters: 0 items parsed — page may have changed structure or be behind a paywall');
+    }
     log.debug(`Parsed ${items.length} items from Reuters homepage`);
     return items;
   },
