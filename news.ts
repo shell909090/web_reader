@@ -53,9 +53,10 @@ Usage:
 Options:
   -s, --sources <ids|all>  [list] Comma-separated source IDs, or "all"
                            Sources with categories use id:category syntax, e.g. wsj:markets
-                           wsj categories:  world us markets opinion main
-                           cnbc categories: top world markets tech finance us health politics ai
-                           Other: hn bbc techcrunch sina ars theverge mittr infoq people csdn
+                           wsj categories:   world us markets opinion main
+                           cnbc categories:  top world markets tech finance us health politics ai
+                           mittr categories: ai computing space biotech (default: main RSS)
+                           Other: hn bbc techcrunch sina ars theverge infoq people csdn
                                   wiki nytimes huggingface oschina juejin
   -m, --mode list|detail   Fetch mode (default: list)
   -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
