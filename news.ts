@@ -2,6 +2,7 @@
 
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 
 import {
@@ -40,6 +41,14 @@ const KNOWN_SOURCES = [
   'oschina',
   'juejin',
 ] as const;
+
+/** Named source presets — expanded before plugin loading. */
+const SETS: Record<string, string[]> = {
+  news: ['bbc', 'nytimes', 'wiki'],
+  tech: ['ars', 'mittr', 'infoq'],
+  fin: ['caixin', 'wsj', 'cnbc:markets'],
+};
+
 const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
 const USAGE = `\
@@ -51,13 +60,14 @@ Usage:
   Mode is inferred: -s present → list, no -s → detail (URLs from args or stdin).
 
 Options:
-  -s, --sources <ids|all>  Comma-separated source IDs, or "all"
-                           Sources with categories use id:category syntax, e.g. wsj:markets
-                           wsj categories:   world us markets opinion main
-                           cnbc categories:  top world markets tech finance us health politics ai
-                           mittr categories: ai computing space biotech (default: main RSS)
-                           Other: hn bbc techcrunch sina ars theverge infoq people csdn
-                                  caixin wiki nytimes huggingface oschina juejin
+  -s, --sources <ids|all>  Comma-separated source IDs, set names, or "all"
+                           Presets: news (bbc+nytimes+wiki)  tech (ars+mittr+infoq)
+                                    fin  (caixin+wsj+cnbc:markets)
+                           Categories: wsj:world/us/markets/opinion/main
+                                       cnbc:top/world/markets/tech/finance/us/health/politics/intl/ai
+                                       mittr:ai/computing/space/biotech (default: main RSS)
+                           Others: hn bbc techcrunch sina ars theverge infoq people csdn
+                                   caixin wiki nytimes huggingface oschina juejin
   -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
                            list mode: JSON file; detail mode: markdown file
@@ -91,12 +101,23 @@ type ParsedArgs =
     }
   | { mode: 'detail'; urls: string[]; out: string | null; loglevel: LogLevel };
 
-/** Parse "id" or "id:category" tokens, grouping categories per source ID. */
+/** Parse "id", "id:category", or set name tokens, grouping categories per source ID. */
 function parseSourceTokens(input: string): SourceRequest[] | null {
-  const tokens = input
+  // Expand set names first, preserving category suffixes on plain tokens
+  const raw = input
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+  const tokens: string[] = [];
+  for (const tok of raw) {
+    const setName = tok.split(':')[0];
+    if (SETS[setName] && !tok.includes(':')) {
+      tokens.push(...SETS[setName]); // expand set → member tokens
+    } else {
+      tokens.push(tok);
+    }
+  }
+
   const grouped = new Map<string, string[]>();
   for (const tok of tokens) {
     const colon = tok.indexOf(':');
@@ -388,7 +409,12 @@ export async function main(argv: string[]): Promise<number> {
   }
 }
 
-// Run as CLI when invoked directly
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main(process.argv.slice(2)).then((code) => process.exit(code));
+// Run as CLI when invoked directly (resolve() normalises relative paths from argv)
+if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
+  main(process.argv.slice(2))
+    .then((code) => process.exit(code))
+    .catch((err) => {
+      process.stderr.write(`[FATAL] ${err}\n`);
+      process.exit(1);
+    });
 }
