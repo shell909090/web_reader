@@ -61,20 +61,29 @@ const plugin: Plugin = {
     const { page, log } = ctx;
 
     log.debug('Navigating to CNBC AI page', { url: CNBC_AI_URL });
-    await page.goto(CNBC_AI_URL, {
-      waitUntil: 'networkidle',
+    // Use domcontentloaded — networkidle times out on CNBC (persistent background requests)
+    const response = await page.goto(CNBC_AI_URL, {
+      waitUntil: 'domcontentloaded',
       timeout: CONFIG.NAV_TIMEOUT_MS,
     });
 
-    // Wait for card elements; log a warning if not found
+    const status = response?.status() ?? 0;
+    if (status === 401 || status === 403) {
+      log.warn(`cnbc-ai: blocked by bot-detection (HTTP ${status}); returning 0 items`);
+      return [];
+    }
+
     const cardSelector =
       '.Card-titleContainer a, .card-title a, [class*="card"] a[href*="cnbc.com"]';
-    await page.waitForSelector(cardSelector, { timeout: 10000 }).catch(() => {
+    await page.waitForSelector(cardSelector, { timeout: 15000 }).catch(() => {
       log.warn('cnbc-ai: card selector not found, using page.content() fallback');
     });
 
     const html = await page.content();
     const items = parseCnbcAiPage(html, opts.limit);
+    if (items.length === 0) {
+      log.warn('cnbc-ai: 0 items parsed — page may have changed structure or be behind a paywall');
+    }
     log.debug(`Parsed ${items.length} items from CNBC AI page`);
     return items;
   },

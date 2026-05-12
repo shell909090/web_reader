@@ -54,8 +54,9 @@ const plugin: Plugin = {
     const { page, log } = ctx;
 
     log.debug('Navigating to Reuters homepage', { url: REUTERS_BASE });
+    // Use domcontentloaded — networkidle can time out on news sites with persistent XHR
     const response = await page.goto(REUTERS_BASE + '/', {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: CONFIG.NAV_TIMEOUT_MS,
     });
 
