@@ -6,7 +6,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 
 ## Features
 
-- **21 sources** across EN and ZH — see table below
+- **23 sources** across EN and ZH — see table below
 - **Three presets**: `news`, `tech`, `fin`
 - **Three modes**: list (news feeds) · detail (full text) · query (reference search)
 - **MCP server mode** for AI agent integration (`--mcp`)
@@ -27,6 +27,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `zhwiki` | 中文维基百科新闻动态 | ZH | `summary` field |
 | `reddit` | Reddit | EN | categories: ml llm ai tech prog investing stocks worldnews |
 | `yahoo` | Yahoo Finance | EN | RSS, 48 items, current |
+| `gnews` | Google News | EN | categories: tech business science health sports entertainment world nation; keyword search |
 | `cnbc` | CNBC | EN | categories: top world markets tech finance us health politics intl ai |
 | `nytimes` | NYT Chinese 纽约时报 | ZH | full text accessible |
 | `xinhua` | 新华社 | ZH | categories: politics world society finance tech mil legal health edu |
@@ -86,7 +87,7 @@ web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 | Short | Long | Default | Description |
 |-------|------|---------|-------------|
 | `-s` | `--sources` | — | Source IDs, preset names (`news`/`tech`/`fin`), or `all` |
-| `-q` | `--query` | — | Query source (`wiki`/`zhwiki`/`reddit`); keywords follow |
+| `-q` | `--query` | — | Query source (`wiki`/`zhwiki`/`reddit`/`gnews`); keywords follow |
 | `-n` | `--limit` | `50` | Max results |
 | `-o` | `--out` | stdout | Write output to FILE |
 | `-c` | `--concurrency` | `2` | Parallel sources (list mode) |

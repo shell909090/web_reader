@@ -18,7 +18,7 @@ web_reader -s <sources> [-n limit] [-o output.json]
 **Presets** (recommended):
 - `-s news` → bbc + nytimes + xinhua + thepaper  (general news, EN+ZH)
 - `-s tech` → hn + ars + mittr + infoq           (tech news, EN+ZH)
-- `-s fin`  → caixin + wsj + cnbc:markets        (financial news, EN+ZH)
+- `-s fin`  → caixin + yahoo + cnbc:markets       (financial news, EN+ZH)
 
 **Individual sources** (all HTTP):
 - `hn` Hacker News (EN) — score + comments in notes
@@ -27,7 +27,7 @@ web_reader -s <sources> [-n limit] [-o output.json]
 - `xinhua` 新华社 (ZH) — official Chinese news wire
 - `thepaper` 澎湃新闻 (ZH) — breaking domestic news
 - `caixin` 财新 (ZH) — independent financial journalism
-- `wsj` Wall Street Journal (EN) — RSS summaries (full text paywalled)
+- `gnews` Google News (EN) — top headlines + topic categories; keyword search supported
 - `cnbc` CNBC (EN) — categories: top world markets tech finance us health politics intl ai
 - `ars` Ars Technica (EN) — deep tech reporting, has `summary` field
 - `mittr` MIT Technology Review (EN) — tech analysis
@@ -44,8 +44,8 @@ web_reader -s <sources> [-n limit] [-o output.json]
 - `oschina` 开源中国 (ZH)
 - `juejin` 稀土掘金 (ZH)
 
-**Category syntax**: `source:category` e.g. `wsj:markets`, `cnbc:tech`, `reddit:ml`
-- `wsj`: world us markets opinion main
+**Category syntax**: `source:category` e.g. `gnews:tech`, `cnbc:tech`, `reddit:ml`
+- `gnews`: tech business science health sports entertainment world nation (default: top headlines)
 - `cnbc`: top world markets tech finance us health politics intl ai
 - `mittr`: ai computing space biotech (default: main RSS)
 - `xinhua`: politics world society finance tech mil legal health edu
@@ -66,7 +66,7 @@ web_reader -s <sources> [-n limit] [-o output.json]
 ```
 
 **`published_at` availability** (ISO 8601 date string):
-- ✅ Present: nytimes, yahoo, mittr, cnbc, caixin, xinhua, reddit, ars (year-month only)
+- ✅ Present: nytimes, yahoo, mittr, cnbc, caixin, xinhua, reddit, ars, gnews (year-month only)
 - ❌ Not available in list mode: bbc, thepaper (dates only on individual article pages)
 - ❌ Not available: hn, infoq, people, sina, techcrunch, theverge, csdn, oschina, juejin
 
@@ -106,6 +106,7 @@ web_reader -q wiki transformer architecture -n 8
 - `wiki` — English Wikipedia full-text search
 - `zhwiki` — Chinese Wikipedia (中文维基百科) full-text search
 - `reddit` — global Reddit search (sorted by relevance)
+- `gnews` — Google News keyword search (no API key required)
 
 **Typical usage pattern:**
 ```bash
@@ -153,7 +154,7 @@ If invoked as `web_reader --mcp`, exposes three tools to the MCP client:
 | China official stance | `xinhua` | State wire service — use to understand what Beijing is saying |
 | China domestic events | `thepaper` | Breaking social/investigative news inside China |
 | Curated digest | `wiki`, `zhwiki` | Human-edited summaries, events cross-referenced, good for "what happened" |
-| Financial / markets | `caixin` + `wsj` | Caixin for China finance (independent), WSJ for global (summaries only) |
+| Financial / markets | `caixin` + `yahoo` + `gnews:business` | Caixin for China finance; Yahoo Finance for global market data; gnews for broad financial news |
 
 ### For tech topics
 
@@ -170,9 +171,9 @@ If invoked as `web_reader --mcp`, exposes three tools to the MCP client:
 
 | Works well | Paywalled / blocked |
 |---|---|
-| bbc, nytimes, thepaper | wsj (paywall) |
+| bbc, nytimes, thepaper | gnews URLs redirect to original article (varies by publisher) |
 | ars, mittr, theverge | reddit /comments/ (login required) |
-| caixin, xinhua, infoq | bloomberg, ft (not indexed) |
+| caixin, xinhua, infoq | bloomberg, ft, wsj (paywall) |
 | wiki article pages | most Chinese portal detail pages |
 
 ### Query mode: when to use `-q`
@@ -191,7 +192,7 @@ Deep ←——————————————————————→ Fa
  mittr · wiki                  hn · thepaper · xinhua
 
 EN ←————————————————————→ ZH
- bbc · ars · wsj · hn     nytimes · caixin · thepaper · xinhua · zhwiki
+ bbc · ars · gnews · hn   nytimes · caixin · thepaper · xinhua · zhwiki
 ```
 
 ---

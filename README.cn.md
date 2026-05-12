@@ -6,7 +6,7 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 
 ## 功能特点
 
-- **22 个数据源**，涵盖中英文——详见下表
+- **23 个数据源**，涵盖中英文——详见下表
 - **三个预置组合**：`news`（综合）、`tech`（科技）、`fin`（财经）
 - **三种模式**：list（新闻列表）· detail（抓全文）· query（参考搜索）
 - **MCP server 模式**，供 AI agent 调用（`--mcp`）
@@ -26,7 +26,8 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `wiki` | Wikipedia 时事 | 英文 | 含 `summary`，支持搜索 |
 | `zhwiki` | 中文维基百科新闻动态 | 中文 | 含 `summary`，支持搜索 |
 | `reddit` | Reddit | 英文 | 分类：ml llm ai tech prog investing stocks worldnews |
-| \`yahoo\` | Yahoo Finance | 英文 | RSS，48条，实时 |
+| `yahoo` | Yahoo Finance | 英文 | RSS，48条，实时 |
+| `gnews` | Google News | 英文 | 分类：tech business science health sports entertainment world nation；支持关键词搜索 |
 | `cnbc` | CNBC | 英文 | 分类：top world markets tech finance us health politics intl ai |
 | `nytimes` | 纽约时报中文网 | 中文 | detail 可读全文 |
 | `xinhua` | 新华社 | 中文 | 分类：politics world society finance tech mil legal health edu |
@@ -86,7 +87,7 @@ web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 | 短参数 | 长参数 | 默认值 | 说明 |
 |--------|--------|--------|------|
 | `-s` | `--sources` | — | 数据源 ID、预置名（`news`/`tech`/`fin`）或 `all` |
-| `-q` | `--query` | — | 查询数据源（`wiki`/`zhwiki`/`reddit`），关键词跟在后面 |
+| `-q` | `--query` | — | 查询数据源（`wiki`/`zhwiki`/`reddit`/`gnews`），关键词跟在后面 |
 | `-n` | `--limit` | `50` | 最大结果数 |
 | `-o` | `--out` | stdout | 输出到文件 |
 | `-c` | `--concurrency` | `2` | 并发数（list 模式）|

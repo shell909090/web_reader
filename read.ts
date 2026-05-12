@@ -44,6 +44,7 @@ const KNOWN_SOURCES = [
   'huggingface',
   'oschina',
   'juejin',
+  'gnews',
 ] as const;
 
 /** Named source presets — expanded before plugin loading. */
@@ -73,10 +74,11 @@ Options:
                                        cnbc:top/world/markets/tech/finance/us/health/politics/intl/ai
                                        mittr:ai/computing/space/biotech (default: main RSS)
                                        xinhua:politics/world/society/finance/tech/mil/legal/health/edu
+                                       gnews:tech/business/science/health/sports/entertainment/world/nation (default: top)
                            Others: hn bbc techcrunch sina ars theverge infoq people csdn
-                                   caixin yahoo wiki nytimes huggingface oschina juejin
+                                   caixin yahoo wiki nytimes huggingface oschina juejin gnews
   -q, --query SOURCE       Query a data source; keywords follow as positional args
-                           Searchable sources: wiki (EN), zhwiki (中文), reddit
+                           Searchable sources: wiki (EN), zhwiki (中文), reddit, gnews
   -n, --limit N            Max results (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})
@@ -376,7 +378,7 @@ export async function main(argv: string[]): Promise<number> {
         return 2;
       }
       if (!plugin.search) {
-        log.error(`Source "${args.source}" does not support search. Searchable: wiki`);
+        log.error(`Source "${args.source}" does not support search. Searchable: wiki, zhwiki, reddit, gnews`);
         return 2;
       }
       const query = args.keywords.join(' ');
