@@ -47,38 +47,49 @@ npm install
 
 ## Usage
 
+Mode is inferred: `-s` present → list mode; no `-s` → detail mode (URLs from args or stdin).
+
 ```bash
-# List mode — output JSON to stdout
+# List mode — fetch article lists, output JSON to stdout
 npx tsx news.ts -s hn -n 10
-npx tsx news.ts -s hn,bbc,techcrunch
-npx tsx news.ts -s all -o data/news/
+npx tsx news.ts -s hn,bbc,wsj
+npx tsx news.ts -s wsj:markets,wsj:world -n 50
+npx tsx news.ts -s cnbc:tech,cnbc:ai
+npx tsx news.ts -s all -o news.json      # write to file
 
-# Detail mode — fetch full text for specific URLs
-npx tsx news.ts -m detail https://arstechnica.com/tech-policy/2026/05/article
+# Detail mode — fetch full text for URLs
+npx tsx news.ts https://arstechnica.com/tech-policy/2026/05/article
+npx tsx news.ts -o article.md https://...   # write to file
 
-# Pipe: get list, pick URLs, fetch content
-npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts -m detail
+# Pipe: list → pick URLs → fetch full text
+npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts
+npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts -o articles.md
 ```
 
 ### Options
 
 | Short | Long | Default | Description |
 |-------|------|---------|-------------|
-| `-s` | `--sources` | (required in list mode) | Comma-separated IDs or `all` |
-| `-m` | `--mode` | `list` | `list` or `detail` |
-| `-n` | `--limit` | `20` | Max articles per source (list mode) |
-| `-o` | `--out` | stdout | Write files to DIR/YYYYMMDD/ instead |
+| `-s` | `--sources` | — | Comma-separated IDs or `all`; triggers list mode |
+| `-n` | `--limit` | `50` | Max articles per source (list mode) |
+| `-o` | `--out` | stdout | Write output to FILE (JSON or markdown) |
 | `-c` | `--concurrency` | `2` | Parallel sources (list mode) |
-| `-l` | `--loglevel` | `info` | `debug\|info\|warn\|error` |
+| `-l` | `--loglevel` | `warn` | `debug\|info\|warn\|error` |
 | `-h` | `--help` | | Show help |
+
+### Sources with categories
+
+| Source | Categories |
+|--------|-----------|
+| `wsj` | `world` `us` `markets` `opinion` `main` |
+| `cnbc` | `top` `world` `markets` `tech` `finance` `us` `health` `politics` `intl` `ai` |
+| `mittr` | `ai` `computing` `space` `biotech` (default: main RSS) |
 
 ## Output
 
-**List mode** (stdout): JSON array, each record has `source`, `title`, `url`, `notes`, plus optional source-specific fields (e.g. `summary` for Ars Technica, Wikipedia).
+**List mode**: JSON array to stdout (or `-o file.json`). Each record has `source`, `title`, `url`, `notes`, plus optional fields like `summary`.
 
-**Detail mode** (stdout): Markdown articles separated by `---`, each starting with `# title`.
-
-**With `--out DIR`**: writes `index.json` + `{source}-NNNN.md` files under `DIR/YYYYMMDD/`. Errors go to `_errors.log`.
+**Detail mode**: Markdown articles to stdout (or `-o file.md`), separated by `---`. Fetch errors go to stderr.
 
 ## Adding a new source
 

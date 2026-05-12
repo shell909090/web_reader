@@ -2,16 +2,13 @@
 
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
-import { mkdir, appendFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { writeFile } from 'node:fs/promises';
 
 import {
   CONFIG,
   makeLogger,
   httpGet,
   extractMarkdown,
-  writeListJson,
-  writeArticleMd,
   type Item,
   type Plugin,
   type Ctx,
@@ -47,21 +44,22 @@ const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 const USAGE = `\
 Usage:
   list mode:   npx tsx news.ts -s <ids|all> [options]
-  detail mode: npx tsx news.ts -m detail <url…>
-               npx tsx news.ts -s hn | jq -r '.[].url' | npx tsx news.ts -m detail
+  detail mode: npx tsx news.ts <url…>
+               npx tsx news.ts -s hn | jq -r '.[].url' | npx tsx news.ts
+
+  Mode is inferred: -s present → list, no -s → detail (URLs from args or stdin).
 
 Options:
-  -s, --sources <ids|all>  [list] Comma-separated source IDs, or "all"
+  -s, --sources <ids|all>  Comma-separated source IDs, or "all"
                            Sources with categories use id:category syntax, e.g. wsj:markets
                            wsj categories:   world us markets opinion main
                            cnbc categories:  top world markets tech finance us health politics ai
                            mittr categories: ai computing space biotech (default: main RSS)
                            Other: hn bbc techcrunch sina ars theverge infoq people csdn
                                   wiki nytimes huggingface oschina juejin
-  -m, --mode list|detail   Fetch mode (default: list)
   -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
-  -o, --out DIR            Write output files to DIR/YYYYMMDD/
-                           (default: print JSON/markdown to stdout)
+  -o, --out FILE           Write output to FILE instead of stdout
+                           list mode: JSON file; detail mode: markdown file
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})
   -l, --loglevel LEVEL     Log verbosity: debug|info|warn|error (default: warn)
   -h, --help               Show this help
@@ -70,8 +68,9 @@ Examples:
   npx tsx news.ts -s hn,bbc,wsj
   npx tsx news.ts -s wsj:markets,wsj:world -n 50
   npx tsx news.ts -s cnbc:tech,cnbc:ai -n 30
-  npx tsx news.ts -s all -o data/news/
-  npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts -m detail`;
+  npx tsx news.ts -s all -o news.json
+  npx tsx news.ts https://arstechnica.com/tech/2026/05/article
+  npx tsx news.ts -s hn -n 5 | jq -r '.[].url' | npx tsx news.ts -o articles.md`;
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing
@@ -120,7 +119,6 @@ function parseCLI(argv: string[]): ParsedArgs | null {
       args: argv,
       options: {
         sources: { type: 'string', short: 's' },
-        mode: { type: 'string', short: 'm', default: 'list' },
         limit: { type: 'string', short: 'n', default: String(CONFIG.DEFAULT_LIMIT) },
         out: { type: 'string', short: 'o' },
         concurrency: { type: 'string', short: 'c', default: String(CONFIG.DEFAULT_CONCURRENCY) },
@@ -146,23 +144,11 @@ function parseCLI(argv: string[]): ParsedArgs | null {
     return null;
   }
 
-  const mode = v.mode as string;
-  if (mode !== 'list' && mode !== 'detail') {
-    process.stderr.write(`[ERROR] --mode must be "list" or "detail", got: ${mode}\n`);
-    return null;
-  }
-
   const out = v.out !== undefined ? (v.out as string) : null;
 
-  // ---- detail mode ----
-  if (mode === 'detail') {
-    return { mode: 'detail', urls: raw.positionals, out, loglevel: loglevel as LogLevel };
-  }
-
-  // ---- list mode ----
+  // Mode is inferred: -s present → list, absent → detail
   if (!v.sources) {
-    process.stderr.write('[ERROR] --sources is required in list mode\n');
-    return null;
+    return { mode: 'detail', urls: raw.positionals, out, loglevel: loglevel as LogLevel };
   }
 
   let sources: SourceRequest[];
@@ -239,29 +225,12 @@ async function pConcurrent<T>(
 }
 
 // ---------------------------------------------------------------------------
-// Error reporting
+// Error reporting — always stderr
 // ---------------------------------------------------------------------------
 
-/** Write a structured error entry to outDir/_errors.log, or stderr when outDir is null. */
-async function logError(
-  outDir: string | null,
-  info: { source: string; url?: string; stage: string; err: unknown },
-): Promise<void> {
-  const entry = {
-    ts: new Date().toISOString(),
-    source: info.source,
-    url: info.url ?? null,
-    stage: info.stage,
-    message: info.err instanceof Error ? info.err.message : String(info.err),
-    stack: info.err instanceof Error ? (info.err.stack ?? null) : null,
-  };
-  const line = JSON.stringify(entry) + '\n';
-  if (outDir === null) {
-    process.stderr.write('[ERR] ' + line);
-  } else {
-    await mkdir(outDir, { recursive: true });
-    await appendFile(join(outDir, '_errors.log'), line, 'utf-8');
-  }
+function logError(info: { source: string; url?: string; stage: string; err: unknown }): void {
+  const msg = info.err instanceof Error ? info.err.message : String(info.err);
+  process.stderr.write(`[ERR] ${info.source}${info.url ? ' ' + info.url : ''}: ${msg}\n`);
 }
 
 // ---------------------------------------------------------------------------
@@ -331,8 +300,6 @@ export async function main(argv: string[]): Promise<number> {
     }
 
     const log = makeLogger(args.loglevel);
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const outDir = args.out !== null ? join(args.out, dateStr) : null;
 
     // ------------------------------------------------------------------
     // Detail mode: fetch full content for given URLs
@@ -345,29 +312,27 @@ export async function main(argv: string[]): Promise<number> {
         return 2;
       }
 
-      log.info(`Fetching detail for ${urls.length} URL(s)`);
-      let n = 0;
+      const chunks: string[] = [];
       let failures = 0;
       for (const url of urls) {
-        n++;
         try {
           const { html } = await httpGet(url);
           const md = extractMarkdown(html, url);
-          // Use the last path segment as a rough title fallback
           const title = decodeURIComponent(
             new URL(url).pathname.split('/').filter(Boolean).pop() ?? url,
           );
-          if (outDir) {
-            const path = await writeArticleMd(outDir, 'detail', n, title, md);
-            log.info(`Wrote ${path}`);
-          } else {
-            process.stdout.write(`---\n# ${title}\n\n${md}\n\n`);
-          }
+          chunks.push(`---\n# ${title}\n\n${md}\n`);
         } catch (err) {
           failures++;
-          log.warn(`Failed ${url}: ${err instanceof Error ? err.message : String(err)}`);
-          await logError(outDir, { source: 'detail', url, stage: 'detail', err });
+          logError({ source: 'detail', url, stage: 'detail', err });
         }
+      }
+
+      const output = chunks.join('\n');
+      if (args.out) {
+        await writeFile(args.out, output, 'utf-8');
+      } else {
+        process.stdout.write(output);
       }
 
       if (failures === urls.length) return 3;
@@ -377,12 +342,6 @@ export async function main(argv: string[]): Promise<number> {
     // ------------------------------------------------------------------
     // List mode: fetch article lists from sources
     // ------------------------------------------------------------------
-    const srcStr = args.sources
-      .map((s) => (s.categories.length ? `${s.id}:${s.categories.join('+')}` : s.id))
-      .join(', ');
-    log.info(`Sources: ${srcStr} | limit=${args.limit} concurrency=${args.concurrency}`);
-
-    // Load plugins for each requested source
     type LoadedSource = { plugin: Plugin; categories: string[] };
     const loaded: LoadedSource[] = [];
     for (const req of args.sources) {
@@ -401,23 +360,20 @@ export async function main(argv: string[]): Promise<number> {
     const ctx: Ctx = { mode: 'http', httpGet, log };
     await pConcurrent(loaded, args.concurrency, async ({ plugin, categories }) => {
       const label = categories.length ? `${plugin.id}:${categories.join('+')}` : plugin.id;
-      log.info(`[${label}] Fetching list`);
       try {
         const items = await plugin.list(ctx, { limit: args.limit, categories });
-        log.info(`[${label}] ${items.length} items`);
         allItems.push(...items);
       } catch (err) {
-        log.error(`[${label}] failed: ${err instanceof Error ? err.message : String(err)}`);
         errors.push(label);
-        await logError(outDir, { source: label, stage: 'list', err });
+        logError({ source: label, stage: 'list', err });
       }
     });
 
-    if (outDir) {
-      await writeListJson(outDir, allItems);
-      log.info(`Wrote index.json with ${allItems.length} items to ${outDir}`);
+    const json = JSON.stringify(allItems, null, 2) + '\n';
+    if (args.out) {
+      await writeFile(args.out, json, 'utf-8');
     } else {
-      process.stdout.write(JSON.stringify(allItems, null, 2) + '\n');
+      process.stdout.write(json);
     }
 
     if (errors.length > 0) log.warn(`Failed sources: ${errors.join(', ')}`);

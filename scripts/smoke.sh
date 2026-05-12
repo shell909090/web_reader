@@ -1,47 +1,28 @@
 #!/usr/bin/env bash
-# Smoke test: verify HN and BBC produce expected output files.
+# Smoke test: verify HN and BBC produce expected output.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-DATE="$(date +%Y%m%d)"
-OUT="$ROOT/data/smoke-test"
-OUT_DATE="$OUT/$DATE"
-
-cleanup() {
-  rm -rf "$OUT"
-}
-trap cleanup EXIT
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 
 echo "[smoke] Running HN list (limit=10)..."
-node --import tsx "$ROOT/news.ts" --sources hn --mode list --limit 10 --out "$OUT"
+node --import tsx "$ROOT/news.ts" -s hn -n 10 -o "$TMP/hn.json"
 
-INDEX_JSON="$OUT_DATE/index.json"
-if [ ! -f "$INDEX_JSON" ]; then
-  echo "[smoke] FAIL: $INDEX_JSON not found" >&2
-  exit 1
-fi
-
-COUNT=$(node -e "const d=JSON.parse(require('fs').readFileSync('$INDEX_JSON','utf8')); console.log(d.filter(x=>x.source==='hn').length)")
+COUNT=$(node -e "const d=JSON.parse(require('fs').readFileSync('$TMP/hn.json','utf8')); console.log(d.filter(x=>x.source==='hn').length)")
 if [ "$COUNT" -lt 10 ]; then
-  echo "[smoke] FAIL: expected >= 10 hn items, got $COUNT" >&2
-  exit 1
+  echo "[smoke] FAIL: expected >= 10 hn items, got $COUNT" >&2; exit 1
 fi
 echo "[smoke] OK: hn list → $COUNT items"
 
-echo "[smoke] Running BBC detail (limit=2)..."
-node --import tsx "$ROOT/news.ts" --sources bbc --mode detail --limit 2 --out "$OUT"
+echo "[smoke] Running BBC detail (2 articles)..."
+node --import tsx "$ROOT/news.ts" -s bbc -n 2 2>/dev/null | \
+  node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); process.stdout.write(d.slice(0,2).map(i=>i.url).join('\n')+'\n')" | \
+  node --import tsx "$ROOT/news.ts" -o "$TMP/bbc.md"
 
-MD_COUNT=$(find "$OUT_DATE" -name 'bbc-*.md' | wc -l | tr -d ' ')
-if [ "$MD_COUNT" -lt 2 ]; then
-  echo "[smoke] FAIL: expected >= 2 bbc markdown files, got $MD_COUNT" >&2
-  exit 1
+if [ ! -s "$TMP/bbc.md" ]; then
+  echo "[smoke] FAIL: bbc.md is empty" >&2; exit 1
 fi
-echo "[smoke] OK: bbc detail → $MD_COUNT markdown files"
-
-if [ -f "$OUT_DATE/_errors.log" ]; then
-  ERR_COUNT=$(wc -l < "$OUT_DATE/_errors.log" | tr -d ' ')
-  echo "[smoke] WARN: _errors.log has $ERR_COUNT error(s)" >&2
-fi
+echo "[smoke] OK: bbc detail → $(wc -c < "$TMP/bbc.md" | tr -d ' ') bytes"
 
 echo "[smoke] All smoke tests passed."

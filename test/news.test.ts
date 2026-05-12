@@ -38,7 +38,7 @@ describe('main() exit codes', () => {
     assert.equal(code, 2);
   });
 
-  // TC-N6: full dispatch path with mocked fetch, stdout mode (no --out)
+  // TC-N6: list mode inferred from -s, mocked fetch, stdout → exit code 0
   test(
     'TC-N6: hn list stdout mode with mocked fetch → exit code 0',
     { timeout: 10000 },
@@ -51,7 +51,7 @@ describe('main() exit codes', () => {
           headers: { 'content-type': 'text/html; charset=utf-8' },
         });
       try {
-        const code = await callMain(['--sources', 'hn', '--mode', 'list', '--limit', '5']);
+        const code = await callMain(['-s', 'hn', '-n', '5']);
         assert.equal(code, 0);
       } finally {
         globalThis.fetch = origFetch;
@@ -59,31 +59,27 @@ describe('main() exit codes', () => {
     },
   );
 
-  // TC-N7: file mode with mocked fetch writes index.json
-  test('TC-N7: hn list file mode writes index.json → exit code 0', { timeout: 10000 }, async () => {
-    const origFetch = globalThis.fetch;
-    const tmpOut = await mkdtemp(join(tmpdir(), 'news-main-test-'));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).fetch = async () =>
-      new Response(hnFixture, {
-        status: 200,
-        headers: { 'content-type': 'text/html; charset=utf-8' },
-      });
-    try {
-      const code = await callMain([
-        '--sources',
-        'hn',
-        '--mode',
-        'list',
-        '--out',
-        tmpOut,
-        '--limit',
-        '5',
-      ]);
-      assert.equal(code, 0);
-    } finally {
-      globalThis.fetch = origFetch;
-      await rm(tmpOut, { recursive: true, force: true });
-    }
-  });
+  // TC-N7: file mode writes JSON to the specified file path
+  test(
+    'TC-N7: hn list file mode writes output.json → exit code 0',
+    { timeout: 10000 },
+    async () => {
+      const origFetch = globalThis.fetch;
+      const tmpDir = await mkdtemp(join(tmpdir(), 'news-main-test-'));
+      const outFile = join(tmpDir, 'output.json');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).fetch = async () =>
+        new Response(hnFixture, {
+          status: 200,
+          headers: { 'content-type': 'text/html; charset=utf-8' },
+        });
+      try {
+        const code = await callMain(['-s', 'hn', '-o', outFile, '-n', '5']);
+        assert.equal(code, 0);
+      } finally {
+        globalThis.fetch = origFetch;
+        await rm(tmpDir, { recursive: true, force: true });
+      }
+    },
+  );
 });
