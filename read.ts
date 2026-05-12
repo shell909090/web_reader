@@ -45,6 +45,7 @@ const KNOWN_SOURCES = [
   'oschina',
   'juejin',
   'gnews',
+  'bsky',
 ] as const;
 
 /** Named source presets — expanded before plugin loading. */
@@ -76,9 +77,10 @@ Options:
                                        xinhua:politics/world/society/finance/tech/mil/legal/health/edu
                                        gnews:tech/business/science/health/sports/entertainment/world/nation (default: top)
                            Others: hn bbc techcrunch sina ars theverge infoq people csdn
-                                   caixin yahoo wiki nytimes huggingface oschina juejin gnews
+                                   caixin yahoo wiki nytimes huggingface oschina juejin gnews bsky
+                           bsky: bsky:news/tech (default: all; search: -q bsky <keywords>)
   -q, --query SOURCE       Query a data source; keywords follow as positional args
-                           Searchable sources: wiki (EN), zhwiki (中文), reddit, gnews
+                           Searchable sources: wiki (EN), zhwiki (中文), reddit, gnews, bsky
   -n, --limit N            Max results (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})
@@ -378,7 +380,9 @@ export async function main(argv: string[]): Promise<number> {
         return 2;
       }
       if (!plugin.search) {
-        log.error(`Source "${args.source}" does not support search. Searchable: wiki, zhwiki, reddit, gnews`);
+        log.error(
+          `Source "${args.source}" does not support search. Searchable: wiki, zhwiki, reddit, gnews, bsky`,
+        );
         return 2;
       }
       const query = args.keywords.join(' ');

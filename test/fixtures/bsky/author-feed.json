@@ -1,0 +1,122 @@
+{
+  "feed": [
+    {
+      "post": {
+        "uri": "at://did:plc:abc001/app.bsky.feed.post/post001",
+        "author": { "did": "did:plc:abc001", "handle": "bbc.com", "displayName": "BBC News" },
+        "record": {
+          "$type": "app.bsky.feed.post",
+          "text": "Breaking: Major earthquake strikes region with 6.8 magnitude",
+          "createdAt": "2026-05-13T10:00:00.000Z",
+          "embed": {
+            "$type": "app.bsky.embed.external",
+            "external": {
+              "uri": "https://www.bbc.com/news/earthquake-region",
+              "title": "Major earthquake strikes region — 6.8 magnitude",
+              "description": "A powerful earthquake has struck the region causing widespread damage."
+            }
+          }
+        },
+        "likeCount": 245, "repostCount": 89, "replyCount": 12,
+        "indexedAt": "2026-05-13T10:01:00.000Z"
+      }
+    },
+    {
+      "post": {
+        "uri": "at://did:plc:abc002/app.bsky.feed.post/post002",
+        "author": { "did": "did:plc:abc002", "handle": "apnews.com", "displayName": "AP News" },
+        "record": {
+          "$type": "app.bsky.feed.post",
+          "text": "Ceasefire talks in Cairo enter critical phase as mediators push for agreement",
+          "createdAt": "2026-05-13T09:30:00.000Z",
+          "embed": {
+            "$type": "app.bsky.embed.external",
+            "external": {
+              "uri": "https://apnews.com/article/ceasefire-talks-cairo",
+              "title": "Ceasefire talks in Cairo enter critical phase",
+              "description": "Negotiations continue as regional mediators push for a lasting agreement."
+            }
+          }
+        },
+        "likeCount": 312, "repostCount": 134, "replyCount": 28,
+        "indexedAt": "2026-05-13T09:31:00.000Z"
+      }
+    },
+    {
+      "post": {
+        "uri": "at://did:plc:abc003/app.bsky.feed.post/post003",
+        "author": { "did": "did:plc:abc003", "handle": "reuters.com", "displayName": "Reuters" },
+        "record": {
+          "$type": "app.bsky.feed.post",
+          "text": "Federal Reserve signals two rate cuts remain possible in 2026",
+          "createdAt": "2026-05-13T09:00:00.000Z",
+          "embed": {
+            "$type": "app.bsky.embed.external",
+            "external": {
+              "uri": "https://www.reuters.com/markets/fed-rate-cuts-2026",
+              "title": "Fed signals two rate cuts remain possible in 2026",
+              "description": "Federal Reserve officials signal openness to further easing."
+            }
+          }
+        },
+        "likeCount": 198, "repostCount": 76, "replyCount": 19,
+        "indexedAt": "2026-05-13T09:01:00.000Z"
+      }
+    },
+    {
+      "post": {
+        "uri": "at://did:plc:abc004/app.bsky.feed.post/post004",
+        "author": { "did": "did:plc:abc004", "handle": "theguardian.com", "displayName": "The Guardian" },
+        "record": {
+          "$type": "app.bsky.feed.post",
+          "text": "EU proposes sweeping new digital infrastructure investment fund",
+          "createdAt": "2026-05-13T08:45:00.000Z",
+          "embed": {
+            "$type": "app.bsky.embed.external",
+            "external": {
+              "uri": "https://www.theguardian.com/technology/eu-digital-fund",
+              "title": "EU proposes sweeping new digital infrastructure investment fund",
+              "description": "The European Union announced a landmark digital investment initiative."
+            }
+          }
+        },
+        "likeCount": 143, "repostCount": 52, "replyCount": 9,
+        "indexedAt": "2026-05-13T08:46:00.000Z"
+      }
+    },
+    {
+      "post": {
+        "uri": "at://did:plc:abc005/app.bsky.feed.post/post005",
+        "author": { "did": "did:plc:abc005", "handle": "theverge.com", "displayName": "The Verge" },
+        "record": {
+          "$type": "app.bsky.feed.post",
+          "text": "Apple's new M4 Pro chip benchmarks are out and they're impressive",
+          "createdAt": "2026-05-13T08:00:00.000Z",
+          "embed": {
+            "$type": "app.bsky.embed.external",
+            "external": {
+              "uri": "https://www.theverge.com/apple-m4-pro-benchmarks",
+              "title": "Apple M4 Pro benchmarks: a significant leap in performance",
+              "description": "Early benchmarks show the M4 Pro outperforms its predecessor by 40%."
+            }
+          }
+        },
+        "likeCount": 421, "repostCount": 178, "replyCount": 45,
+        "indexedAt": "2026-05-13T08:01:00.000Z"
+      }
+    },
+    {
+      "post": {
+        "uri": "at://did:plc:abc006/app.bsky.feed.post/post006",
+        "author": { "did": "did:plc:abc006", "handle": "arstechnica.com", "displayName": "Ars Technica" },
+        "record": {
+          "$type": "app.bsky.feed.post",
+          "text": "Fascinating thread on how Starship's heat shield survived reentry — engineering breakdown below",
+          "createdAt": "2026-05-13T07:30:00.000Z"
+        },
+        "likeCount": 89, "repostCount": 34, "replyCount": 7,
+        "indexedAt": "2026-05-13T07:31:00.000Z"
+      }
+    }
+  ]
+}

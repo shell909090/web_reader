@@ -1,0 +1,91 @@
+{
+  "posts": [
+    {
+      "uri": "at://did:plc:s001/app.bsky.feed.post/srch001",
+      "author": { "handle": "reuters.com", "displayName": "Reuters" },
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Middle East ceasefire talks make progress in latest round of negotiations",
+        "createdAt": "2026-05-13T11:00:00.000Z",
+        "embed": {
+          "$type": "app.bsky.embed.external",
+          "external": {
+            "uri": "https://www.reuters.com/world/middle-east/ceasefire-progress",
+            "title": "Middle East ceasefire talks make progress",
+            "description": "Latest round of negotiations shows signs of breakthrough."
+          }
+        }
+      },
+      "likeCount": 312, "repostCount": 145,
+      "indexedAt": "2026-05-13T11:01:00.000Z"
+    },
+    {
+      "uri": "at://did:plc:s002/app.bsky.feed.post/srch002",
+      "author": { "handle": "apnews.com", "displayName": "AP News" },
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Humanitarian aid convoy reaches Gaza after days of delays",
+        "createdAt": "2026-05-13T10:30:00.000Z",
+        "embed": {
+          "$type": "app.bsky.embed.external",
+          "external": {
+            "uri": "https://apnews.com/article/humanitarian-aid-gaza",
+            "title": "Humanitarian aid convoy reaches Gaza",
+            "description": "Aid trucks finally crossed into Gaza after extended negotiations."
+          }
+        }
+      },
+      "likeCount": 456, "repostCount": 201,
+      "indexedAt": "2026-05-13T10:31:00.000Z"
+    },
+    {
+      "uri": "at://did:plc:s003/app.bsky.feed.post/srch003",
+      "author": { "handle": "bbc.com", "displayName": "BBC News" },
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "UN Security Council holds emergency session on Middle East violence",
+        "createdAt": "2026-05-13T09:00:00.000Z",
+        "embed": {
+          "$type": "app.bsky.embed.external",
+          "external": {
+            "uri": "https://www.bbc.com/news/un-security-council-middle-east",
+            "title": "UN Security Council holds emergency session on Middle East",
+            "description": "Council members gathered to discuss the escalating situation."
+          }
+        }
+      },
+      "likeCount": 289, "repostCount": 112,
+      "indexedAt": "2026-05-13T09:01:00.000Z"
+    },
+    {
+      "uri": "at://did:plc:s004/app.bsky.feed.post/srch004",
+      "author": { "handle": "theguardian.com", "displayName": "The Guardian" },
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Opinion: The path to peace in the Middle East runs through regional dialogue",
+        "createdAt": "2026-05-12T20:00:00.000Z",
+        "embed": {
+          "$type": "app.bsky.embed.external",
+          "external": {
+            "uri": "https://www.theguardian.com/commentisfree/middle-east-peace-path",
+            "title": "The path to peace in the Middle East runs through regional dialogue",
+            "description": "Analysis of the diplomatic options available to end the conflict."
+          }
+        }
+      },
+      "likeCount": 178, "repostCount": 67,
+      "indexedAt": "2026-05-12T20:01:00.000Z"
+    },
+    {
+      "uri": "at://did:plc:s005/app.bsky.feed.post/srch005",
+      "author": { "handle": "user.bsky.social", "displayName": "Political Observer" },
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "The situation in the Middle East is more complex than most Western media portrays. Here's a thread on the historical context that's being missed.",
+        "createdAt": "2026-05-12T18:00:00.000Z"
+      },
+      "likeCount": 934, "repostCount": 412,
+      "indexedAt": "2026-05-12T18:01:00.000Z"
+    }
+  ]
+}
