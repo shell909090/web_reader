@@ -1,0 +1,143 @@
+# read.ts — LLM Usage Guide
+
+`read.ts` is a command-line tool for fetching news and reading web content.
+It has three modes, inferred from the arguments.
+
+---
+
+## Mode 1: News list (`-s`)
+
+Fetch article lists from news sources. Output is a JSON array on stdout.
+
+```
+npx tsx read.ts -s <sources> [-n limit] [-o output.json]
+```
+
+**Presets** (recommended):
+- `-s news` → bbc + nytimes + xinhua + thepaper  (general news, EN+ZH)
+- `-s tech` → hn + ars + mittr + infoq           (tech news, EN+ZH)
+- `-s fin`  → caixin + wsj + cnbc:markets        (financial news, EN+ZH)
+
+**Individual sources** (all HTTP, no browser required):
+- `hn` Hacker News (EN) — score + comments in notes
+- `bbc` BBC News (EN)
+- `nytimes` NYT Chinese 纽约时报中文 (ZH) — full text accessible
+- `xinhua` 新华社 (ZH) — official Chinese news wire
+- `thepaper` 澎湃新闻 (ZH) — breaking domestic news
+- `caixin` 财新 (ZH) — independent financial journalism
+- `wsj` Wall Street Journal (EN) — RSS, summaries only (paywalled full text)
+- `cnbc` CNBC (EN) — categories: top world markets tech finance us health politics intl ai
+- `ars` Ars Technica (EN) — deep tech reporting, has `summary` field
+- `mittr` MIT Technology Review (EN) — tech analysis
+- `theverge` The Verge AI section (EN) — ~10 items
+- `wiki` Wikipedia Current Events (EN) — curated digest, has `summary` field
+- `zhwiki` 中文维基百科新闻动态 (ZH) — curated digest, has `summary` field
+- `infoq` InfoQ CN (ZH)
+- `techcrunch` TechCrunch (EN)
+- `sina` 新浪新闻 (ZH)
+- `people` 人民网 (ZH)
+- `huggingface` HuggingFace Papers (EN) — daily ML papers
+- `csdn` CSDN (ZH)
+- `oschina` 开源中国 (ZH)
+- `juejin` 稀土掘金 (ZH)
+
+**Category syntax**: `source:category` e.g. `wsj:markets`, `cnbc:tech`, `xinhua:world`
+- `wsj`: world us markets opinion main
+- `cnbc`: top world markets tech finance us health politics intl ai
+- `mittr`: ai computing space biotech (default: main RSS)
+- `xinhua`: politics world society finance tech mil legal health edu
+
+**Output format** (JSON array):
+```json
+[
+  {
+    "source": "hn",
+    "title": "Article title",
+    "url": "https://...",
+    "notes": "412 points · 187 comments",
+    "summary": "Optional excerpt (ars, wiki, zhwiki, wsj, caixin)"
+  }
+]
+```
+
+---
+
+## Mode 2: Fetch full text (detail mode)
+
+Pass URLs as arguments or via stdin. Output is Markdown on stdout.
+
+```
+npx tsx read.ts <url1> [url2 ...]
+npx tsx read.ts -s hn -n 5 | jq -r '.[].url' | npx tsx read.ts
+npx tsx read.ts <url> -o article.md
+```
+
+- Extracts main article body using Readability + Turndown
+- Strips navigation, ads, "Read more" sections
+- Output format: `---\n# title\n\nmarkdown body\n`
+- Multiple URLs are separated by `---`
+- Works well with: bbc, nytimes, ars, mittr, thepaper, caixin, xinhua, cnbc, wsj (summaries only)
+
+---
+
+## Mode 3: Search data sources (`-q`)
+
+Search a reference source by keyword. Returns a JSON list of matching articles.
+
+```
+npx tsx read.ts -q wiki <keywords...>
+npx tsx read.ts -q zhwiki <Chinese keywords...>
+npx tsx read.ts -q wiki transformer architecture -n 8
+```
+
+**Searchable sources:**
+- `wiki` — English Wikipedia full-text search
+- `zhwiki` — Chinese Wikipedia (中文维基百科) full-text search
+
+**Output format** (same as list mode):
+```json
+[
+  {
+    "source": "wiki",
+    "title": "Transformer (deep learning)",
+    "url": "https://en.wikipedia.org/wiki/Transformer_(deep_learning)",
+    "notes": "Wikipedia",
+    "summary": "In deep learning, the transformer is..."
+  }
+]
+```
+
+**Typical usage pattern:**
+```bash
+# Find Wikipedia article, then read it in full
+npx tsx read.ts -q wiki attention mechanism | jq -r '.[0].url' | npx tsx read.ts
+
+# Search Chinese Wikipedia
+npx tsx read.ts -q zhwiki 注意力机制 | jq -r '.[0].url' | npx tsx read.ts
+```
+
+---
+
+## Options
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--sources` | `-s` | — | Source IDs, presets, or `all` |
+| `--query`   | `-q` | — | Query source; keywords as positional args |
+| `--limit`   | `-n` | `50` | Max results |
+| `--out`     | `-o` | stdout | Write to FILE (JSON or markdown) |
+| `--concurrency` | `-c` | `2` | Parallel sources (list mode) |
+| `--loglevel` | `-l` | `warn` | debug\|info\|warn\|error |
+| `--help`    | `-h` | — | Show help |
+
+---
+
+## Notes for LLMs
+
+- **list mode** is passive: subscribe to sources to get a stream of article metadata
+- **detail mode** is active: give it URLs from list output to get full readable text
+- **query mode** is for reference lookup, not news; combine with detail for full articles
+- All output is UTF-8; Chinese content is handled natively (GB2312 auto-decoded for Sina)
+- Errors go to stderr; stdout is always clean JSON or markdown
+- `wiki` and `zhwiki` are the best data sources: structured, reliable, full-text accessible
+- `nytimes` (Chinese) provides high-quality full text; most other sources may be paywalled at detail level
