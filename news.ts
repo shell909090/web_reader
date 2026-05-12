@@ -46,8 +46,8 @@ const KNOWN_SOURCES = [
 
 /** Named source presets — expanded before plugin loading. */
 const SETS: Record<string, string[]> = {
-  news: ['bbc', 'nytimes', 'wiki'],
-  tech: ['ars', 'mittr', 'infoq'],
+  news: ['bbc', 'nytimes', 'xinhua', 'thepaper'],
+  tech: ['hn', 'ars', 'mittr', 'infoq'],
   fin: ['caixin', 'wsj', 'cnbc:markets'],
 };
 
@@ -63,7 +63,8 @@ Usage:
 
 Options:
   -s, --sources <ids|all>  Comma-separated source IDs, set names, or "all"
-                           Presets: news (bbc+nytimes+wiki)  tech (ars+mittr+infoq)
+                           Presets: news (bbc+nytimes+xinhua+thepaper)
+                                    tech (hn+ars+mittr+infoq)
                                     fin  (caixin+wsj+cnbc:markets)
                            Categories: wsj:world/us/markets/opinion/main
                                        cnbc:top/world/markets/tech/finance/us/health/politics/intl/ai
