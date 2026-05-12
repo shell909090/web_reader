@@ -62,7 +62,7 @@ Options:
   -o, --out DIR            Write output files to DIR/YYYYMMDD/
                            (default: print JSON/markdown to stdout)
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})
-  -l, --loglevel LEVEL     Log verbosity: debug|info|warn|error (default: info)
+  -l, --loglevel LEVEL     Log verbosity: debug|info|warn|error (default: warn)
   -h, --help               Show this help
 
 Examples:
@@ -123,7 +123,7 @@ function parseCLI(argv: string[]): ParsedArgs | null {
         limit: { type: 'string', short: 'n', default: String(CONFIG.DEFAULT_LIMIT) },
         out: { type: 'string', short: 'o' },
         concurrency: { type: 'string', short: 'c', default: String(CONFIG.DEFAULT_CONCURRENCY) },
-        loglevel: { type: 'string', short: 'l', default: 'info' },
+        loglevel: { type: 'string', short: 'l', default: 'warn' },
         help: { type: 'boolean', short: 'h', default: false },
       },
       allowPositionals: true,
