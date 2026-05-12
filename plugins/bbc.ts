@@ -43,11 +43,8 @@ function parseBBCPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'bbc',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('bbc requires http mode');
-
     ctx.log.debug('Fetching BBC News homepage', { url: BBC_HOME });
     const { status, html } = await ctx.httpGet(BBC_HOME);
 

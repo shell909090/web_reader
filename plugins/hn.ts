@@ -53,11 +53,8 @@ function parseHNPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'hn',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('hn requires http mode');
-
     ctx.log.debug('Fetching HN homepage', { url: HN_HOME });
     const { status, html } = await ctx.httpGet(HN_HOME);
 

@@ -47,11 +47,8 @@ function parseTechCrunchPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'techcrunch',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('techcrunch requires http mode');
-
     ctx.log.debug('Fetching TechCrunch homepage', { url: TC_HOME });
     const { status, html } = await ctx.httpGet(TC_HOME);
 

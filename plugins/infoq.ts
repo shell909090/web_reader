@@ -47,11 +47,8 @@ function parseInfoQPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'infoq',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('infoq requires http mode');
-
     ctx.log.debug('Fetching InfoQ CN homepage', { url: INFOQ_HOME });
     const { status, html } = await ctx.httpGet(INFOQ_HOME);
 

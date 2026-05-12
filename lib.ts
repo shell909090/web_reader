@@ -1,5 +1,4 @@
-// Shared utilities: HTTP, browser, extraction, output. Implemented across T02-T05.
-// Plugin system types are defined here so plugins, lib, and news.ts share one source of truth.
+// Shared utilities: HTTP, extraction, output. Plugin system types.
 
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -15,7 +14,6 @@ export const CONFIG = {
   LOCALE_CN: 'zh-CN',
   TIMEZONE: 'America/New_York',
   HTTP_TIMEOUT_MS: 30_000,
-  NAV_TIMEOUT_MS: 30_000,
   TOTAL_TIMEOUT_MS: 600_000,
   DEFAULT_LIMIT: 20,
   DEFAULT_CONCURRENCY: 2,
@@ -39,13 +37,14 @@ export type Item = {
   notes: string;
 } & Record<string, unknown>;
 
-export type Ctx =
-  | { mode: 'http'; httpGet(url: string, opts?: HttpGetOpts): Promise<HttpResponse>; log: Logger }
-  | { mode: 'browser'; page: import('playwright').Page; log: Logger };
+export type Ctx = {
+  mode: 'http';
+  httpGet(url: string, opts?: HttpGetOpts): Promise<HttpResponse>;
+  log: Logger;
+};
 
 export type Plugin = {
   id: string;
-  needsBrowser: boolean;
   list(ctx: Ctx, opts: { limit: number }): Promise<Item[]>;
   detail?(ctx: Ctx, item: Item): Promise<string>;
 };
@@ -175,62 +174,6 @@ export async function httpGet(url: string, opts?: HttpGetOpts): Promise<HttpResp
   }
 
   return result;
-}
-
-// ---------------------------------------------------------------------------
-// Browser
-// ---------------------------------------------------------------------------
-
-// Injectable for unit tests; callers should use the default.
-type ChromiumLauncher = {
-  launch(opts?: { headless?: boolean }): Promise<import('playwright').Browser>;
-};
-
-/** Run fn with a managed browser whose lifetime is tied to this call. */
-export async function withBrowser<T>(
-  plugins: Plugin[],
-  fn: (getPage: (sourceId: string) => Promise<import('playwright').Page>) => Promise<T>,
-  launcher?: ChromiumLauncher,
-): Promise<T> {
-  const needsBrowser = plugins.some((p) => p.needsBrowser);
-
-  if (!needsBrowser) {
-    const getPage = async (_sourceId: string): Promise<import('playwright').Page> => {
-      throw new Error('No browser plugins: getPage should not be called');
-    };
-    return fn(getPage);
-  }
-
-  // Lazy-load chromium so the import cost is paid only when needed
-  const actualLauncher = launcher ?? (await import('playwright')).chromium;
-  const browser = await actualLauncher.launch({ headless: true });
-
-  // Pre-create one context per browser plugin so cleanup is guaranteed even if fn errors early.
-  const contexts = new Map<string, import('playwright').BrowserContext>();
-  for (const p of plugins.filter((p) => p.needsBrowser)) {
-    const ctx = await browser.newContext({
-      userAgent: CONFIG.UA,
-      viewport: CONFIG.VIEWPORT,
-      locale: CONFIG.LOCALE_EN,
-      timezoneId: CONFIG.TIMEZONE,
-    });
-    contexts.set(p.id, ctx);
-  }
-
-  const getPage = async (sourceId: string): Promise<import('playwright').Page> => {
-    const ctx = contexts.get(sourceId);
-    if (!ctx) throw new Error(`No browser context for source: ${sourceId}`);
-    return ctx.newPage();
-  };
-
-  try {
-    return await fn(getPage);
-  } finally {
-    for (const ctx of contexts.values()) {
-      await ctx.close().catch(() => undefined);
-    }
-    await browser.close().catch(() => undefined);
-  }
 }
 
 // ---------------------------------------------------------------------------

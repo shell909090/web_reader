@@ -38,11 +38,8 @@ function parseCnbcTechPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'cnbc-tech',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('cnbc-tech requires http mode');
-
     ctx.log.debug('Fetching CNBC Technology page', { url: CNBC_TECH_URL });
     const { status, html } = await ctx.httpGet(CNBC_TECH_URL);
 

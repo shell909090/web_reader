@@ -78,11 +78,8 @@ function parseWikiPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'wikipedia',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('wikipedia requires http mode');
-
     ctx.log.debug('Fetching Wikipedia Current Events', { url: WIKI_URL });
     const { status, html } = await ctx.httpGet(WIKI_URL);
 

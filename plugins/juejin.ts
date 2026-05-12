@@ -14,7 +14,6 @@ type JuejinResponse = { err_no: number; data: JuejinItem[] };
 
 const plugin: Plugin = {
   id: 'juejin',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
     ctx.log.debug('Fetching Juejin recommend feed', { url: API_URL });

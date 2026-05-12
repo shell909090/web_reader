@@ -53,11 +53,8 @@ function parsePeoplePage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'people',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('people requires http mode');
-
     ctx.log.debug('Fetching People Daily homepage', { url: PEOPLE_HOME });
     const { status, html } = await ctx.httpGet(PEOPLE_HOME);
 

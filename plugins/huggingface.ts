@@ -45,11 +45,8 @@ function parseHFPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'huggingface',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('huggingface requires http mode');
-
     ctx.log.debug('Fetching HuggingFace papers page', { url: HF_PAPERS_URL });
     const { status, html } = await ctx.httpGet(HF_PAPERS_URL);
 

@@ -48,11 +48,8 @@ function parseArsPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'ars',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('ars requires http mode');
-
     ctx.log.debug('Fetching Ars Technica homepage', { url: ARS_HOME });
     const { status, html } = await ctx.httpGet(ARS_HOME);
 

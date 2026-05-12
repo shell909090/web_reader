@@ -1,13 +1,13 @@
 # 常用新闻网站
 
 ## 综合资讯
-- Reuters: `https://www.reuters.com/`
 - BBC: `https://www.bbc.com/news`
 - Hacker News: `https://news.ycombinator.com/`
 - Ars Technica: `https://arstechnica.com/`
-- Wikipedia: `https://en.wikipedia.org/wiki/Main_Page`
+- Wikipedia: `https://en.wikipedia.org/wiki/Portal:Current_events`
 - 新浪: `https://news.sina.com.cn/`
 - 纽约时报中文版: `https://cn.nytimes.com/`
+- 纽约时报中文版: `https://cn.nytimes.com/rss/`
 
 ## 财经政治
 - Bloomberg Markets: `https://www.bloomberg.com/markets`

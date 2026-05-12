@@ -52,11 +52,8 @@ function parseAtomFeed(xml: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'theverge',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('theverge requires http mode');
-
     ctx.log.debug('Fetching The Verge AI Atom feed', { url: FEED_URL });
     const { status, html } = await ctx.httpGet(FEED_URL);
 

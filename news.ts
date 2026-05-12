@@ -9,7 +9,6 @@ import {
   CONFIG,
   makeLogger,
   httpGet,
-  withBrowser,
   extractMarkdown,
   writeListJson,
   writeArticleMd,
@@ -29,7 +28,6 @@ const KNOWN_SOURCES = [
   'bbc',
   'techcrunch',
   'sina',
-  'reuters',
   'cnbc-ai',
   'ars',
   'theverge',
@@ -53,9 +51,8 @@ Usage:
 
 Options:
   -s, --sources <ids|all>  [list] Comma-separated source IDs or "all"
-                           HTTP: hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn,
-                                 wikipedia, nytimes, huggingface, oschina, cnbc-tech, juejin, cnbc-ai
-                           Browser: reuters
+                           hn, bbc, techcrunch, sina, ars, theverge, infoq, people, csdn,
+                           wikipedia, nytimes, huggingface, oschina, cnbc-tech, juejin, cnbc-ai
   -m, --mode list|detail   Fetch mode (default: list)
   -n, --limit N            [list] Max articles per source (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out DIR            Write output files to DIR/YYYYMMDD/
@@ -375,23 +372,18 @@ export async function main(argv: string[]): Promise<number> {
     const allItems: Item[] = [];
     const errors: string[] = [];
 
-    await withBrowser(plugins, async (getPage) => {
-      await pConcurrent(plugins, args.concurrency, async (plugin) => {
-        log.info(`[${plugin.id}] Fetching list`);
-        try {
-          const ctx: Ctx = plugin.needsBrowser
-            ? { mode: 'browser', page: await getPage(plugin.id), log }
-            : { mode: 'http', httpGet, log };
-
-          const items = await plugin.list(ctx, { limit: args.limit });
-          log.info(`[${plugin.id}] ${items.length} items`);
-          allItems.push(...items);
-        } catch (err) {
-          log.error(`[${plugin.id}] failed: ${err instanceof Error ? err.message : String(err)}`);
-          errors.push(plugin.id);
-          await logError(outDir, { source: plugin.id, stage: 'list', err });
-        }
-      });
+    const ctx: Ctx = { mode: 'http', httpGet, log };
+    await pConcurrent(plugins, args.concurrency, async (plugin) => {
+      log.info(`[${plugin.id}] Fetching list`);
+      try {
+        const items = await plugin.list(ctx, { limit: args.limit });
+        log.info(`[${plugin.id}] ${items.length} items`);
+        allItems.push(...items);
+      } catch (err) {
+        log.error(`[${plugin.id}] failed: ${err instanceof Error ? err.message : String(err)}`);
+        errors.push(plugin.id);
+        await logError(outDir, { source: plugin.id, stage: 'list', err });
+      }
     });
 
     if (outDir) {

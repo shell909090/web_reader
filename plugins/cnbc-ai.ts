@@ -34,11 +34,8 @@ function parseCnbcAiPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'cnbc-ai',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('cnbc-ai requires http mode');
-
     ctx.log.debug('Fetching CNBC AI page', { url: CNBC_AI_URL });
     const { status, html } = await ctx.httpGet(CNBC_AI_URL);
 

@@ -36,11 +36,8 @@ function parseNYTimesPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'nytimes',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('nytimes requires http mode');
-
     ctx.log.debug('Fetching NYTimes Chinese homepage', { url: NYT_CN_HOME });
     const { status, html } = await ctx.httpGet(NYT_CN_HOME);
 

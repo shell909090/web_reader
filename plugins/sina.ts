@@ -48,11 +48,8 @@ function parseSinaPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'sina',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('sina requires http mode');
-
     ctx.log.debug('Fetching Sina News homepage', { url: SINA_HOME });
     const { status, html } = await ctx.httpGet(SINA_HOME);
 

@@ -52,11 +52,8 @@ function parseCSDNPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'csdn',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('csdn requires http mode');
-
     ctx.log.debug('Fetching CSDN homepage', { url: CSDN_HOME });
     const { status, html } = await ctx.httpGet(CSDN_HOME);
 

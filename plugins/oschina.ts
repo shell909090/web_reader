@@ -38,11 +38,8 @@ function parseOSCHINAPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'oschina',
-  needsBrowser: false,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    if (ctx.mode !== 'http') throw new Error('oschina requires http mode');
-
     ctx.log.debug('Fetching OSCHINA news page', { url: OSCHINA_NEWS_URL });
     const { status, html } = await ctx.httpGet(OSCHINA_NEWS_URL);
 
