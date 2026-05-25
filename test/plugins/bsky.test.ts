@@ -9,10 +9,7 @@ const authorFeedJson = readFileSync(
   new URL('../fixtures/bsky/author-feed.json', import.meta.url),
   'utf-8',
 );
-const searchJson = readFileSync(
-  new URL('../fixtures/bsky/search.json', import.meta.url),
-  'utf-8',
-);
+const searchJson = readFileSync(new URL('../fixtures/bsky/search.json', import.meta.url), 'utf-8');
 
 const ctx: Ctx = {
   mode: 'http',

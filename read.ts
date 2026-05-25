@@ -41,7 +41,7 @@ const KNOWN_SOURCES = [
   'yahoo',
   'cnbc',
   'nytimes',
-  'huggingface',
+  'hf',
   'oschina',
   'juejin',
   'gnews',
@@ -77,10 +77,10 @@ Options:
                                        xinhua:politics/world/society/finance/tech/mil/legal/health/edu
                                        gnews:tech/business/science/health/sports/entertainment/world/nation (default: top)
                            Others: hn bbc techcrunch sina ars theverge infoq people csdn
-                                   caixin yahoo wiki nytimes huggingface oschina juejin gnews bsky
+                                   caixin yahoo wiki nytimes hf oschina juejin gnews bsky
                            bsky: bsky:news/tech (default: all; search: -q bsky <keywords>)
   -q, --query SOURCE       Query a data source; keywords follow as positional args
-                           Searchable sources: wiki (EN), zhwiki (中文), reddit, gnews, bsky
+                           Searchable sources: wiki (EN), zhwiki (中文), reddit, gnews, bsky, hf
   -n, --limit N            Max results (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})

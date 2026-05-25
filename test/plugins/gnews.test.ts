@@ -31,7 +31,14 @@ describe('gnews plugin', () => {
     // First fixture item raw title is "OpenAI unveils GPT-5 with major capability improvements - The Verge"
     assert.ok(!items[0].title.endsWith('The Verge'), 'title should not end with publisher name');
     // Confirm none of the items end with a known publisher name
-    const knownPublishers = ['The Verge', 'Reuters', 'TechCrunch', 'BBC News', 'Ars Technica', 'CNBC'];
+    const knownPublishers = [
+      'The Verge',
+      'Reuters',
+      'TechCrunch',
+      'BBC News',
+      'Ars Technica',
+      'CNBC',
+    ];
     for (const item of items) {
       for (const pub of knownPublishers) {
         assert.ok(!item.title.endsWith(pub), `title "${item.title}" should not end with "${pub}"`);

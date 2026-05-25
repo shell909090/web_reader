@@ -6,7 +6,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 
 ## Features
 
-- **23 sources** across EN and ZH — see table below
+- **24 sources** across EN and ZH — see table below
 - **Three presets**: `news`, `tech`, `fin`
 - **Three modes**: list (news feeds) · detail (full text) · query (reference search)
 - **MCP server mode** for AI agent integration (`--mcp`)
@@ -15,31 +15,32 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 
 ## Sources
 
-| ID | Site | Language | Notes |
-|---|---|---|---|
-| `hn` | Hacker News | EN | Score + comments |
-| `bbc` | BBC News | EN | |
-| `techcrunch` | TechCrunch | EN | |
-| `ars` | Ars Technica | EN | `summary` field |
-| `theverge` | The Verge (AI) | EN | Atom feed |
-| `mittr` | MIT Technology Review | EN | categories: ai computing space biotech |
-| `wiki` | Wikipedia Current Events | EN | `summary` field |
-| `zhwiki` | 中文维基百科新闻动态 | ZH | `summary` field |
-| `reddit` | Reddit | EN | categories: ml llm ai tech prog investing stocks worldnews |
-| `yahoo` | Yahoo Finance | EN | RSS, 48 items, current |
-| `gnews` | Google News | EN | categories: tech business science health sports entertainment world nation; keyword search |
-| `cnbc` | CNBC | EN | categories: top world markets tech finance us health politics intl ai |
-| `nytimes` | NYT Chinese 纽约时报 | ZH | full text accessible |
-| `xinhua` | 新华社 | ZH | categories: politics world society finance tech mil legal health edu |
-| `thepaper` | 澎湃新闻 | ZH | breaking news |
-| `caixin` | 财新 | ZH | financial journalism |
-| `sina` | 新浪新闻 | ZH | GB2312 auto-decoded |
-| `infoq` | InfoQ CN | ZH | |
-| `people` | 人民网 | ZH | |
-| `huggingface` | HuggingFace Papers | EN | daily ML papers |
-| `csdn` | CSDN | ZH | |
-| `oschina` | 开源中国 | ZH | |
-| `juejin` | 稀土掘金 | ZH | |
+| ID | Site | Language | Search | Detail | Notes |
+|---|---|---|---|---|---|
+| `hn` | Hacker News | EN | ❌ | ⚠️ | Score + comments; external article URLs (HN thread URLs are discussions) |
+| `bbc` | BBC News | EN | ❌ | ✅ | |
+| `techcrunch` | TechCrunch | EN | ❌ | ✅ | |
+| `ars` | Ars Technica | EN | ❌ | ✅ | `summary` field |
+| `theverge` | The Verge (AI) | EN | ❌ | ✅ | Atom feed |
+| `mittr` | MIT Technology Review | EN | ❌ | ✅ | categories: ai computing space biotech |
+| `wiki` | Wikipedia Current Events | EN | ✅ | ✅ | `summary` field |
+| `zhwiki` | 中文维基百科新闻动态 | ZH | ✅ | ✅ | `summary` field |
+| `reddit` | Reddit | EN | ✅ | ⚠️ | categories: ml llm ai tech prog investing stocks worldnews; link posts only (`/comments/` requires login) |
+| `yahoo` | Yahoo Finance | EN | ❌ | ✅ | RSS, 48 items |
+| `gnews` | Google News | EN | ✅ | ⚠️ | categories: tech business science health sports entertainment world nation; redirects to publisher (varies) |
+| `cnbc` | CNBC | EN | ❌ | ✅ | categories: top world markets tech finance us health politics intl ai |
+| `nytimes` | NYT Chinese 纽约时报 | ZH | ❌ | ✅ | full text accessible |
+| `xinhua` | 新华社 | ZH | ❌ | ✅ | categories: politics world society finance tech mil legal health edu |
+| `thepaper` | 澎湃新闻 | ZH | ❌ | ✅ | breaking news |
+| `caixin` | 财新 | ZH | ❌ | ✅ | financial journalism |
+| `sina` | 新浪新闻 | ZH | ❌ | ⚠️ | GB2312 auto-decoded |
+| `infoq` | InfoQ CN | ZH | ❌ | ✅ | |
+| `people` | 人民网 | ZH | ❌ | ⚠️ | |
+| `hf` | HuggingFace Papers | EN | ✅ | ✅ | daily ML papers |
+| `csdn` | CSDN | ZH | ❌ | ⚠️ | |
+| `oschina` | 开源中国 | ZH | ❌ | ⚠️ | |
+| `juejin` | 稀土掘金 | ZH | ❌ | ⚠️ | |
+| `bsky` | Bluesky | EN | ✅ | ⚠️ | categories: news/tech; external link posts only (Bsky post pages are social, not articles) |
 
 ## Requirements
 
@@ -112,7 +113,7 @@ Configure in `.claude/settings.json`:
 }
 ```
 
-Exposes three tools: `list_news`, `read_url`, `search`. See `llms.txt` for full AI usage guide.
+Exposes three tools: `list_news`, `read_url`, `search`. See `skills.md` for full AI usage guide.
 
 ## Output
 

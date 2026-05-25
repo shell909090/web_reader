@@ -37,14 +37,14 @@ function parseHFPage(html: string, limit: number): Item[] {
     if (title.length < 10) return;
     seen.add(url);
 
-    items.push({ source: 'huggingface', title, url, notes: 'HuggingFace Papers' });
+    items.push({ source: 'hf', title, url, notes: 'HuggingFace Papers' });
   });
 
   return items;
 }
 
 const plugin: Plugin = {
-  id: 'huggingface',
+  id: 'hf',
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
     ctx.log.debug('Fetching HuggingFace papers page', { url: HF_PAPERS_URL });
@@ -56,6 +56,20 @@ const plugin: Plugin = {
 
     const items = parseHFPage(html, opts.limit);
     ctx.log.debug(`Parsed ${items.length} items from HuggingFace papers page`);
+    return items;
+  },
+
+  async search(ctx: Ctx, query: string, limit: number): Promise<Item[]> {
+    const url = `${HF_PAPERS_URL}?q=${encodeURIComponent(query)}`;
+    ctx.log.debug('Searching HuggingFace papers', { query, url });
+    const { status, html } = await ctx.httpGet(url);
+
+    if (status !== 200) {
+      throw new Error(`HuggingFace papers search returned HTTP ${status}`);
+    }
+
+    const items = parseHFPage(html, limit);
+    ctx.log.debug(`Found ${items.length} papers for query "${query}"`);
     return items;
   },
 };
