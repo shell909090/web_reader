@@ -20,6 +20,51 @@ export const CONFIG = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// HTTP request profiles
+// ---------------------------------------------------------------------------
+
+export type ProfileName = 'default' | 'chrome-win' | 'firefox' | 'mobile' | 'curl';
+
+export type Profile = {
+  ua: string;
+  /** Additional headers to override (e.g. Accept for curl). */
+  headers?: Record<string, string>;
+};
+
+export const PROFILES: Record<ProfileName, Profile> = {
+  default: {
+    ua: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  },
+  'chrome-win': {
+    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  },
+  firefox: {
+    ua: 'Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0',
+  },
+  mobile: {
+    ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+  },
+  curl: {
+    ua: 'curl/8.7.1',
+    headers: { Accept: '*/*' },
+  },
+};
+
+export const PROFILE_NAMES = Object.keys(PROFILES) as ProfileName[];
+
+let _activeProfile: ProfileName = 'default';
+
+/** Switch the global HTTP request profile used by httpGet. */
+export function setActiveProfile(name: ProfileName): void {
+  _activeProfile = name;
+}
+
+/** Return the currently active profile name. */
+export function getActiveProfile(): ProfileName {
+  return _activeProfile;
+}
+
+// ---------------------------------------------------------------------------
 // Plugin system shared types
 // ---------------------------------------------------------------------------
 
@@ -69,11 +114,16 @@ export type HttpResponse = {
   finalUrl: string;
 };
 
-const DEFAULT_HEADERS = {
-  'User-Agent': CONFIG.UA,
-  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-};
+/** Build default request headers from the currently active profile. */
+function buildDefaultHeaders(): Record<string, string> {
+  const profile = PROFILES[_activeProfile];
+  return {
+    'User-Agent': profile.ua,
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
+    ...profile.headers,
+  };
+}
 
 const MAX_REDIRECTS = 5;
 
@@ -153,7 +203,7 @@ function isRetriableError(err: unknown): boolean {
 /** Fetch a URL with automatic GBK decoding, redirect following, and 5xx/network retry. */
 export async function httpGet(url: string, opts?: HttpGetOpts): Promise<HttpResponse> {
   const timeoutMs = opts?.timeoutMs ?? CONFIG.HTTP_TIMEOUT_MS;
-  const mergedHeaders: Record<string, string> = { ...DEFAULT_HEADERS, ...opts?.headers };
+  const mergedHeaders: Record<string, string> = { ...buildDefaultHeaders(), ...opts?.headers };
 
   const attempt = async (): Promise<HttpResponse> => fetchOnce(url, mergedHeaders, timeoutMs);
 

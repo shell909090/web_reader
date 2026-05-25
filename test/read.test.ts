@@ -113,4 +113,25 @@ describe('read.ts main()', () => {
       globalThis.fetch = origFetch;
     }
   });
+
+  test('TC-R9: invalid --profile returns exit code 2', async () => {
+    const code = await callMain(['-s', 'hn', '-p', 'ie6']);
+    assert.equal(code, 2);
+  });
+
+  test('TC-R10: valid --profile chrome-win returns exit code 0', { timeout: 10000 }, async () => {
+    const origFetch = globalThis.fetch;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).fetch = async () =>
+      new Response(hnFixture, {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      });
+    try {
+      const code = await callMain(['-s', 'hn', '-n', '5', '-p', 'chrome-win']);
+      assert.equal(code, 0);
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
 });

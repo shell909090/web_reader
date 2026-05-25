@@ -198,6 +198,7 @@ web_reader -q zhwiki 注意力机制 | jq -r '.[0].url' | web_reader
 | `--out`     | `-o` | stdout | 输出到文件（JSON 或 Markdown） |
 | `--concurrency` | `-c` | `2` | 并发数（列表模式） |
 | `--loglevel` | `-l` | `warn` | debug\|info\|warn\|error |
+| `--profile` | `-p` | `default` | HTTP 请求 profile：default\|chrome-win\|firefox\|mobile\|curl |
 | `--help`    | `-h` | — | 显示帮助 |
 
 ---

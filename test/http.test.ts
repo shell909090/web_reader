@@ -1,6 +1,6 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { httpGet } from '../lib.ts';
+import { httpGet, setActiveProfile, getActiveProfile, PROFILES } from '../lib.ts';
 
 // Helper: build a minimal Response-like object that satisfies the fetch API
 function makeResponse(
@@ -22,10 +22,12 @@ let originalFetch: typeof globalThis.fetch;
 
 beforeEach(() => {
   originalFetch = globalThis.fetch;
+  setActiveProfile('default');
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
+  setActiveProfile('default');
 });
 
 describe('httpGet', () => {
@@ -250,5 +252,109 @@ describe('httpGet', () => {
 
     assert.ok(capturedHeaders !== undefined);
     assert.equal(capturedHeaders.get('X-Custom'), 'test-value');
+  });
+});
+
+describe('setActiveProfile / getActiveProfile', () => {
+  afterEach(() => {
+    setActiveProfile('default');
+  });
+
+  // -------------------------------------------------------------------------
+  // TC-P1: default profile sends Linux Chrome UA
+  // -------------------------------------------------------------------------
+  test('TC-P1: default profile uses Linux Chrome User-Agent', async () => {
+    let capturedUA = '';
+
+    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+      capturedUA = new Headers(init?.headers as HeadersInit).get('User-Agent') ?? '';
+      return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
+    };
+
+    setActiveProfile('default');
+    await httpGet('https://example.com/');
+
+    assert.ok(capturedUA.includes('Linux x86_64'), `expected Linux UA, got: ${capturedUA}`);
+    assert.ok(capturedUA.includes('Chrome'), `expected Chrome UA, got: ${capturedUA}`);
+  });
+
+  // -------------------------------------------------------------------------
+  // TC-P2: chrome-win profile sends Windows Chrome UA
+  // -------------------------------------------------------------------------
+  test('TC-P2: chrome-win profile uses Windows NT User-Agent', async () => {
+    let capturedUA = '';
+
+    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+      capturedUA = new Headers(init?.headers as HeadersInit).get('User-Agent') ?? '';
+      return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
+    };
+
+    setActiveProfile('chrome-win');
+    await httpGet('https://example.com/');
+
+    assert.ok(capturedUA.includes('Windows NT'), `expected Windows UA, got: ${capturedUA}`);
+    assert.equal(getActiveProfile(), 'chrome-win');
+  });
+
+  // -------------------------------------------------------------------------
+  // TC-P3: curl profile sends curl UA and Accept */*
+  // -------------------------------------------------------------------------
+  test('TC-P3: curl profile sends curl UA and Accept */*', async () => {
+    let capturedUA = '';
+    let capturedAccept = '';
+
+    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const h = new Headers(init?.headers as HeadersInit);
+      capturedUA = h.get('User-Agent') ?? '';
+      capturedAccept = h.get('Accept') ?? '';
+      return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
+    };
+
+    setActiveProfile('curl');
+    await httpGet('https://example.com/');
+
+    assert.ok(capturedUA.startsWith('curl/'), `expected curl UA, got: ${capturedUA}`);
+    assert.equal(capturedAccept, '*/*');
+  });
+
+  // -------------------------------------------------------------------------
+  // TC-P4: profile UA matches PROFILES constant
+  // -------------------------------------------------------------------------
+  test('TC-P4: each profile UA in httpGet matches the PROFILES constant', async () => {
+    const profilesToCheck = ['default', 'chrome-win', 'firefox', 'mobile', 'curl'] as const;
+
+    for (const name of profilesToCheck) {
+      let capturedUA = '';
+      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+        capturedUA = new Headers(init?.headers as HeadersInit).get('User-Agent') ?? '';
+        return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
+      };
+
+      setActiveProfile(name);
+      await httpGet('https://example.com/');
+
+      assert.equal(capturedUA, PROFILES[name].ua, `Profile "${name}" UA mismatch`);
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // TC-P5: profile resets to default after setActiveProfile('default')
+  // -------------------------------------------------------------------------
+  test('TC-P5: switching back to default restores Linux Chrome UA', async () => {
+    let capturedUA = '';
+
+    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+      capturedUA = new Headers(init?.headers as HeadersInit).get('User-Agent') ?? '';
+      return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
+    };
+
+    setActiveProfile('mobile');
+    setActiveProfile('default');
+    await httpGet('https://example.com/');
+
+    assert.ok(
+      capturedUA.includes('Linux x86_64'),
+      `expected Linux UA after reset, got: ${capturedUA}`,
+    );
   });
 });

@@ -7,11 +7,14 @@ import { writeFile } from 'node:fs/promises';
 
 import {
   CONFIG,
+  PROFILE_NAMES,
   makeLogger,
   httpGet,
+  setActiveProfile,
   extractMarkdown,
   type Item,
   type Plugin,
+  type ProfileName,
   type Ctx,
   type Logger,
   type LogLevel,
@@ -85,6 +88,7 @@ Options:
   -o, --out FILE           Write output to FILE instead of stdout
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})
   -l, --loglevel LEVEL     Log verbosity: debug|info|warn|error (default: warn)
+  -p, --profile PROFILE    HTTP request profile: ${PROFILE_NAMES.join('|')} (default: default)
   -h, --help               Show this help
 
 Examples:
@@ -110,8 +114,9 @@ type ParsedArgs =
       concurrency: number;
       out: string | null;
       loglevel: LogLevel;
+      profile: ProfileName;
     }
-  | { mode: 'detail'; urls: string[]; out: string | null; loglevel: LogLevel }
+  | { mode: 'detail'; urls: string[]; out: string | null; loglevel: LogLevel; profile: ProfileName }
   | {
       mode: 'query';
       source: string;
@@ -119,6 +124,7 @@ type ParsedArgs =
       limit: number;
       out: string | null;
       loglevel: LogLevel;
+      profile: ProfileName;
     };
 
 /** Parse "id", "id:category", or set name tokens, grouping categories per source ID. */
@@ -166,6 +172,7 @@ function parseCLI(argv: string[]): ParsedArgs | null {
         out: { type: 'string', short: 'o' },
         concurrency: { type: 'string', short: 'c', default: String(CONFIG.DEFAULT_CONCURRENCY) },
         loglevel: { type: 'string', short: 'l', default: 'warn' },
+        profile: { type: 'string', short: 'p', default: 'default' },
         help: { type: 'boolean', short: 'h', default: false },
       },
       allowPositionals: true,
@@ -186,6 +193,15 @@ function parseCLI(argv: string[]): ParsedArgs | null {
     );
     return null;
   }
+
+  const profileRaw = (v.profile as string).toLowerCase();
+  if (!(PROFILE_NAMES as string[]).includes(profileRaw)) {
+    process.stderr.write(
+      `[ERROR] --profile must be one of ${PROFILE_NAMES.join('|')}, got: ${profileRaw}\n`,
+    );
+    return null;
+  }
+  const profile = profileRaw as ProfileName;
 
   const out = v.out !== undefined ? (v.out as string) : null;
 
@@ -212,12 +228,13 @@ function parseCLI(argv: string[]): ParsedArgs | null {
       limit,
       out,
       loglevel: loglevel as LogLevel,
+      profile,
     };
   }
 
   // Mode is inferred: -s present → list, absent → detail
   if (!v.sources) {
-    return { mode: 'detail', urls: raw.positionals, out, loglevel: loglevel as LogLevel };
+    return { mode: 'detail', urls: raw.positionals, out, loglevel: loglevel as LogLevel, profile };
   }
 
   let sources: SourceRequest[];
@@ -247,7 +264,15 @@ function parseCLI(argv: string[]): ParsedArgs | null {
     return null;
   }
 
-  return { mode: 'list', sources, limit, concurrency, out, loglevel: loglevel as LogLevel };
+  return {
+    mode: 'list',
+    sources,
+    limit,
+    concurrency,
+    out,
+    loglevel: loglevel as LogLevel,
+    profile,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -368,6 +393,7 @@ export async function main(argv: string[]): Promise<number> {
       return 2;
     }
 
+    setActiveProfile(args.profile);
     const log = makeLogger(args.loglevel);
 
     // ------------------------------------------------------------------

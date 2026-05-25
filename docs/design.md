@@ -215,7 +215,29 @@ const SETS = {
 
 ---
 
-## 9. 已确认的关键决策
+## 9. HTTP 请求 Profile
+
+`lib.ts` 中定义 `PROFILES` 常量（`ProfileName` → `Profile`），每个 profile 包含 `ua` 和可选的 `headers` 覆盖。
+
+```ts
+export type ProfileName = 'default' | 'chrome-win' | 'firefox' | 'mobile' | 'curl';
+
+export const PROFILES: Record<ProfileName, Profile> = {
+  default:    { ua: 'Mozilla/5.0 (X11; Linux x86_64) ... Chrome/124 ...' },
+  'chrome-win': { ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/124 ...' },
+  firefox:    { ua: 'Mozilla/5.0 (X11; Linux x86_64; rv:125.0) ... Firefox/125.0' },
+  mobile:     { ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 ...) ... Safari/604.1' },
+  curl:       { ua: 'curl/8.7.1', headers: { Accept: '*/*' } },
+};
+```
+
+`_activeProfile` 为模块级变量，通过 `setActiveProfile(name)` 切换，`httpGet` 每次调用时调用 `buildDefaultHeaders()` 读取当前 profile 构造默认头部，再与 `opts.headers` 合并（opts 优先）。
+
+CLI 新增 `-p` / `--profile` 选项（默认 `default`），在 `main()` 最早调用 `setActiveProfile(args.profile)`，令所有后续请求统一使用该 profile。
+
+---
+
+## 10. 已确认的关键决策
 
 - 语言：TypeScript（`.ts`，运行 `tsx`，类型检查 `tsc --noEmit`）。
 - 无 Playwright：所有源走 HTTP；原 reuters/cnbc-ai browser 插件已移除。
