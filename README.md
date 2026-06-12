@@ -6,7 +6,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 
 ## Features
 
-- **24 sources** across EN and ZH — see table below
+- **25 sources** across EN and ZH — see table below
 - **Three presets**: `news`, `tech`, `fin`
 - **Three modes**: list (news feeds) · detail (full text) · query (reference search)
 - **MCP server mode** for AI agent integration (`--mcp`)
@@ -41,6 +41,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `oschina` | 开源中国 | ZH | ❌ | ⚠️ | |
 | `juejin` | 稀土掘金 | ZH | ❌ | ⚠️ | |
 | `bsky` | Bluesky | EN | ✅ | ⚠️ | categories: news/tech; external link posts only (Bsky post pages are social, not articles) |
+| `polymarket` | Polymarket | EN | ❌ | ⚠️ | top prediction markets by volume; notes show Yes probability, volume, end date |
 
 ## Requirements
 

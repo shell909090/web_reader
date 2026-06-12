@@ -12,7 +12,7 @@ news/
 ├── plugins/             # 每个文件 = 一个消息源
 │   ├── hn.ts
 │   ├── bbc.ts
-│   ├── ... (22 个)
+│   ├── ... (23 个)
 └── test/
     ├── fixtures/
     ├── extract.test.ts
@@ -237,7 +237,22 @@ CLI 新增 `-p` / `--profile` 选项（默认 `default`），在 `main()` 最早
 
 ---
 
-## 10. 已确认的关键决策
+## 10. Polymarket Plugin
+
+数据来源：Gamma API（`https://gamma-api.polymarket.com/markets`），公开无需鉴权。
+
+请求参数：`limit={n}&closed=false&order=volumeNum&ascending=false`，按总成交量降序返回活跃市场。
+
+字段映射：
+- `title` ← `question`
+- `url` ← `https://polymarket.com/event/{slug}`
+- `notes` ← 三段拼接（` · ` 分隔）：`Yes: {p}%`（二选一市场），`Vol: $XM/$XK/$X`，`Ends: {endDateIso}`
+
+无搜索接口（Gamma API 不提供关键词检索）。
+
+---
+
+## 11. 已确认的关键决策
 
 - 语言：TypeScript（`.ts`，运行 `tsx`，类型检查 `tsc --noEmit`）。
 - 无 Playwright：所有源走 HTTP；原 reuters/cnbc-ai browser 插件已移除。
