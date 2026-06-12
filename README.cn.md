@@ -17,7 +17,7 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 
 | ID | 网站 | 语言 | 搜索 | 全文 | 备注 |
 |---|---|---|---|---|---|
-| `hn` | Hacker News | 英文 | ❌ | ⚠️ | 含评分和评论数；外链文章可读，HN 讨论页不是文章 |
+| `hn` | Hacker News | 英文 | ❌ | ✅ | 含评分和评论数；列表项均为外链文章 |
 | `bbc` | BBC News | 英文 | ❌ | ✅ | |
 | `techcrunch` | TechCrunch | 英文 | ❌ | ✅ | |
 | `ars` | Ars Technica | 英文 | ❌ | ✅ | 含 `summary` 字段 |
@@ -25,23 +25,23 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `mittr` | MIT Technology Review | 英文 | ❌ | ✅ | 分类：ai computing space biotech |
 | `wiki` | Wikipedia 时事 | 英文 | ✅ | ✅ | 含 `summary` 字段 |
 | `zhwiki` | 中文维基百科新闻动态 | 中文 | ✅ | ✅ | 含 `summary` 字段 |
-| `reddit` | Reddit | 英文 | ✅ | ⚠️ | 分类：ml llm ai tech prog investing stocks worldnews；仅外链帖可读（`/comments/` 需登录） |
+| `reddit` | Reddit | 英文 | ✅ | ✅ | 分类：ml llm ai tech prog investing stocks worldnews；返回条目均为外链帖 |
 | `yahoo` | Yahoo Finance | 英文 | ❌ | ✅ | RSS，48 条 |
-| `gnews` | Google News | 英文 | ✅ | ⚠️ | 分类：tech business science health sports entertainment world nation；跳转发布方，可用性因站而异 |
+| `gnews` | Google News | 英文 | ✅ | ⚠️ | 分类：tech business science health sports entertainment world nation；文章链接为 JS 跳转，需直接访问发布方页面 |
 | `cnbc` | CNBC | 英文 | ❌ | ✅ | 分类：top world markets tech finance us health politics intl ai |
 | `nytimes` | 纽约时报中文网 | 中文 | ❌ | ✅ | 全文可读 |
 | `xinhua` | 新华社 | 中文 | ❌ | ✅ | 分类：politics world society finance tech mil legal health edu |
 | `thepaper` | 澎湃新闻 | 中文 | ❌ | ✅ | 国内突发新闻 |
 | `caixin` | 财新 | 中文 | ❌ | ✅ | 独立财经报道 |
-| `sina` | 新浪新闻 | 中文 | ❌ | ⚠️ | GB2312 自动转码 |
+| `sina` | 新浪新闻 | 中文 | ❌ | ✅ | GB2312 自动转码 |
 | `infoq` | InfoQ 中文 | 中文 | ❌ | ✅ | |
-| `people` | 人民网 | 中文 | ❌ | ⚠️ | |
+| `people` | 人民网 | 中文 | ❌ | ✅ | |
 | `hf` | HuggingFace Papers | 英文 | ✅ | ✅ | 每日 ML 论文 |
-| `csdn` | CSDN | 中文 | ❌ | ⚠️ | |
-| `oschina` | 开源中国 | 中文 | ❌ | ⚠️ | |
-| `juejin` | 稀土掘金 | 中文 | ❌ | ⚠️ | |
-| `bsky` | Bluesky | 英文 | ✅ | ⚠️ | 分类：news/tech；仅含外链的帖子可读全文，纯文字帖跳转社区页 |
-| `polymarket` | Polymarket 预测市场 | 英文 | ❌ | ⚠️ | 按成交量排名的热门预测市场；备注含 Yes 概率、成交量、截止日期 |
+| `csdn` | CSDN | 中文 | ❌ | ✅ | |
+| `oschina` | 开源中国 | 中文 | ❌ | ✅ | |
+| `juejin` | 稀土掘金 | 中文 | ❌ | ✅ | |
+| `bsky` | Bluesky | 英文 | ✅ | ⚠️ | 分类：news/tech；外链帖可读全文，纯文字帖跳转 Bluesky 社区页 |
+| `polymarket` | Polymarket 预测市场 | 英文 | ❌ | ✅ | 按成交量排名的热门预测市场；全文通过 Gamma API 渲染 |
 
 ## 环境要求
 

@@ -17,7 +17,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 
 | ID | Site | Language | Search | Detail | Notes |
 |---|---|---|---|---|---|
-| `hn` | Hacker News | EN | ❌ | ⚠️ | Score + comments; external article URLs (HN thread URLs are discussions) |
+| `hn` | Hacker News | EN | ❌ | ✅ | Score + comments; list items are external article URLs |
 | `bbc` | BBC News | EN | ❌ | ✅ | |
 | `techcrunch` | TechCrunch | EN | ❌ | ✅ | |
 | `ars` | Ars Technica | EN | ❌ | ✅ | `summary` field |
@@ -25,23 +25,23 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `mittr` | MIT Technology Review | EN | ❌ | ✅ | categories: ai computing space biotech |
 | `wiki` | Wikipedia Current Events | EN | ✅ | ✅ | `summary` field |
 | `zhwiki` | 中文维基百科新闻动态 | ZH | ✅ | ✅ | `summary` field |
-| `reddit` | Reddit | EN | ✅ | ⚠️ | categories: ml llm ai tech prog investing stocks worldnews; link posts only (`/comments/` requires login) |
+| `reddit` | Reddit | EN | ✅ | ✅ | categories: ml llm ai tech prog investing stocks worldnews; all returned items are external link posts |
 | `yahoo` | Yahoo Finance | EN | ❌ | ✅ | RSS, 48 items |
-| `gnews` | Google News | EN | ✅ | ⚠️ | categories: tech business science health sports entertainment world nation; redirects to publisher (varies) |
+| `gnews` | Google News | EN | ✅ | ⚠️ | categories: tech business science health sports entertainment world nation; article URLs are JS redirects — detail requires fetching the linked publisher page directly |
 | `cnbc` | CNBC | EN | ❌ | ✅ | categories: top world markets tech finance us health politics intl ai |
 | `nytimes` | NYT Chinese 纽约时报 | ZH | ❌ | ✅ | full text accessible |
 | `xinhua` | 新华社 | ZH | ❌ | ✅ | categories: politics world society finance tech mil legal health edu |
 | `thepaper` | 澎湃新闻 | ZH | ❌ | ✅ | breaking news |
 | `caixin` | 财新 | ZH | ❌ | ✅ | financial journalism |
-| `sina` | 新浪新闻 | ZH | ❌ | ⚠️ | GB2312 auto-decoded |
+| `sina` | 新浪新闻 | ZH | ❌ | ✅ | GB2312 auto-decoded |
 | `infoq` | InfoQ CN | ZH | ❌ | ✅ | |
-| `people` | 人民网 | ZH | ❌ | ⚠️ | |
+| `people` | 人民网 | ZH | ❌ | ✅ | |
 | `hf` | HuggingFace Papers | EN | ✅ | ✅ | daily ML papers |
-| `csdn` | CSDN | ZH | ❌ | ⚠️ | |
-| `oschina` | 开源中国 | ZH | ❌ | ⚠️ | |
-| `juejin` | 稀土掘金 | ZH | ❌ | ⚠️ | |
-| `bsky` | Bluesky | EN | ✅ | ⚠️ | categories: news/tech; external link posts only (Bsky post pages are social, not articles) |
-| `polymarket` | Polymarket | EN | ❌ | ⚠️ | top prediction markets by volume; notes show Yes probability, volume, end date |
+| `csdn` | CSDN | ZH | ❌ | ✅ | |
+| `oschina` | 开源中国 | ZH | ❌ | ✅ | |
+| `juejin` | 稀土掘金 | ZH | ❌ | ✅ | |
+| `bsky` | Bluesky | EN | ✅ | ⚠️ | categories: news/tech; external link posts readable; pure-text posts link to Bluesky social pages |
+| `polymarket` | Polymarket | EN | ❌ | ✅ | top prediction markets by volume; detail renders via Gamma API |
 
 ## Requirements
 
