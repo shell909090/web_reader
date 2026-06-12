@@ -437,15 +437,33 @@ export async function main(argv: string[]): Promise<number> {
         return 2;
       }
 
+      const allPlugins = (
+        await Promise.all([...KNOWN_SOURCES].map((id) => loadPlugin(id, log)))
+      ).filter((p): p is Plugin => p !== null);
+
+      const detailDispatch = allPlugins
+        .filter((p) => p.urlPattern && p.detail)
+        .map((p) => ({ pattern: p.urlPattern!, plugin: p }));
+
       const chunks: string[] = [];
       let failures = 0;
       for (const url of urls) {
         try {
-          const { html } = await httpGet(url);
-          const md = extractMarkdown(html, url);
-          const title = decodeURIComponent(
-            new URL(url).pathname.split('/').filter(Boolean).pop() ?? url,
-          );
+          const matched = detailDispatch.find(({ pattern }) => pattern.test(url));
+          let md: string;
+          let title: string;
+          if (matched) {
+            const ctx: Ctx = { mode: 'http', httpGet, log };
+            const item: Item = { source: matched.plugin.id, title: '', url, notes: '' };
+            md = await matched.plugin.detail!(ctx, item);
+            title = url;
+          } else {
+            const { html } = await httpGet(url);
+            md = extractMarkdown(html, url);
+            title = decodeURIComponent(
+              new URL(url).pathname.split('/').filter(Boolean).pop() ?? url,
+            );
+          }
           chunks.push(`---\n# ${title}\n\n${md}\n`);
         } catch (err) {
           failures++;

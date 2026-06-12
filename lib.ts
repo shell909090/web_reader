@@ -93,6 +93,8 @@ export type Plugin = {
   id: string;
   /** Available sub-feeds: slug → human label. If absent, plugin has a single feed. */
   categories?: Record<string, string>;
+  /** URL pattern for detail-mode dispatch; set when the site is a JS SPA or needs API-based rendering. */
+  urlPattern?: RegExp;
   list(ctx: Ctx, opts: { limit: number; categories?: string[] }): Promise<Item[]>;
   /** Full-text search; only implemented by data-source plugins (e.g. wiki). */
   search?(ctx: Ctx, query: string, limit: number): Promise<Item[]>;

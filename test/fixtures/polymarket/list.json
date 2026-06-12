@@ -7,6 +7,8 @@
     "outcomes": "[\"Yes\", \"No\"]",
     "volumeNum": 5200000.5,
     "endDateIso": "2026-11-03",
+    "description": "This market will resolve Yes if the Federal Reserve cuts the federal funds rate target range at least once before December 31, 2026.",
+    "resolutionSource": "Federal Reserve official announcements",
     "active": true,
     "closed": false
   },

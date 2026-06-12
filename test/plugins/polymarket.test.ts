@@ -86,4 +86,39 @@ describe('polymarket plugin', () => {
     const items = await plugin.list(ctx, { limit: 2 });
     assert.ok(items.length <= 2, `Expected <= 2 items, got ${items.length}`);
   });
+
+  it('TC-PM6: detail() returns non-empty Markdown string', async () => {
+    const md = await plugin.detail!(ctx, {
+      source: 'polymarket',
+      title: '',
+      url: 'https://polymarket.com/event/will-the-us-federal-reserve-cut-interest-rates-before-end-of-2026',
+      notes: '',
+    });
+    assert.ok(md && md.length > 0, 'detail() should return a non-empty string');
+  });
+
+  it('TC-PM7: detail() Markdown contains question as heading', async () => {
+    const md = await plugin.detail!(ctx, {
+      source: 'polymarket',
+      title: '',
+      url: 'https://polymarket.com/event/will-the-us-federal-reserve-cut-interest-rates-before-end-of-2026',
+      notes: '',
+    });
+    assert.ok(
+      md.includes('# Will the US Federal Reserve cut interest rates before end of 2026?'),
+      `Markdown should contain question heading, got:\n${md.slice(0, 200)}`,
+    );
+  });
+
+  it('TC-PM8: detail() Markdown contains Outcomes section with Yes probability', async () => {
+    const md = await plugin.detail!(ctx, {
+      source: 'polymarket',
+      title: '',
+      url: 'https://polymarket.com/event/will-the-us-federal-reserve-cut-interest-rates-before-end-of-2026',
+      notes: '',
+    });
+    assert.ok(md.includes('## Outcomes'), 'Markdown should contain Outcomes section');
+    assert.ok(md.includes('Yes'), 'Outcomes section should include Yes outcome');
+    assert.ok(md.includes('72.0%'), 'Outcomes section should include Yes probability 72.0%');
+  });
 });
