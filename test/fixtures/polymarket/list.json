@@ -1,0 +1,35 @@
+[
+  {
+    "id": "521094",
+    "question": "Will the US Federal Reserve cut interest rates before end of 2026?",
+    "slug": "will-the-us-federal-reserve-cut-interest-rates-before-end-of-2026",
+    "outcomePrices": "[\"0.72\", \"0.28\"]",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "volumeNum": 5200000.5,
+    "endDateIso": "2026-11-03",
+    "active": true,
+    "closed": false
+  },
+  {
+    "id": "518342",
+    "question": "Will Bitcoin reach $150,000 by December 2026?",
+    "slug": "will-bitcoin-reach-150000-by-december-2026",
+    "outcomePrices": "[\"0.41\", \"0.59\"]",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "volumeNum": 890000.0,
+    "endDateIso": "2026-12-31",
+    "active": true,
+    "closed": false
+  },
+  {
+    "id": "519876",
+    "question": "Will SpaceX successfully land Starship on the Moon before 2027?",
+    "slug": "will-spacex-successfully-land-starship-on-the-moon-before-2027",
+    "outcomePrices": "[\"0.18\", \"0.82\"]",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "volumeNum": 12000.0,
+    "endDateIso": "2026-12-31",
+    "active": true,
+    "closed": false
+  }
+]

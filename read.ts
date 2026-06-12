@@ -49,6 +49,7 @@ const KNOWN_SOURCES = [
   'juejin',
   'gnews',
   'bsky',
+  'polymarket',
 ] as const;
 
 /** Named source presets — expanded before plugin loading. */
@@ -81,6 +82,7 @@ Options:
                                        gnews:tech/business/science/health/sports/entertainment/world/nation (default: top)
                            Others: hn bbc techcrunch sina ars theverge infoq people csdn
                                    caixin yahoo wiki nytimes hf oschina juejin gnews bsky
+                                   polymarket
                            bsky: bsky:news/tech (default: all; search: -q bsky <keywords>)
   -q, --query SOURCE       Query a data source; keywords follow as positional args
                            Searchable sources: wiki (EN), zhwiki (中文), reddit, gnews, bsky, hf
