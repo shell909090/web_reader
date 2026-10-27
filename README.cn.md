@@ -136,6 +136,24 @@ make install    # npm install + npm link
 make bundle     # esbuild 打包到 dist/web_reader.js
 ```
 
+### 工程质量检查
+
+安装依赖后使用 `make quality` 运行构建检查、lint、测试及覆盖率、复杂度、MI 和安全扫描。默认 `make` 仅执行 `build`，不会修改代码格式。需要在某一检查失败后继续收集其余结果时，使用 `make -k quality`。
+
+| 命令 | 检查内容 / 失败条件 |
+|---|---|
+| `make coverage` | c8 覆盖全部生产代码（`lib.ts`、`read.ts`、`plugins/**/*.ts`）；行、语句、函数、分支覆盖率各至少 51%，输出 `coverage/index.html` |
+| `make complexity` | ESLint 圈复杂度 ≤9；SonarJS 认知复杂度 ≤14；任一函数超限则失败 |
+| `make maintainability` | 每个生产源文件的可维护性指数 MI 必须 >30，否则失败 |
+| `make security` | Trivy 扫描 npm 锁文件，包括开发依赖；校验所有锁定包及版本均出现在报告中 |
+| `make quality` | 聚合上述检查及 build、lint；测试和覆盖率只运行一次 |
+
+`make unittest` 保留覆盖率输出，与 `make coverage` 等价。复杂度和 MI 不检查测试、工具脚本或生成文件。MI 沿用参考项目的 TypeScript AST/词法统计近似公式：`max(0, (171 - 5.2*ln(V) - 0.23*C - 16.2*ln(L))*100/171)`，其中 V 是估算 Halstead 体积、C 是文件级分支复杂度、L 是非空行数（含注释行）；该指标适合本项目内比较，不等同于其他工具的 MI。
+
+安全检查需要单独安装 [Trivy](https://trivy.dev/docs/latest/getting-started/installation/)，首次运行需要联网下载漏洞数据库。可通过 `make security TRIVY=/path/to/trivy SECURITY_REPORT_DIR=tmp/security` 指定工具和报告目录。完整 JSON 报告为 `tmp/security/source.json`，默认不进入 Git。纯 Node.js 项目扫描锁文件，不迁移 Go 二进制扫描。
+
+与参考项目一致，漏洞数量本身不导致 `security` 失败；扫描工具缺失、扫描出错、报告无效或漏扫任何锁定依赖会失败。扫描成功不表示没有漏洞。当前复杂度和 MI 存在不达标项，因此 `quality` 会失败，需后续重构处理；没有设置豁免或放宽阈值。
+
 ## 新增数据源
 
 1. 创建 `plugins/{id}.ts`，导出含 `id` 和 `list()` 的 `Plugin` 对象（类型见 `lib.ts`）

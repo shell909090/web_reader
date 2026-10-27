@@ -7,3 +7,18 @@ docs/log.md
 _errors.log
 coverage/
 dist/
+tmp/
+
+# Generated quality/security reports and logs
+reports/
+security-reports/
+.nyc_output/
+*.log
+*.sarif
+*.sarif.json
+*.lcov
+lcov.info
+*.report.json
+*.report.html
+junit*.xml
+coverage*.xml

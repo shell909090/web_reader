@@ -136,6 +136,24 @@ make install    # npm install + npm link
 make bundle     # esbuild bundle to dist/web_reader.js
 ```
 
+### Engineering quality checks
+
+After installing dependencies, run `make quality` for build checks, lint, tests and coverage, complexity, MI, and security scanning. Plain `make` runs `build` without formatting files. Use `make -k quality` to collect the remaining results after a check fails.
+
+| Command | Check / failure condition |
+|---|---|
+| `make coverage` | c8 includes all production code (`lib.ts`, `read.ts`, `plugins/**/*.ts`); lines, statements, functions, and branches must each reach 51%; HTML output: `coverage/index.html` |
+| `make complexity` | ESLint cyclomatic complexity ≤9 and SonarJS cognitive complexity ≤14 per function |
+| `make maintainability` | Maintainability Index (MI) must exceed 30 for every production source file |
+| `make security` | Trivy scans the npm lockfile including dev dependencies, then verifies every locked package/version appears in the report |
+| `make quality` | Aggregates these checks with build and lint, running tests and coverage only once |
+
+`make unittest` retains coverage reporting and is equivalent to `make coverage`. Complexity and MI exclude tests, tooling scripts, and generated files. MI follows the reference project's TypeScript AST/token approximation: `max(0, (171 - 5.2*ln(V) - 0.23*C - 16.2*ln(L))*100/171)`, where V is estimated Halstead volume, C is file-level branch complexity, and L counts nonblank lines (including comment lines). Compare scores within this project; other tools may calculate MI differently.
+
+Install [Trivy](https://trivy.dev/docs/latest/getting-started/installation/) separately. Its first run needs network access to download the vulnerability database. Override the executable and report directory with `make security TRIVY=/path/to/trivy SECURITY_REPORT_DIR=tmp/security`. The full JSON report defaults to `tmp/security/source.json` and is ignored by Git. This Node.js project scans its lockfile; the reference project's Go binary scan does not apply.
+
+As in the reference project, reported vulnerabilities alone do not fail `security`. A missing scanner, scan error, invalid report, or missing locked dependency does. A successful scan does not mean there are no vulnerabilities. Existing complexity and MI violations currently fail `quality` and need subsequent refactoring; no exemptions or relaxed thresholds are applied.
+
 ## Adding a new source
 
 1. Create `plugins/{id}.ts` — export a `Plugin` with `id` and `list()` (see `lib.ts`)
