@@ -1,17 +1,10 @@
+import { extractText, rssLink } from '../src/feeds/rss.ts';
 // NYTimes Chinese edition plugin — parses the RSS feed for stable, structured output.
 // Feed URL: https://cn.nytimes.com/rss/
 
 import type { Plugin, Item, Ctx } from '../lib.ts';
 
 const RSS_URL = 'https://cn.nytimes.com/rss/';
-
-/** Extract text from a CDATA block or plain text within an XML tag value. */
-function extractText(block: string, tag: string): string {
-  const m = block.match(
-    new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]+?)(?:\\]\\]>)?</${tag}>`, 'i'),
-  );
-  return m ? m[1].trim() : '';
-}
 
 /** Parse RSS 2.0 XML into an Item list. */
 function parseRss(xml: string, limit: number): Item[] {
@@ -27,7 +20,7 @@ function parseRss(xml: string, limit: number): Item[] {
     if (title.length < 4) continue;
 
     // <link> in RSS is often a text node between tags (not an attribute)
-    const link = block.match(/<link>\s*([^<\s]+)/i)?.[1]?.trim() ?? extractText(block, 'guid');
+    const link = rssLink(block);
     if (!link || seen.has(link)) continue;
     seen.add(link);
 

@@ -32,12 +32,9 @@ function parseTechCrunchPage(html: string, limit: number): Item[] {
     const author = card.find('.loop-card__author').first().text().trim();
     const datetime = card.find('time[datetime]').first().attr('datetime') ?? '';
     // Derive a short date string (YYYY-MM-DD) from datetime if available
-    const dateStr = datetime ? datetime.slice(0, 10) : '';
+    const dateStr = datetime.slice(0, 10);
 
-    const parts: string[] = [];
-    if (author) parts.push(author);
-    if (dateStr) parts.push(dateStr);
-    const notes = parts.length > 0 ? parts.join(' · ') : 'TechCrunch';
+    const notes = [author, dateStr].filter(Boolean).join(' · ') || 'TechCrunch';
 
     items.push({ source: 'techcrunch', title, url, notes });
   });

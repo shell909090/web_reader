@@ -101,7 +101,12 @@ async function sourceFiles(directory) {
   return files;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const files = ['lib.ts', 'read.ts', ...(await sourceFiles('plugins'))].sort();
+  const files = [
+    'lib.ts',
+    'read.ts',
+    ...(await sourceFiles('plugins')),
+    ...(await sourceFiles('src')),
+  ].sort();
   let failed = false;
   for (const file of files) {
     const source = await readFile(file, 'utf8');

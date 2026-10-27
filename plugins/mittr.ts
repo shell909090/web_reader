@@ -1,6 +1,8 @@
+import { parseNewsRss } from '../src/feeds/news-rss.ts';
 // MIT Technology Review plugin — main RSS feed by default, topic feeds as categories.
 
 import type { Plugin, Item, Ctx } from '../lib.ts';
+import { collectFeedResults } from '../src/feeds/results.ts';
 
 const BASE = 'https://www.technologyreview.com';
 
@@ -13,34 +15,8 @@ const CATEGORY_FEEDS: Record<string, string> = {
   biotech: `${BASE}/topic/biotechnology/feed/`,
 };
 
-function extractText(block: string, tag: string): string {
-  const m = block.match(
-    new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]+?)(?:\\]\\]>)?</${tag}>`, 'i'),
-  );
-  return m ? m[1].trim() : '';
-}
-
 function parseFeed(xml: string): Item[] {
-  const items: Item[] = [];
-  for (const m of xml.matchAll(/<item>([\s\S]+?)<\/item>/gi)) {
-    const block = m[1];
-    const title = extractText(block, 'title');
-    if (title.length < 5) continue;
-    const link = block.match(/<link>\s*([^<\s]+)/i)?.[1]?.trim() ?? extractText(block, 'guid');
-    if (!link) continue;
-    const pubDate = extractText(block, 'pubDate');
-    const summary = extractText(block, 'description');
-    const published_at = pubDate ? new Date(pubDate).toISOString().slice(0, 10) : undefined;
-    items.push({
-      source: 'mittr',
-      title,
-      url: link,
-      notes: pubDate ? `MIT TR · ${pubDate.slice(0, 16)}` : 'MIT Technology Review',
-      summary: summary || undefined,
-      published_at,
-    });
-  }
-  return items;
+  return parseNewsRss(xml, 'mittr', 'MIT TR', 'MIT Technology Review');
 }
 
 const plugin: Plugin = {
@@ -87,22 +63,7 @@ const plugin: Plugin = {
       }),
     );
 
-    const seen = new Set<string>();
-    const allItems: Item[] = [];
-    for (const r of results) {
-      if (r.status === 'rejected') {
-        ctx.log.warn(
-          `MIT TR feed error: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`,
-        );
-        continue;
-      }
-      for (const item of r.value) {
-        if (!seen.has(item.url)) {
-          seen.add(item.url);
-          allItems.push(item);
-        }
-      }
-    }
+    const allItems = collectFeedResults(results, ctx.log, 'MIT TR feed error');
     ctx.log.debug(`Parsed ${allItems.length} unique MIT TR items`);
     return allItems.slice(0, opts.limit);
   },

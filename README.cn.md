@@ -99,7 +99,7 @@ web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 | `-h` | `--help` | | 显示帮助 |
 
 
-HTTP 响应头上限为每次响应 64 KiB（含重定向），由 `lib.ts` 中的 `CONFIG.HTTP_MAX_HEADER_SIZE` 配置。
+HTTP 响应头上限为每次响应 64 KiB（含重定向），由 `src/config.ts` 中的 `CONFIG.HTTP_MAX_HEADER_SIZE` 配置。
 
 ## MCP Server（AI agent 集成）
 
@@ -144,7 +144,7 @@ make bundle     # esbuild 打包到 dist/web_reader.js
 
 | 命令 | 检查内容 / 失败条件 |
 |---|---|
-| `make coverage` | c8 覆盖全部生产代码（`lib.ts`、`read.ts`、`plugins/**/*.ts`）；行、语句、函数、分支覆盖率各至少 51%，输出 `coverage/index.html` |
+| `make coverage` | c8 覆盖全部生产代码（`lib.ts`、`read.ts`、`src/**/*.ts`、`plugins/**/*.ts`）；行、语句、函数、分支覆盖率各至少 51%，输出 `coverage/index.html` |
 | `make complexity` | ESLint 圈复杂度 ≤9；SonarJS 认知复杂度 ≤14；任一函数超限则失败 |
 | `make maintainability` | 每个生产源文件的可维护性指数 MI 必须 >30，否则失败 |
 | `make security` | Trivy 扫描 npm 锁文件，包括开发依赖；校验所有锁定包及版本均出现在报告中 |
@@ -154,14 +154,22 @@ make bundle     # esbuild 打包到 dist/web_reader.js
 
 安全检查需要单独安装 [Trivy](https://trivy.dev/docs/latest/getting-started/installation/)，首次运行需要联网下载漏洞数据库。可通过 `make security TRIVY=/path/to/trivy SECURITY_REPORT_DIR=tmp/security` 指定工具和报告目录。完整 JSON 报告为 `tmp/security/source.json`，默认不进入 Git。纯 Node.js 项目扫描锁文件，不迁移 Go 二进制扫描。
 
-与参考项目一致，漏洞数量本身不导致 `security` 失败；扫描工具缺失、扫描出错、报告无效或漏扫任何锁定依赖会失败。扫描成功不表示没有漏洞。当前复杂度和 MI 存在不达标项，因此 `quality` 会失败，需后续重构处理；没有设置豁免或放宽阈值。
+与参考项目一致，漏洞数量本身不导致 `security` 失败；扫描工具缺失、扫描出错、报告无效或漏扫任何锁定依赖会失败。扫描成功不表示没有漏洞。所有生产模块（含 `src/`）均参与检查；没有设置豁免或放宽阈值。
 
 TypeScript 暂使用最新兼容的 6.0.x：当前 typescript-eslint 和 SonarJS 要求 TypeScript <6.1，MI 脚本也依赖其编译器 API。其余直接依赖升级至本次检查时的最新稳定版。
+
+### 源码结构
+
+- `read.ts`：CLI/MCP 入口；`lib.ts`：保留插件和外部集成使用的公共导出。
+- `src/cli/`：参数校验、预置数据源、输入输出和三种命令模式。
+- `src/http/`：请求配置、重定向与编码处理、重试逻辑。
+- `src/feeds/`：共用 feed 解析、去重及各数据源的数据转换。
+- `src/mcp*.ts`：MCP 工具注册和处理；`src/extract.ts`：正文提取。
 
 ## 新增数据源
 
 1. 创建 `plugins/{id}.ts`，导出含 `id` 和 `list()` 的 `Plugin` 对象（类型见 `lib.ts`）
-2. 在 `read.ts` 的 `KNOWN_SOURCES` 里添加该 ID
+2. 在 `src/cli/sources.ts` 的 `KNOWN_SOURCES` 里添加该 ID
 
 ## 作者
 

@@ -23,7 +23,7 @@ coverage:
 	if [ -z "$$test_files" ]; then \
 		echo "No test files found." >&2; exit 1; \
 	else \
-		npx c8 --all --include=lib.ts --include=read.ts --include='plugins/**/*.ts' \
+		npx c8 --all --include=lib.ts --include=read.ts --include='plugins/**/*.ts' --include='src/**/*.ts' \
 			--check-coverage --lines=51 --statements=51 --functions=51 --branches=51 \
 			--reporter=text-summary --reporter=html node --test --import tsx $$test_files; \
 	fi
@@ -56,7 +56,7 @@ bundle:
 all: build
 
 complexity:
-	npx eslint --config eslint.complexity.js lib.ts read.ts plugins
+	npx eslint --config eslint.complexity.js lib.ts read.ts plugins src
 
 maintainability:
 	node scripts/maintainability.mjs

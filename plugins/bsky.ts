@@ -1,12 +1,18 @@
+import { getToken } from '../src/feeds/bluesky-auth.ts';
+import {
+  postToItem,
+  type AuthorFeedResponse,
+  type SearchPostsResponse,
+} from '../src/feeds/bluesky-post.ts';
 // Bluesky plugin — author feeds and post search via the AT Protocol API.
 // Search requires auth: set BSKY_IDENTIFIER and BSKY_APP_PASSWORD env vars.
 
 import type { Plugin, Item, Ctx } from '../lib.ts';
+import { collectFeedResults } from '../src/feeds/results.ts';
 
 const BSKY_XRPC = 'https://public.api.bsky.app/xrpc';
 const AUTHOR_FEED_URL = `${BSKY_XRPC}/app.bsky.feed.getAuthorFeed`;
 const SEARCH_POSTS_URL = `${BSKY_XRPC}/app.bsky.feed.searchPosts`;
-const CREATE_SESSION_URL = 'https://bsky.social/xrpc/com.atproto.server.createSession';
 
 const ACCOUNT_GROUPS: Record<string, string[]> = {
   // Verified-domain handles (DNS TXT record on bsky.app)
@@ -15,114 +21,6 @@ const ACCOUNT_GROUPS: Record<string, string[]> = {
 };
 
 const ALL_ACCOUNTS = [...ACCOUNT_GROUPS.news, ...ACCOUNT_GROUPS.tech];
-
-// ---------------------------------------------------------------------------
-// Optional auth — required for searchPosts
-// ---------------------------------------------------------------------------
-
-let _tokenPromise: Promise<string | null> | null = null;
-
-/** Obtain an AT Protocol session JWT from env vars; returns null if not configured. */
-async function fetchSessionToken(): Promise<string | null> {
-  const identifier = process.env.BSKY_IDENTIFIER;
-  const password = process.env.BSKY_APP_PASSWORD;
-  if (!identifier || !password) return null;
-
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10_000);
-    const resp = await fetch(CREATE_SESSION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password }),
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-    if (!resp.ok) return null;
-    const data = (await resp.json()) as { accessJwt: string };
-    return data.accessJwt ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/** Return cached session token (one auth call per process). */
-function getToken(): Promise<string | null> {
-  if (!_tokenPromise) _tokenPromise = fetchSessionToken();
-  return _tokenPromise;
-}
-
-// ---------------------------------------------------------------------------
-// Internal types
-// ---------------------------------------------------------------------------
-
-type BskyEmbed = {
-  $type: string;
-  external?: {
-    uri: string;
-    title?: string;
-    description?: string;
-  };
-};
-
-type BskyRecord = {
-  text: string;
-  createdAt?: string;
-  embed?: BskyEmbed;
-};
-
-type BskyPost = {
-  uri: string;
-  author: { handle: string; displayName?: string };
-  record: BskyRecord;
-  likeCount?: number;
-  repostCount?: number;
-  indexedAt?: string;
-};
-
-type AuthorFeedResponse = {
-  feed: Array<{ post: BskyPost }>;
-};
-
-type SearchPostsResponse = {
-  posts: BskyPost[];
-};
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Convert a BskyPost to an Item, returning null if title or url is missing. */
-function postToItem(post: BskyPost): Item | null {
-  const { uri, author, record, likeCount, repostCount, indexedAt } = post;
-  const external = record.embed?.external;
-
-  let title: string;
-  let url: string;
-
-  if (external?.uri) {
-    title = (external.title ?? record.text).slice(0, 100).trim();
-    url = external.uri;
-  } else {
-    title = record.text.slice(0, 100).trim();
-    const rkey = uri.split('/').pop();
-    url = rkey ? `https://bsky.app/profile/${author.handle}/post/${rkey}` : '';
-  }
-
-  if (!title || !url) return null;
-
-  const displayName = author.displayName ?? author.handle ?? 'Bluesky';
-  const date = (indexedAt ?? record.createdAt ?? '').slice(0, 10);
-  const parts: string[] = [displayName];
-  if (date) parts.push(date);
-  if (likeCount !== undefined) parts.push(`${likeCount} likes`);
-  if (repostCount !== undefined) parts.push(`${repostCount} reposts`);
-  const notes = parts.join(' · ');
-
-  const published_at = date || undefined;
-
-  return { source: 'bsky', title, url, notes, published_at };
-}
 
 /** Fetch up to `limit` posts from a single Bluesky author feed. */
 async function fetchAuthorFeed(ctx: Ctx, handle: string, limit: number): Promise<Item[]> {
@@ -180,23 +78,7 @@ const plugin: Plugin = {
       accounts.map((handle) => fetchAuthorFeed(ctx, handle, perAccount)),
     );
 
-    const seen = new Set<string>();
-    const allItems: Item[] = [];
-    for (const r of results) {
-      if (r.status === 'rejected') {
-        ctx.log.warn(
-          `bsky: feed error: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`,
-        );
-        continue;
-      }
-      for (const item of r.value) {
-        if (!seen.has(item.url)) {
-          seen.add(item.url);
-          allItems.push(item);
-        }
-      }
-    }
-
+    const allItems = collectFeedResults(results, ctx.log, 'bsky: feed error');
     ctx.log.debug(`bsky: collected ${allItems.length} unique items`);
     return allItems.slice(0, opts.limit);
   },

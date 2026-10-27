@@ -5,6 +5,19 @@ import type { Plugin, Item, Ctx } from '../lib.ts';
 
 const NEWS_URL = 'https://finance.yahoo.com/news/';
 
+function articleUrl(href: string): URL | null {
+  let url: URL;
+  try {
+    url = new URL(href, NEWS_URL);
+  } catch {
+    return null;
+  }
+  if (url.origin !== 'https://finance.yahoo.com' || !url.pathname.endsWith('.html')) return null;
+  url.search = '';
+  url.hash = '';
+  return url;
+}
+
 function parsePage(html: string, limit: number): Item[] {
   const $ = cheerio.load(html);
   const items: Item[] = [];
@@ -16,15 +29,8 @@ function parsePage(html: string, limit: number): Item[] {
     const title = heading.text().trim().replace(/\s+/g, ' ');
     if (title.length < 5) return;
 
-    let url: URL;
-    try {
-      url = new URL($(el).attr('href')!, NEWS_URL);
-    } catch {
-      return;
-    }
-    if (url.origin !== 'https://finance.yahoo.com' || !url.pathname.endsWith('.html')) return;
-    url.search = '';
-    url.hash = '';
+    const url = articleUrl($(el).attr('href')!);
+    if (!url) return;
     if (seen.has(url.href)) return;
     seen.add(url.href);
 

@@ -271,7 +271,7 @@ CLI 新增 `-p` / `--profile` 选项（默认 `default`），在 `main()` 最早
 
 ## 工程质量门禁
 
-Makefile 提供 `complexity`、`maintainability`、`coverage`、`security`、`quality`；默认目标是只读的 `all: build`。圈复杂度上限 9、认知复杂度上限 14、文件 MI 必须大于 30，与 ai-hitl 参考项目一致。MI 使用 TypeScript 编译器 AST 和词法扫描的近似计算，统计范围为 lib.ts、read.ts 和 plugins 下的 TypeScript 文件。
+Makefile 提供 `complexity`、`maintainability`、`coverage`、`security`、`quality`；默认目标是只读的 `all: build`。圈复杂度上限 9、认知复杂度上限 14、文件 MI 必须大于 30，与 ai-hitl 参考项目一致。MI 使用 TypeScript 编译器 AST 和词法扫描的近似计算，统计范围为 lib.ts、read.ts、src 和 plugins 下的 TypeScript 文件。
 
 覆盖率检查包括未被加载的生产文件，四项总体阈值均为 51%，与参考项目一致；unittest 依赖 coverage，quality 不重复运行测试。Trivy 扫描 package-lock.json 的全部运行时和开发依赖，输出 JSON 并核对每个锁定包名和版本是否存在；缺失结果时失败。漏洞按严重度汇总，但不按漏洞数量阻断，与参考项目一致。没有 Go 二进制，因此不迁移 rootfs 扫描。
 
@@ -279,3 +279,14 @@ Makefile 提供 `complexity`、`maintainability`、`coverage`、`security`、`qu
 ## 依赖升级兼容策略
 
 直接依赖升级到最新稳定版，并刷新传递依赖到上游约束允许的最新版。TypeScript 暂用 6.0.x：最新 typescript-eslint 与 SonarJS 的 peer 范围均为 <6.1，MI 依赖旧编译器 API；暂不强制安装不兼容的 TypeScript 7。MCP 直接使用 zod，显式声明为运行时依赖。Node 支持 24.x ≥24.15.0 或 ≥26.0.0（与 jsdom 的支持范围对齐，不包含 Node 25），打包目标为 node24。
+
+
+## 代码质量重构
+
+`read.ts` 仅处理总超时、命令分派和进程入口，导出的 `main(argv: string[]): Promise<number>` 与 `startMcp(): Promise<void>` 不变。`lib.ts` 保持公共导出兼容，内部拆为 config、types、logger、output、extract 和 http 模块，避免插件需要批量更换依赖路径。
+
+CLI 的参数解析、来源/分类合并、列表、详情和查询分别位于 src/cli。保持 -q 优先于 -s、详情模式从 stdin 读取 URL、部分来源/文章失败时继续输出成功项，以及原有退出码。插件加载器位于 src/plugin-loader.ts，以模块相对路径加载根目录 plugins；源代码与 dist 入口均可定位插件。
+
+共用的 RSS 字段提取及 CNBC/MIT TR 新闻解析位于 src/feeds。collectFeedResults 只合并成功请求的条目，保持请求结果顺序及首次 URL 优先，并逐条记录失败。Bluesky、Reddit、Polymarket 的认证、字段转换和 Markdown 渲染按职责拆分，不改变输出字段和格式。
+
+复杂度、MI、覆盖率均包含新增 src/**/*.ts，圈复杂度≤9、认知复杂度≤14、每文件 MI>30 的阈值不变。回归测试覆盖公共入口、预置合并、参数校验、部分失败、stdin、MCP 工具返回和并发控制。

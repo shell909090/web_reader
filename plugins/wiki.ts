@@ -49,15 +49,13 @@ function parseWikiPage(html: string, limit: number): Item[] {
           if (title.length < 3) return;
 
           const summary = $(liEl).find('> ul > li').first().text().trim().replace(/\s+/g, ' ');
-          const noteParts = ['Wikipedia'];
-          if (date) noteParts.push(date);
-          if (category) noteParts.push(category);
+          const notes = ['Wikipedia', date, category].filter(Boolean).join(' · ');
 
           items.push({
             source: 'wiki',
             title,
             url,
-            notes: noteParts.join(' · '),
+            notes,
             summary: summary || undefined,
           });
         });

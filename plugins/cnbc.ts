@@ -1,8 +1,10 @@
+import { parseNewsRss } from '../src/feeds/news-rss.ts';
 // CNBC plugin — combines all CNBC section RSS feeds plus AI page scraping.
 // RSS feeds use: https://www.cnbc.com/id/{id}/device/rss/rss.html
 
 import * as cheerio from 'cheerio';
 import type { Plugin, Item, Ctx } from '../lib.ts';
+import { collectFeedResults } from '../src/feeds/results.ts';
 
 const RSS_BASE = 'https://www.cnbc.com/id';
 
@@ -23,34 +25,8 @@ const ARTICLE_RE = /cnbc\.com\/\d{4}\/\d{2}\/\d{2}\//;
 
 const DEFAULT_CATEGORIES = ['top', 'tech', 'markets'];
 
-function extractText(block: string, tag: string): string {
-  const m = block.match(
-    new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]+?)(?:\\]\\]>)?</${tag}>`, 'i'),
-  );
-  return m ? m[1].trim() : '';
-}
-
 function parseFeed(xml: string): Item[] {
-  const items: Item[] = [];
-  for (const m of xml.matchAll(/<item>([\s\S]+?)<\/item>/gi)) {
-    const block = m[1];
-    const title = extractText(block, 'title');
-    if (title.length < 5) continue;
-    const link = block.match(/<link>\s*([^<\s]+)/i)?.[1]?.trim() ?? extractText(block, 'guid');
-    if (!link) continue;
-    const pubDate = extractText(block, 'pubDate');
-    const summary = extractText(block, 'description');
-    const published_at = pubDate ? new Date(pubDate).toISOString().slice(0, 10) : undefined;
-    items.push({
-      source: 'cnbc',
-      title,
-      url: link,
-      notes: pubDate ? `CNBC · ${pubDate.slice(0, 16)}` : 'CNBC',
-      summary: summary || undefined,
-      published_at,
-    });
-  }
-  return items;
+  return parseNewsRss(xml, 'cnbc', 'CNBC');
 }
 
 async function fetchAiPage(ctx: Ctx): Promise<Item[]> {
@@ -111,22 +87,7 @@ const plugin: Plugin = {
     }
 
     const results = await Promise.allSettled(fetchTasks);
-    const seen = new Set<string>();
-    const allItems: Item[] = [];
-    for (const r of results) {
-      if (r.status === 'rejected') {
-        ctx.log.warn(
-          `CNBC feed error: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`,
-        );
-        continue;
-      }
-      for (const item of r.value) {
-        if (!seen.has(item.url)) {
-          seen.add(item.url);
-          allItems.push(item);
-        }
-      }
-    }
+    const allItems = collectFeedResults(results, ctx.log, 'CNBC feed error');
     ctx.log.debug(`Parsed ${allItems.length} unique CNBC items`);
     return allItems.slice(0, opts.limit);
   },

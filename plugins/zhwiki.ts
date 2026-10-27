@@ -8,6 +8,39 @@ import type { Plugin, Item, Ctx } from '../lib.ts';
 const NEWS_URL = 'https://zh.wikipedia.org/wiki/Portal:%E6%96%B0%E8%81%9E%E5%8B%95%E6%85%8B';
 const BASE = 'https://zh.wikipedia.org';
 
+function parseEvent(
+  element: ReturnType<cheerio.CheerioAPI>,
+  currentDate: string,
+  seen: Set<string>,
+): Item | null {
+  const articleLink = element.find('> a[href^="/wiki/"]').first();
+  if (!articleLink.length) return null;
+
+  const href = articleLink.attr('href') ?? '';
+  if (/Special:|Talk:|Wikipedia:|Portal:|Help:|File:/.test(href)) return null;
+
+  const url = `${BASE}${href}`;
+  if (seen.has(url)) return null;
+
+  const title = articleLink.text().trim();
+  if (title.length < 2) return null;
+
+  const summary = element
+    .text()
+    .trim()
+    .replace(/\[\d+\]/g, '')
+    .replace(/\s+/g, ' ');
+  seen.add(url);
+
+  return {
+    source: 'zhwiki',
+    title,
+    url,
+    notes: `维基百科 · ${currentDate}`,
+    summary: summary.length > title.length + 2 ? summary : undefined,
+  };
+}
+
 /** Parse 新闻动态 portal HTML — dates are h2/h3 headings, events are li items. */
 function parsePage(html: string, limit: number): Item[] {
   const $ = cheerio.load(html);
@@ -27,32 +60,8 @@ function parsePage(html: string, limit: number): Item[] {
 
     if (tag !== 'li' || !currentDate) return;
 
-    const articleLink = $(el).find('> a[href^="/wiki/"]').first();
-    if (!articleLink.length) return;
-
-    const href = articleLink.attr('href') ?? '';
-    if (/Special:|Talk:|Wikipedia:|Portal:|Help:|File:/.test(href)) return;
-
-    const url = `${BASE}${href}`;
-    if (seen.has(url)) return;
-
-    const title = articleLink.text().trim();
-    if (title.length < 2) return;
-
-    const summary = $(el)
-      .text()
-      .trim()
-      .replace(/\[\d+\]/g, '')
-      .replace(/\s+/g, ' ');
-    seen.add(url);
-
-    items.push({
-      source: 'zhwiki',
-      title,
-      url,
-      notes: `维基百科 · ${currentDate}`,
-      summary: summary.length > title.length + 2 ? summary : undefined,
-    });
+    const item = parseEvent($(el), currentDate, seen);
+    if (item) items.push(item);
   });
 
   return items;

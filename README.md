@@ -99,7 +99,7 @@ web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 | `-h` | `--help` | | Show help |
 
 
-HTTP response headers are limited to 64 KiB per response (including redirects), configured by `CONFIG.HTTP_MAX_HEADER_SIZE` in `lib.ts`.
+HTTP response headers are limited to 64 KiB per response (including redirects), configured by `CONFIG.HTTP_MAX_HEADER_SIZE` in `src/config.ts`.
 
 ## MCP Server (AI agent integration)
 
@@ -144,7 +144,7 @@ After installing dependencies, run `make quality` for build checks, lint, tests 
 
 | Command | Check / failure condition |
 |---|---|
-| `make coverage` | c8 includes all production code (`lib.ts`, `read.ts`, `plugins/**/*.ts`); lines, statements, functions, and branches must each reach 51%; HTML output: `coverage/index.html` |
+| `make coverage` | c8 includes all production code (`lib.ts`, `read.ts`, `src/**/*.ts`, `plugins/**/*.ts`); lines, statements, functions, and branches must each reach 51%; HTML output: `coverage/index.html` |
 | `make complexity` | ESLint cyclomatic complexity ≤9 and SonarJS cognitive complexity ≤14 per function |
 | `make maintainability` | Maintainability Index (MI) must exceed 30 for every production source file |
 | `make security` | Trivy scans the npm lockfile including dev dependencies, then verifies every locked package/version appears in the report |
@@ -154,14 +154,22 @@ After installing dependencies, run `make quality` for build checks, lint, tests 
 
 Install [Trivy](https://trivy.dev/docs/latest/getting-started/installation/) separately. Its first run needs network access to download the vulnerability database. Override the executable and report directory with `make security TRIVY=/path/to/trivy SECURITY_REPORT_DIR=tmp/security`. The full JSON report defaults to `tmp/security/source.json` and is ignored by Git. This Node.js project scans its lockfile; the reference project's Go binary scan does not apply.
 
-As in the reference project, reported vulnerabilities alone do not fail `security`. A missing scanner, scan error, invalid report, or missing locked dependency does. A successful scan does not mean there are no vulnerabilities. Existing complexity and MI violations currently fail `quality` and need subsequent refactoring; no exemptions or relaxed thresholds are applied.
+As in the reference project, reported vulnerabilities alone do not fail `security`. A missing scanner, scan error, invalid report, or missing locked dependency does. A successful scan does not mean there are no vulnerabilities. Production modules are checked individually, including `src/`; no exemptions or relaxed thresholds are applied.
 
 TypeScript is pinned to the latest compatible 6.0.x release: current typescript-eslint and SonarJS require TypeScript <6.1, and the MI script uses its compiler API. Other direct dependencies use the latest stable releases checked during the upgrade.
+
+### Source layout
+
+- `read.ts`: CLI/MCP entry point; `lib.ts`: stable public exports for plugins and integrations.
+- `src/cli/`: argument validation, presets, input/output, and the three command modes.
+- `src/http/`: request profiles, redirect/encoding handling, and retries.
+- `src/feeds/`: shared feed parsing, deduplication, and source-specific data conversion.
+- `src/mcp*.ts`: MCP tool registration and handlers; `src/extract.ts`: article extraction.
 
 ## Adding a new source
 
 1. Create `plugins/{id}.ts` — export a `Plugin` with `id` and `list()` (see `lib.ts`)
-2. Add the ID to `KNOWN_SOURCES` in `read.ts`
+2. Add the ID to `KNOWN_SOURCES` in `src/cli/sources.ts`
 
 ## Author
 

@@ -11,6 +11,12 @@ const ARTICLE_RE = /caixin\.com\/\d{4}-\d{2}-\d{2}\/\d+\.html$/;
 // Skip photo galleries and video pages
 const SKIP_RE = /^(?:photos|video|vip)\./;
 
+function caixinItem(title: string, url: string): Item {
+  const date = url.match(/\/(\d{4}-\d{2}-\d{2})\//)?.[1] ?? '';
+  const notes = date ? `财新 · ${date}` : '财新';
+  return { source: 'caixin', title, url, notes, published_at: date || undefined };
+}
+
 function parsePage(html: string, limit: number): Item[] {
   const $ = cheerio.load(html);
   const seen = new Set<string>();
@@ -33,11 +39,7 @@ function parsePage(html: string, limit: number): Item[] {
 
     seen.add(href);
 
-    // Extract date from URL as notes
-    const date = href.match(/\/(\d{4}-\d{2}-\d{2})\//)?.[1] ?? '';
-    const notes = date ? `财新 · ${date}` : '财新';
-
-    items.push({ source: 'caixin', title, url: href, notes, published_at: date || undefined });
+    items.push(caixinItem(title, href));
   });
 
   return items;
