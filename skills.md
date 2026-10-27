@@ -8,7 +8,7 @@ allowed-tools: Bash(web_reader:*)
 
 `web_reader` 是一个命令行工具，用于抓取新闻源、以 Markdown 格式读取网页，以及搜索参考资料。
 通过 `npm link` 全局安装，可在任意目录运行。
-项目支持 Node.js 24.x（≥24.15.0）或 ≥26.0.0；agent 启动环境的 PATH 也须使用兼容版本，仅存在 `.nvmrc` 不会自动切换 Node。
+项目支持 Node.js 20.x（≥20.19.0）、22.x（≥22.13.0）或 ≥24.0.0；无需 nvm。更新代码后运行 `npm ci` 同步锁定依赖，agent 启动环境的 PATH 也须使用兼容版本。
 
 参数推断运行模式：`-s` → 列表，`-q` → 查询，否则 → 详情。
 

@@ -45,19 +45,19 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 
 ## 环境要求
 
-- Node.js 24.x ≥ 24.15.0 / Node.js ≥ 26.0.0
+- Node.js 20.x ≥ 20.19.0 / 22.x ≥ 22.13.0 / ≥24.0.0
 - npm
 
 ## 安装
 
 ```bash
-nvm install     # 使用 nvm 时，安装 .nvmrc 指定的 Node.js
-nvm use
 npm install
 make install   # 通过 npm link 将 web_reader 安装为全局命令
 ```
 
 安装后可在任意目录使用 `web_reader` 命令。
+
+已有安装可在仓库中执行 `git pull` 和 `npm ci`，按锁文件同步依赖。nvm 不是必需条件；使用 nvm 时，`.nvmrc` 选择 Node 20。
 
 ## 使用方法
 
@@ -156,7 +156,7 @@ make bundle     # esbuild 打包到 dist/web_reader.js
 
 与参考项目一致，漏洞数量本身不导致 `security` 失败；扫描工具缺失、扫描出错、报告无效或漏扫任何锁定依赖会失败。扫描成功不表示没有漏洞。所有生产模块（含 `src/`）均参与检查；没有设置豁免或放宽阈值。
 
-TypeScript 暂使用最新兼容的 6.0.x：当前 typescript-eslint 和 SonarJS 要求 TypeScript <6.1，MI 脚本也依赖其编译器 API。其余直接依赖升级至本次检查时的最新稳定版。
+TypeScript 暂使用最新兼容的 6.0.x：当前 typescript-eslint 和 SonarJS 要求 TypeScript <6.1，MI 脚本也依赖其编译器 API。为兼容 Node 20，jsdom 使用 27.x、Undici 使用 7.x，配套 jsdom 类型定义和 Node 20 类型定义；其余依赖保留安全升级结果。
 
 ### 源码结构
 

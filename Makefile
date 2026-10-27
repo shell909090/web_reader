@@ -41,7 +41,7 @@ bundle:
 	npx esbuild read.ts \
 		--bundle \
 		--platform=node \
-		--target=node24 \
+		--target=node20 \
 		--format=esm \
 		--outfile=dist/web_reader.js \
 		--external:@mozilla/readability \

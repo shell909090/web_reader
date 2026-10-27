@@ -266,7 +266,7 @@ CLI 新增 `-p` / `--profile` 选项（默认 `default`），在 `main()` 最早
 
 `yahoo` 请求 `https://finance.yahoo.com/news/`，解析服务端渲染的 `data-testid="storyitem"` 新闻卡片标题链接，兼容旧新闻路径与新分类文章路径。仅保留财经站 HTTPS 文章，移除查询参数和锚点后去重。保留页面提供的摘要和发布信息；无绝对时间时不生成 `published_at`。非空请求解析不到文章时报错，避免页面变更被误报为成功。结果仅包含初始 HTML 中的新闻，不加载滚动分页。
 
-共享 HTTP 客户端使用同一 npm Undici 版本的 fetch 和独立 Agent，将每次响应头上限设为 64 KiB，不修改全局 dispatcher，CLI 和 MCP 共用；保持原有重定向和重试逻辑。Undici 8 与 jsdom 30 要求更新的 Node.js，项目最低版本提升为 24.15.0。
+共享 HTTP 客户端使用同一 npm Undici 版本的 fetch 和独立 Agent，将每次响应头上限设为 64 KiB，不修改全局 dispatcher，CLI 和 MCP 共用；保持原有重定向和重试逻辑。为兼容 Node 20，使用 Undici 7.30.1+（7.x）及 jsdom 27.4.0+（27.x），保留安全更新。
 
 
 ## 工程质量门禁
@@ -278,7 +278,7 @@ Makefile 提供 `complexity`、`maintainability`、`coverage`、`security`、`qu
 
 ## 依赖升级兼容策略
 
-直接依赖升级到最新稳定版，并刷新传递依赖到上游约束允许的最新版。TypeScript 暂用 6.0.x：最新 typescript-eslint 与 SonarJS 的 peer 范围均为 <6.1，MI 依赖旧编译器 API；暂不强制安装不兼容的 TypeScript 7。MCP 直接使用 zod，显式声明为运行时依赖。Node 支持 24.x ≥24.15.0 或 ≥26.0.0（与 jsdom 的支持范围对齐，不包含 Node 25），打包目标为 node24。
+依赖更新到 Node 20 兼容范围内的稳定安全版本，并刷新传递依赖到上游约束允许的最新版。TypeScript 暂用 6.0.x：最新 typescript-eslint 与 SonarJS 的 peer 范围均为 <6.1，MI 依赖旧编译器 API；暂不强制安装不兼容的 TypeScript 7。MCP 直接使用 zod，显式声明为运行时依赖。Node 支持 20.x ≥20.19.0、22.x ≥22.13.0 或 ≥24.0.0，打包目标为 node20。jsdom 保持 27.x，Undici 保持 7.x，类型定义分别保持 @types/jsdom 27.x、@types/node 20.x；保持依赖漏洞扫描清零，不要求依赖跨入不兼容的新主版本。
 
 
 ## 代码质量重构
