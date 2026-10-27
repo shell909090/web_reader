@@ -266,7 +266,7 @@ CLI 新增 `-p` / `--profile` 选项（默认 `default`），在 `main()` 最早
 
 `yahoo` 请求 `https://finance.yahoo.com/news/`，解析服务端渲染的 `data-testid="storyitem"` 新闻卡片标题链接，兼容旧新闻路径与新分类文章路径。仅保留财经站 HTTPS 文章，移除查询参数和锚点后去重。保留页面提供的摘要和发布信息；无绝对时间时不生成 `published_at`。非空请求解析不到文章时报错，避免页面变更被误报为成功。结果仅包含初始 HTML 中的新闻，不加载滚动分页。
 
-共享 HTTP 客户端使用独立 Undici Agent，将每次响应头上限设为 64 KiB，不修改全局 dispatcher，CLI 和 MCP 共用；保持原有重定向和重试逻辑。Undici 6 支持项目的 Node.js 20 环境。
+共享 HTTP 客户端使用同一 npm Undici 版本的 fetch 和独立 Agent，将每次响应头上限设为 64 KiB，不修改全局 dispatcher，CLI 和 MCP 共用；保持原有重定向和重试逻辑。Undici 8 与 jsdom 30 要求更新的 Node.js，项目最低版本提升为 24.15.0。
 
 
 ## 工程质量门禁
@@ -274,3 +274,8 @@ CLI 新增 `-p` / `--profile` 选项（默认 `default`），在 `main()` 最早
 Makefile 提供 `complexity`、`maintainability`、`coverage`、`security`、`quality`；默认目标是只读的 `all: build`。圈复杂度上限 9、认知复杂度上限 14、文件 MI 必须大于 30，与 ai-hitl 参考项目一致。MI 使用 TypeScript 编译器 AST 和词法扫描的近似计算，统计范围为 lib.ts、read.ts 和 plugins 下的 TypeScript 文件。
 
 覆盖率检查包括未被加载的生产文件，四项总体阈值均为 51%，与参考项目一致；unittest 依赖 coverage，quality 不重复运行测试。Trivy 扫描 package-lock.json 的全部运行时和开发依赖，输出 JSON 并核对每个锁定包名和版本是否存在；缺失结果时失败。漏洞按严重度汇总，但不按漏洞数量阻断，与参考项目一致。没有 Go 二进制，因此不迁移 rootfs 扫描。
+
+
+## 依赖升级兼容策略
+
+直接依赖升级到最新稳定版，并刷新传递依赖到上游约束允许的最新版。TypeScript 暂用 6.0.x：最新 typescript-eslint 与 SonarJS 的 peer 范围均为 <6.1，MI 依赖旧编译器 API；暂不强制安装不兼容的 TypeScript 7。MCP 直接使用 zod，显式声明为运行时依赖。Node 支持 24.x ≥24.15.0 或 ≥26.0.0（与 jsdom 的支持范围对齐，不包含 Node 25），打包目标为 node24。

@@ -45,12 +45,14 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 
 ## 环境要求
 
-- Node.js ≥ 20
+- Node.js 24.x ≥ 24.15.0 / Node.js ≥ 26.0.0
 - npm
 
 ## 安装
 
 ```bash
+nvm install     # 使用 nvm 时，安装 .nvmrc 指定的 Node.js
+nvm use
 npm install
 make install   # 通过 npm link 将 web_reader 安装为全局命令
 ```
@@ -153,6 +155,8 @@ make bundle     # esbuild 打包到 dist/web_reader.js
 安全检查需要单独安装 [Trivy](https://trivy.dev/docs/latest/getting-started/installation/)，首次运行需要联网下载漏洞数据库。可通过 `make security TRIVY=/path/to/trivy SECURITY_REPORT_DIR=tmp/security` 指定工具和报告目录。完整 JSON 报告为 `tmp/security/source.json`，默认不进入 Git。纯 Node.js 项目扫描锁文件，不迁移 Go 二进制扫描。
 
 与参考项目一致，漏洞数量本身不导致 `security` 失败；扫描工具缺失、扫描出错、报告无效或漏扫任何锁定依赖会失败。扫描成功不表示没有漏洞。当前复杂度和 MI 存在不达标项，因此 `quality` 会失败，需后续重构处理；没有设置豁免或放宽阈值。
+
+TypeScript 暂使用最新兼容的 6.0.x：当前 typescript-eslint 和 SonarJS 要求 TypeScript <6.1，MI 脚本也依赖其编译器 API。其余直接依赖升级至本次检查时的最新稳定版。
 
 ## 新增数据源
 

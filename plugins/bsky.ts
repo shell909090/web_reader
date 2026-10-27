@@ -139,6 +139,7 @@ async function fetchAuthorFeed(ctx: Ctx, handle: string, limit: number): Promise
   } catch (err) {
     throw new Error(
       `Bluesky getAuthorFeed(${handle}): JSON parse failed for ${url}: ${String(err)}`,
+      { cause: err },
     );
   }
 
@@ -219,7 +220,9 @@ const plugin: Plugin = {
     try {
       data = JSON.parse(html) as SearchPostsResponse;
     } catch (err) {
-      throw new Error(`Bluesky searchPosts: JSON parse failed for ${url}: ${String(err)}`);
+      throw new Error(`Bluesky searchPosts: JSON parse failed for ${url}: ${String(err)}`, {
+        cause: err,
+      });
     }
 
     return data.posts

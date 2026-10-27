@@ -6,25 +6,29 @@
     "web_reader": "./web_reader"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@mozilla/readability": "^0.6.0",
-    "cheerio": "^1.0.0",
-    "jsdom": "^24.1.3",
-    "tsx": "^4.9.0",
-    "turndown": "^7.1.3",
-    "undici": "^6.29.1"
+    "cheerio": "^1.2.0",
+    "jsdom": "^30.1.3",
+    "tsx": "^4.23.15",
+    "turndown": "^7.2.4",
+    "undici": "^8.12.3",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@eslint/js": "^9.0.0",
-    "@types/jsdom": "^21.1.7",
-    "@types/node": "^20.0.0",
-    "@types/turndown": "^5.0.4",
-    "c8": "^9.1.0",
-    "esbuild": "^0.28.1",
-    "eslint": "^9.0.0",
-    "eslint-plugin-sonarjs": "^3.0.7",
-    "prettier": "^3.2.0",
-    "typescript": "^5.4.0",
-    "typescript-eslint": "^8.0.0"
+    "@eslint/js": "^10.0.1",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.6.5",
+    "@types/turndown": "^5.0.6",
+    "c8": "^12.0.0",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.13.0",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  },
+  "engines": {
+    "node": "^24.15.0 || >=26.0.0"
   }
 }

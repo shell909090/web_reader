@@ -3,7 +3,7 @@
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Agent } from 'undici';
+import undici, { Agent, type RequestInit, type Response } from 'undici';
 
 // CJS-safe loader for jsdom, readability, turndown (all CommonJS packages)
 const _require = createRequire(import.meta.url);
@@ -164,7 +164,7 @@ async function fetchOnce(
         redirect: 'manual',
         signal: controller.signal,
       };
-      response = await fetch(currentUrl, requestOptions);
+      response = await undici.fetch(currentUrl, requestOptions);
     } finally {
       clearTimeout(timer);
     }
@@ -231,7 +231,7 @@ export async function httpGet(url: string, opts?: HttpGetOpts): Promise<HttpResp
       result = await attempt();
     } catch (err) {
       if (!isRetriableError(err)) throw err;
-      throw new Error(`Network error on retry for ${url}`);
+      throw new Error(`Network error on retry for ${url}`, { cause: err });
     }
   }
 

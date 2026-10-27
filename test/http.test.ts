@@ -1,5 +1,13 @@
-import { test, describe, beforeEach, afterEach } from 'node:test';
+import { test, describe, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import undici, {
+  Response,
+  Headers,
+  type BodyInit,
+  type RequestInfo,
+  type RequestInit,
+  type HeadersInit,
+} from 'undici';
 import { httpGet, setActiveProfile, getActiveProfile, PROFILES } from '../lib.ts';
 
 // Helper: build a minimal Response-like object that satisfies the fetch API
@@ -18,15 +26,12 @@ function makeRedirect(status: number, location: string): Response {
   return new Response(null, { status, headers: { location } });
 }
 
-let originalFetch: typeof globalThis.fetch;
-
 beforeEach(() => {
-  originalFetch = globalThis.fetch;
   setActiveProfile('default');
 });
 
 afterEach(() => {
-  globalThis.fetch = originalFetch;
+  mock.restoreAll();
   setActiveProfile('default');
 });
 
@@ -38,9 +43,9 @@ describe('httpGet', () => {
     const targetUrl = 'https://example.com/page';
     const bodyHtml = '<html><body>Hello</body></html>';
 
-    globalThis.fetch = async (_input: RequestInfo | URL) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL) => {
       return makeResponse(200, bodyHtml, { 'content-type': 'text/html; charset=utf-8' });
-    };
+    });
 
     const result = await httpGet(targetUrl);
 
@@ -58,7 +63,7 @@ describe('httpGet', () => {
     const finalUrl = 'https://example.com/new';
     let callCount = 0;
 
-    globalThis.fetch = async (input: RequestInfo | URL) => {
+    mock.method(undici, 'fetch', async (input: RequestInfo | URL) => {
       callCount++;
       const url = input.toString();
       if (url === firstUrl) {
@@ -68,7 +73,7 @@ describe('httpGet', () => {
       return makeResponse(200, '<html>new page</html>', {
         'content-type': 'text/html; charset=utf-8',
       });
-    };
+    });
 
     const result = await httpGet(firstUrl);
 
@@ -82,10 +87,10 @@ describe('httpGet', () => {
   // -------------------------------------------------------------------------
   test('TC-3: more than 5 redirects throws an Error', async () => {
     let n = 0;
-    globalThis.fetch = async (_input: RequestInfo | URL) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL) => {
       n++;
       return makeRedirect(301, `https://example.com/loop${n}`);
-    };
+    });
 
     await assert.rejects(
       () => httpGet('https://example.com/start'),
@@ -103,12 +108,12 @@ describe('httpGet', () => {
   test('TC-4: 4xx response is returned immediately with no retry', async () => {
     let callCount = 0;
 
-    globalThis.fetch = async (_input: RequestInfo | URL) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL) => {
       callCount++;
       return makeResponse(404, '<html>Not Found</html>', {
         'content-type': 'text/html; charset=utf-8',
       });
-    };
+    });
 
     const result = await httpGet('https://example.com/missing');
 
@@ -125,7 +130,7 @@ describe('httpGet', () => {
     async () => {
       let callCount = 0;
 
-      globalThis.fetch = async (_input: RequestInfo | URL) => {
+      mock.method(undici, 'fetch', async (_input: RequestInfo | URL) => {
         callCount++;
         if (callCount === 1) {
           return makeResponse(500, 'Server Error', { 'content-type': 'text/plain' });
@@ -133,7 +138,7 @@ describe('httpGet', () => {
         return makeResponse(200, '<html>OK</html>', {
           'content-type': 'text/html; charset=utf-8',
         });
-      };
+      });
 
       const result = await httpGet('https://example.com/', { timeoutMs: 30_000 });
 
@@ -148,10 +153,10 @@ describe('httpGet', () => {
   test('TC-6: 5xx on both attempts returns the last 5xx result', { timeout: 5000 }, async () => {
     let callCount = 0;
 
-    globalThis.fetch = async (_input: RequestInfo | URL) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL) => {
       callCount++;
       return makeResponse(503, 'Service Unavailable', { 'content-type': 'text/plain' });
-    };
+    });
 
     const result = await httpGet('https://example.com/', { timeoutMs: 30_000 });
 
@@ -165,7 +170,7 @@ describe('httpGet', () => {
   test('TC-7: timeout on first attempt triggers one retry', { timeout: 5000 }, async () => {
     let callCount = 0;
 
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
       callCount++;
       if (callCount === 1) {
         // Simulate the request hanging until aborted by the AbortController
@@ -186,7 +191,7 @@ describe('httpGet', () => {
       return makeResponse(200, '<html>OK after timeout</html>', {
         'content-type': 'text/html; charset=utf-8',
       });
-    };
+    });
 
     // Use a very short timeout so the test finishes quickly
     const result = await httpGet('https://example.com/', { timeoutMs: 50 });
@@ -199,7 +204,7 @@ describe('httpGet', () => {
   // TC-8: Timeout on both attempts re-throws
   // -------------------------------------------------------------------------
   test('TC-8: timeout on both attempts propagates an error', { timeout: 5000 }, async () => {
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
       return new Promise<Response>((_resolve, reject) => {
         const signal = init?.signal as AbortSignal | undefined;
         if (signal) {
@@ -212,7 +217,7 @@ describe('httpGet', () => {
           });
         }
       });
-    };
+    });
 
     await assert.rejects(() => httpGet('https://example.com/', { timeoutMs: 50 }));
   });
@@ -224,12 +229,12 @@ describe('httpGet', () => {
     // "你好" in GB2312/GBK: 0xC4E3 0xBAC3
     const gb2312Bytes = new Uint8Array([0xc4, 0xe3, 0xba, 0xc3]);
 
-    globalThis.fetch = async (_input: RequestInfo | URL) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL) => {
       return new Response(gb2312Bytes.buffer, {
         status: 200,
         headers: { 'content-type': 'text/html; charset=gb2312' },
       });
-    };
+    });
 
     const result = await httpGet('https://example.com/cn');
 
@@ -243,10 +248,10 @@ describe('httpGet', () => {
   test('TC-10: custom headers supplied in opts are merged into the request', async () => {
     let capturedHeaders: Headers | undefined;
 
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
       capturedHeaders = new Headers(init?.headers as HeadersInit);
       return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
-    };
+    });
 
     await httpGet('https://example.com/', { headers: { 'X-Custom': 'test-value' } });
 
@@ -266,10 +271,10 @@ describe('setActiveProfile / getActiveProfile', () => {
   test('TC-P1: default profile uses Linux Chrome User-Agent', async () => {
     let capturedUA = '';
 
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
       capturedUA = new Headers(init?.headers as HeadersInit).get('User-Agent') ?? '';
       return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
-    };
+    });
 
     setActiveProfile('default');
     await httpGet('https://example.com/');
@@ -284,10 +289,10 @@ describe('setActiveProfile / getActiveProfile', () => {
   test('TC-P2: chrome-win profile uses Windows NT User-Agent', async () => {
     let capturedUA = '';
 
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
       capturedUA = new Headers(init?.headers as HeadersInit).get('User-Agent') ?? '';
       return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
-    };
+    });
 
     setActiveProfile('chrome-win');
     await httpGet('https://example.com/');
@@ -303,12 +308,12 @@ describe('setActiveProfile / getActiveProfile', () => {
     let capturedUA = '';
     let capturedAccept = '';
 
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
       const h = new Headers(init?.headers as HeadersInit);
       capturedUA = h.get('User-Agent') ?? '';
       capturedAccept = h.get('Accept') ?? '';
       return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
-    };
+    });
 
     setActiveProfile('curl');
     await httpGet('https://example.com/');
@@ -325,10 +330,10 @@ describe('setActiveProfile / getActiveProfile', () => {
 
     for (const name of profilesToCheck) {
       let capturedUA = '';
-      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+      mock.method(undici, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
         capturedUA = new Headers(init?.headers as HeadersInit).get('User-Agent') ?? '';
         return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
-      };
+      });
 
       setActiveProfile(name);
       await httpGet('https://example.com/');
@@ -343,10 +348,10 @@ describe('setActiveProfile / getActiveProfile', () => {
   test('TC-P5: switching back to default restores Linux Chrome UA', async () => {
     let capturedUA = '';
 
-    globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    mock.method(undici, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
       capturedUA = new Headers(init?.headers as HeadersInit).get('User-Agent') ?? '';
       return makeResponse(200, '<html/>', { 'content-type': 'text/html' });
-    };
+    });
 
     setActiveProfile('mobile');
     setActiveProfile('default');

@@ -45,12 +45,14 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 
 ## Requirements
 
-- Node.js ≥ 20
+- Node.js 24.x ≥ 24.15.0 / Node.js ≥ 26.0.0
 - npm
 
 ## Installation
 
 ```bash
+nvm install     # optional: use the Node.js version from .nvmrc
+nvm use
 npm install
 make install   # installs web_reader as a global command via npm link
 ```
@@ -153,6 +155,8 @@ After installing dependencies, run `make quality` for build checks, lint, tests 
 Install [Trivy](https://trivy.dev/docs/latest/getting-started/installation/) separately. Its first run needs network access to download the vulnerability database. Override the executable and report directory with `make security TRIVY=/path/to/trivy SECURITY_REPORT_DIR=tmp/security`. The full JSON report defaults to `tmp/security/source.json` and is ignored by Git. This Node.js project scans its lockfile; the reference project's Go binary scan does not apply.
 
 As in the reference project, reported vulnerabilities alone do not fail `security`. A missing scanner, scan error, invalid report, or missing locked dependency does. A successful scan does not mean there are no vulnerabilities. Existing complexity and MI violations currently fail `quality` and need subsequent refactoring; no exemptions or relaxed thresholds are applied.
+
+TypeScript is pinned to the latest compatible 6.0.x release: current typescript-eslint and SonarJS require TypeScript <6.1, and the MI script uses its compiler API. Other direct dependencies use the latest stable releases checked during the upgrade.
 
 ## Adding a new source
 

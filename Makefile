@@ -41,13 +41,14 @@ bundle:
 	npx esbuild read.ts \
 		--bundle \
 		--platform=node \
-		--target=node20 \
+		--target=node24 \
 		--format=esm \
 		--outfile=dist/web_reader.js \
 		--external:@mozilla/readability \
 		--external:jsdom \
 		--external:cheerio \
 		--external:turndown \
+		--external:undici \
 		--external:@modelcontextprotocol/sdk
 	@echo "Bundle: dist/web_reader.js (deps still required in node_modules)"
 	@echo "For a self-contained build use: npm pack"
