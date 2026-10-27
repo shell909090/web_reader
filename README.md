@@ -26,7 +26,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `wiki` | Wikipedia Current Events | EN | ✅ | ✅ | `summary` field |
 | `zhwiki` | 中文维基百科新闻动态 | ZH | ✅ | ✅ | `summary` field |
 | `reddit` | Reddit | EN | ✅ | ✅ | categories: ml llm ai tech prog investing stocks worldnews; all returned items are external link posts |
-| `yahoo` | Yahoo Finance | EN | ❌ | ✅ | RSS, 48 items |
+| `yahoo` | Yahoo Finance | EN | ❌ | ✅ | HTML news stream; item count varies |
 | `gnews` | Google News | EN | ✅ | ⚠️ | categories: tech business science health sports entertainment world nation; article URLs are JS redirects — detail requires fetching the linked publisher page directly |
 | `cnbc` | CNBC | EN | ❌ | ✅ | categories: top world markets tech finance us health politics intl ai |
 | `nytimes` | NYT Chinese 纽约时报 | ZH | ❌ | ✅ | full text accessible |
@@ -95,6 +95,9 @@ web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 | `-c` | `--concurrency` | `2` | Parallel sources (list mode) |
 | `-l` | `--loglevel` | `warn` | `debug\|info\|warn\|error` |
 | `-h` | `--help` | | Show help |
+
+
+HTTP response headers are limited to 64 KiB per response (including redirects), configured by `CONFIG.HTTP_MAX_HEADER_SIZE` in `lib.ts`.
 
 ## MCP Server (AI agent integration)
 

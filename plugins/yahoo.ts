@@ -1,45 +1,47 @@
-// Yahoo Finance plugin — main news RSS feed.
+// Yahoo Finance plugin — server-rendered news stream.
 
+import * as cheerio from 'cheerio';
 import type { Plugin, Item, Ctx } from '../lib.ts';
 
-const RSS_URL = 'https://finance.yahoo.com/news/rssindex';
+const NEWS_URL = 'https://finance.yahoo.com/news/';
 
-function extractText(block: string, tag: string): string {
-  const m = block.match(
-    new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]+?)(?:\\]\\]>)?</${tag}>`, 'i'),
-  );
-  return m ? m[1].trim() : '';
-}
-
-function parseRss(xml: string, limit: number): Item[] {
+function parsePage(html: string, limit: number): Item[] {
+  const $ = cheerio.load(html);
   const items: Item[] = [];
   const seen = new Set<string>();
 
-  for (const m of xml.matchAll(/<item>([\s\S]+?)<\/item>/gi)) {
-    if (items.length >= limit) break;
-    const block = m[1];
+  $('[data-testid="storyitem"] a[href]').each((_i, el) => {
+    if (items.length >= limit) return false;
+    const heading = $(el).find('h2, h3').first();
+    const title = heading.text().trim().replace(/\s+/g, ' ');
+    if (title.length < 5) return;
 
-    const title = extractText(block, 'title');
-    if (title.length < 5) continue;
+    let url: URL;
+    try {
+      url = new URL($(el).attr('href')!, NEWS_URL);
+    } catch {
+      return;
+    }
+    if (url.origin !== 'https://finance.yahoo.com' || !url.pathname.endsWith('.html')) return;
+    url.search = '';
+    url.hash = '';
+    if (seen.has(url.href)) return;
+    seen.add(url.href);
 
-    const link = block.match(/<link>\s*([^<\s]+)/i)?.[1]?.trim() ?? extractText(block, 'guid');
-    if (!link || seen.has(link)) continue;
-    seen.add(link);
-
-    const pubDate = extractText(block, 'pubDate');
-    const date = pubDate ? pubDate.slice(0, 16) : '';
-    const summary = extractText(block, 'description');
-    const published_at = pubDate ? pubDate.slice(0, 10) : undefined;
-
+    const card = $(el).closest('[data-testid="storyitem"]');
+    const summary = card.find('p').first().text().trim();
+    const publishing = card.find('.publishing').text().trim().replace(/\s+/g, ' ');
+    const datetime = card.find('time[datetime]').attr('datetime');
+    const timestamp = datetime ? Date.parse(datetime) : NaN;
     items.push({
       source: 'yahoo',
       title,
-      url: link,
-      notes: date ? `Yahoo Finance · ${date}` : 'Yahoo Finance',
+      url: url.href,
+      notes: publishing ? `Yahoo Finance · ${publishing}` : 'Yahoo Finance',
       summary: summary || undefined,
-      published_at,
+      published_at: Number.isNaN(timestamp) ? undefined : new Date(timestamp).toISOString(),
     });
-  }
+  });
 
   return items;
 }
@@ -48,12 +50,16 @@ const plugin: Plugin = {
   id: 'yahoo',
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
-    ctx.log.debug('Fetching Yahoo Finance RSS', { url: RSS_URL });
-    const { status, html: xml } = await ctx.httpGet(RSS_URL);
+    ctx.log.debug('Fetching Yahoo Finance news page', { url: NEWS_URL });
+    const { status, html } = await ctx.httpGet(NEWS_URL);
+    if (status !== 200) throw new Error(`Yahoo Finance returned HTTP ${status}`);
 
-    if (status !== 200) throw new Error(`Yahoo Finance RSS returned HTTP ${status}`);
-
-    const items = parseRss(xml, opts.limit);
+    const items = parsePage(html, opts.limit);
+    if (opts.limit > 0 && items.length === 0) {
+      throw new Error(
+        'Yahoo Finance news page contained no articles; page structure may have changed',
+      );
+    }
     ctx.log.debug(`Parsed ${items.length} items from Yahoo Finance`);
     return items;
   },

@@ -260,3 +260,10 @@ CLI 新增 `-p` / `--profile` 选项（默认 `default`），在 `main()` 最早
 - `writeListJson` / `writeArticleMd` 保留，供外部集成（如需落盘）和单测覆盖。
 - 文件名格式：`{source}-{NNNN}.md`（4 位序号），`index.json` 作为元数据汇总。
 - MCP 工具名：`list_news`、`read_url`、`search`（与 CLI 模式一一对应）。
+
+
+## Yahoo Finance 页面抓取
+
+`yahoo` 请求 `https://finance.yahoo.com/news/`，解析服务端渲染的 `data-testid="storyitem"` 新闻卡片标题链接，兼容旧新闻路径与新分类文章路径。仅保留财经站 HTTPS 文章，移除查询参数和锚点后去重。保留页面提供的摘要和发布信息；无绝对时间时不生成 `published_at`。非空请求解析不到文章时报错，避免页面变更被误报为成功。结果仅包含初始 HTML 中的新闻，不加载滚动分页。
+
+共享 HTTP 客户端使用独立 Undici Agent，将每次响应头上限设为 64 KiB，不修改全局 dispatcher，CLI 和 MCP 共用；保持原有重定向和重试逻辑。Undici 6 支持项目的 Node.js 20 环境。

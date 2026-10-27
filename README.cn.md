@@ -26,7 +26,7 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `wiki` | Wikipedia 时事 | 英文 | ✅ | ✅ | 含 `summary` 字段 |
 | `zhwiki` | 中文维基百科新闻动态 | 中文 | ✅ | ✅ | 含 `summary` 字段 |
 | `reddit` | Reddit | 英文 | ✅ | ✅ | 分类：ml llm ai tech prog investing stocks worldnews；返回条目均为外链帖 |
-| `yahoo` | Yahoo Finance | 英文 | ❌ | ✅ | RSS，48 条 |
+| `yahoo` | Yahoo Finance | 英文 | ❌ | ✅ | HTML 新闻列表，条数随页面变化 |
 | `gnews` | Google News | 英文 | ✅ | ⚠️ | 分类：tech business science health sports entertainment world nation；文章链接为 JS 跳转，需直接访问发布方页面 |
 | `cnbc` | CNBC | 英文 | ❌ | ✅ | 分类：top world markets tech finance us health politics intl ai |
 | `nytimes` | 纽约时报中文网 | 中文 | ❌ | ✅ | 全文可读 |
@@ -95,6 +95,9 @@ web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 | `-c` | `--concurrency` | `2` | 并发数（list 模式）|
 | `-l` | `--loglevel` | `warn` | `debug\|info\|warn\|error` |
 | `-h` | `--help` | | 显示帮助 |
+
+
+HTTP 响应头上限为每次响应 64 KiB（含重定向），由 `lib.ts` 中的 `CONFIG.HTTP_MAX_HEADER_SIZE` 配置。
 
 ## MCP Server（AI agent 集成）
 

@@ -3,6 +3,7 @@
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { Agent } from 'undici';
 
 // CJS-safe loader for jsdom, readability, turndown (all CommonJS packages)
 const _require = createRequire(import.meta.url);
@@ -14,6 +15,7 @@ export const CONFIG = {
   LOCALE_CN: 'zh-CN',
   TIMEZONE: 'America/New_York',
   HTTP_TIMEOUT_MS: 30_000,
+  HTTP_MAX_HEADER_SIZE: 64 * 1024,
   TOTAL_TIMEOUT_MS: 600_000,
   DEFAULT_LIMIT: 50,
   DEFAULT_CONCURRENCY: 2,
@@ -128,6 +130,7 @@ function buildDefaultHeaders(): Record<string, string> {
 }
 
 const MAX_REDIRECTS = 5;
+const httpDispatcher = new Agent({ maxHeaderSize: CONFIG.HTTP_MAX_HEADER_SIZE });
 
 /** Extract charset from Content-Type header value, fallback to 'utf-8'. */
 function parseCharset(contentType: string | null): string {
@@ -155,11 +158,13 @@ async function fetchOnce(
 
     let response: Response;
     try {
-      response = await fetch(currentUrl, {
+      const requestOptions: RequestInit & { dispatcher: Agent } = {
+        dispatcher: httpDispatcher,
         headers: mergedHeaders,
         redirect: 'manual',
         signal: controller.signal,
-      });
+      };
+      response = await fetch(currentUrl, requestOptions);
     } finally {
       clearTimeout(timer);
     }
