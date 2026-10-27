@@ -22,7 +22,8 @@ function parsePage(html: string, limit: number): Item[] {
   const seen = new Set<string>();
   const items: Item[] = [];
 
-  $('a[href]').each((_i, el) => {
+  // Only headline links in the main news stream; sidebar notices also use article URLs.
+  $('.main_left .news_list > dl > dd > p > a[href]').each((_i, el) => {
     if (items.length >= limit) return false;
 
     const href = $(el).attr('href') ?? '';
@@ -55,6 +56,9 @@ const plugin: Plugin = {
     if (status !== 200) throw new Error(`Caixin returned HTTP ${status}`);
 
     const items = parsePage(html, opts.limit);
+    if (opts.limit > 0 && items.length === 0) {
+      throw new Error('Caixin news list contained no articles; page structure may have changed');
+    }
     ctx.log.debug(`Parsed ${items.length} items from Caixin`);
     return items;
   },

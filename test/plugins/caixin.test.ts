@@ -43,4 +43,36 @@ describe('caixin plugin', () => {
     const items = await plugin.list(ctx, { limit: 5 });
     assert.ok(items.length <= 5);
   });
+
+  it('excludes sidebar announcements, footer links and card navigation before applying the limit', async () => {
+    const items = await plugin.list(ctx, { limit: 50 });
+    assert.equal(items.length, 12);
+    assert.ok(items.every((i) => !/反侵权公告|固定栏目导航|使用声明/.test(i.title)));
+    const limited = await plugin.list(ctx, { limit: 5 });
+    assert.deepEqual(limited, items.slice(0, 5));
+  });
+
+  it('uses page structure rather than filtering headline keywords', async () => {
+    const headline = '反侵权公告引发版权保护行业讨论';
+    const html = `<div class="main_left"><div class="news_list"><dl><dd><p><a href="https://www.caixin.com/2026-10-27/102497850.html">${headline}</a></p></dd></dl></div></div>`;
+    const items = await plugin.list(
+      { ...ctx, httpGet: async () => ({ status: 200, html, finalUrl: 'https://www.caixin.com/' }) },
+      { limit: 5 },
+    );
+    assert.deepEqual(
+      items.map((i) => i.title),
+      [headline],
+    );
+  });
+
+  it('reports a missing news stream instead of falling back to whole-page links', async () => {
+    const html =
+      '<a href="https://www.caixin.com/2021-07-15/101740785.html">反侵权公告（第45号）</a>';
+    const changed = {
+      ...ctx,
+      httpGet: async () => ({ status: 200, html, finalUrl: 'https://www.caixin.com/' }),
+    };
+    await assert.rejects(plugin.list(changed, { limit: 5 }), /news list contained no articles/);
+    assert.deepEqual(await plugin.list(changed, { limit: 0 }), []);
+  });
 });
