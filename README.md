@@ -45,7 +45,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 
 ## Requirements
 
-- Node.js 20.x ≥ 20.19.0 / 22.x ≥ 22.13.0 / ≥24.0.0
+- Node.js ≥26.0.0
 - npm
 
 ## Installation
@@ -57,7 +57,7 @@ make install   # installs web_reader as a global command via npm link
 
 After `make install`, `web_reader` is available from any directory.
 
-Existing installations can run `git pull` followed by `npm ci` in the repository to reproduce the locked dependencies. nvm is optional; `.nvmrc` selects Node 20 for users who use it.
+Existing installations can run `git pull` followed by `npm ci` in the repository to reproduce the locked dependencies. nvm is optional; `.nvmrc` selects Node 26 for users who use it.
 
 ## Usage
 
@@ -156,7 +156,7 @@ Install [Trivy](https://trivy.dev/docs/latest/getting-started/installation/) sep
 
 As in the reference project, reported vulnerabilities alone do not fail `security`. A missing scanner, scan error, invalid report, or missing locked dependency does. A successful scan does not mean there are no vulnerabilities. Production modules are checked individually, including `src/`; no exemptions or relaxed thresholds are applied.
 
-TypeScript is pinned to the latest compatible 6.0.x release: current typescript-eslint and SonarJS require TypeScript <6.1, and the MI script uses its compiler API. For Node 20 compatibility, jsdom stays on 27.x and Undici on 7.x, with matching jsdom and Node 20 type definitions. Other dependencies retain their security updates.
+TypeScript is pinned to the latest compatible 6.0.x release: current typescript-eslint and SonarJS require TypeScript <6.1, and the MI script uses its compiler API. The runtime baseline is Node 26, with Node 26 type definitions and a node26 bundle target. jsdom remains on 27.x and Undici on 7.x; raising the runtime baseline does not require upgrading their major versions. Other dependencies retain their security updates.
 
 ### Source layout
 
