@@ -4,7 +4,7 @@ SHELL := /bin/sh
 TRIVY ?= trivy
 SECURITY_REPORT_DIR ?= tmp/security
 
-.PHONY: all quality fmt lint build unittest coverage complexity maintainability security clean install bundle
+.PHONY: all quality fmt lint build unittest coverage complexity maintainability security clean install install-skill bundle
 
 fmt:
 	npx prettier --write "**/*.ts" "**/*.js" "**/*.mjs" --ignore-path .gitignore
@@ -33,10 +33,16 @@ coverage:
 clean:
 	rm -rf node_modules/ coverage/ data/ dist/ tmp/security/
 
-install: clean
+install:
 	npm install
 	npm link
+	$(MAKE) install-skill
 	@echo "Installed: web_reader command is now available globally"
+
+# Claude and OpenCode share the Claude path; Codex uses its private path.
+# Do not also install into .agents/skills: agents may discover duplicates.
+install-skill:
+	bash scripts/install-skill.sh "$(CURDIR)"
 
 bundle:
 	@mkdir -p dist

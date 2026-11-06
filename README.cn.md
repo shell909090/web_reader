@@ -55,6 +55,9 @@ npm install
 make install   # 通过 npm link 将 web_reader 安装为全局命令
 ```
 
+`make install` 同时将 `web_reader/` 链接到 `~/.claude/skills/web-reader` 和 `~/.codex/skills/web-reader`；OpenCode 通过 Claude 目录发现技能。只安装技能链接可运行 `make install-skill`。正确的已有链接会保留，冲突文件不会被覆盖。其他发现目录中的旧安装需自行清理，以免重复加载。安装不会清理项目数据。
+
+
 安装后可在任意目录使用 `web_reader` 命令。
 
 已有安装可在仓库中执行 `git pull` 和 `npm ci`，按锁文件同步依赖。nvm 不是必需条件；使用 nvm 时，`.nvmrc` 选择 Node 26。
@@ -119,7 +122,7 @@ web_reader --mcp   # 以 MCP server 模式启动
 }
 ```
 
-暴露三个工具：`list_news`、`read_url`、`search`。详细 AI 使用说明见 `skills.md`。
+暴露三个工具：`list_news`、`read_url`、`search`。详细 AI 使用说明见 `web_reader/SKILL.md`。
 
 ## 输出格式
 

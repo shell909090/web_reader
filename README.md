@@ -55,6 +55,9 @@ npm install
 make install   # installs web_reader as a global command via npm link
 ```
 
+`make install` also links `web_reader/` into `~/.claude/skills/web-reader` and `~/.codex/skills/web-reader`. OpenCode discovers the Claude location. Run `make install-skill` to install only these links. Existing matching links are preserved; conflicting files are never overwritten. Remove obsolete installations from other discovery directories yourself to avoid duplicates. Installation does not clear project data.
+
+
 After `make install`, `web_reader` is available from any directory.
 
 Existing installations can run `git pull` followed by `npm ci` in the repository to reproduce the locked dependencies. nvm is optional; `.nvmrc` selects Node 26 for users who use it.
@@ -119,7 +122,7 @@ Configure in `.claude/settings.json`:
 }
 ```
 
-Exposes three tools: `list_news`, `read_url`, `search`. See `skills.md` for full AI usage guide.
+Exposes three tools: `list_news`, `read_url`, `search`. See `web_reader/SKILL.md` for full AI usage guide.
 
 ## Output
 
