@@ -144,7 +144,7 @@ After installing dependencies, run `make quality` for build checks, lint, tests 
 
 | Command | Check / failure condition |
 |---|---|
-| `make coverage` | c8 includes all production code (`lib.ts`, `read.ts`, `src/**/*.ts`, `plugins/**/*.ts`); lines, statements, functions, and branches must each reach 51%; HTML output: `coverage/index.html` |
+| `make coverage` | c8 includes all production code (`lib.ts`, `read.ts`, `src/**/*.ts`, `plugins/**/*.ts`); each file must reach 51% for lines, statements, functions, and branches; pure type declarations in src/types.ts and src/cli/types.ts are excluded; HTML output: `coverage/index.html` |
 | `make complexity` | ESLint cyclomatic complexity ≤9 and SonarJS cognitive complexity ≤14 per function |
 | `make maintainability` | Maintainability Index (MI) must exceed 30 for every production source file |
 | `make security` | Trivy scans the npm lockfile including dev dependencies, then verifies every locked package/version appears in the report |

@@ -144,7 +144,7 @@ make bundle     # esbuild 打包到 dist/web_reader.js
 
 | 命令 | 检查内容 / 失败条件 |
 |---|---|
-| `make coverage` | c8 覆盖全部生产代码（`lib.ts`、`read.ts`、`src/**/*.ts`、`plugins/**/*.ts`）；行、语句、函数、分支覆盖率各至少 51%，输出 `coverage/index.html` |
+| `make coverage` | c8 覆盖全部生产代码（`lib.ts`、`read.ts`、`src/**/*.ts`、`plugins/**/*.ts`）；每个文件的行、语句、函数、分支覆盖率各至少 51%；排除无运行时代码的纯类型文件 src/types.ts 和 src/cli/types.ts，输出 `coverage/index.html` |
 | `make complexity` | ESLint 圈复杂度 ≤9；SonarJS 认知复杂度 ≤14；任一函数超限则失败 |
 | `make maintainability` | 每个生产源文件的可维护性指数 MI 必须 >30，否则失败 |
 | `make security` | Trivy 扫描 npm 锁文件，包括开发依赖；校验所有锁定包及版本均出现在报告中 |

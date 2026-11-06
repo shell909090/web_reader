@@ -121,4 +121,36 @@ describe('polymarket plugin', () => {
     assert.ok(md.includes('Yes'), 'Outcomes section should include Yes outcome');
     assert.ok(md.includes('72.0%'), 'Outcomes section should include Yes probability 72.0%');
   });
+  it('reports API failures for both list and detail', async () => {
+    const unavailable: Ctx = {
+      ...ctx,
+      httpGet: async () => ({ status: 503, html: '', finalUrl: '' }),
+    };
+    await assert.rejects(plugin.list(unavailable, { limit: 5 }), /HTTP 503/);
+    await assert.rejects(
+      plugin.detail!(unavailable, {
+        source: 'polymarket',
+        title: '',
+        notes: '',
+        url: 'https://polymarket.com/event/missing',
+      }),
+      /HTTP 503/,
+    );
+  });
+
+  it('reports a missing market instead of returning misleading detail', async () => {
+    const empty: Ctx = {
+      ...ctx,
+      httpGet: async () => ({ status: 200, html: '[]', finalUrl: '' }),
+    };
+    await assert.rejects(
+      plugin.detail!(empty, {
+        source: 'polymarket',
+        title: '',
+        notes: '',
+        url: 'https://polymarket.com/event/missing',
+      }),
+      /No market found/,
+    );
+  });
 });

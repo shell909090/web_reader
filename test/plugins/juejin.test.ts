@@ -56,4 +56,8 @@ describe('juejin plugin', () => {
     const items = await plugin.list(ctx, { limit: 5 });
     assert.ok(items.length <= 5, `Expected <= 5 items, got ${items.length}`);
   });
+  it('reports API errors rather than an empty successful feed', async () => {
+    globalThis.fetch = async () => Response.json({ err_no: 1001, data: [] });
+    await assert.rejects(plugin.list(ctx, { limit: 5 }), /Juejin API error: 1001/);
+  });
 });

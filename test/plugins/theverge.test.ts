@@ -38,4 +38,31 @@ describe('theverge plugin', () => {
       'Some items have empty notes',
     );
   });
+  it('reports an unavailable feed instead of returning an empty success', async () => {
+    const unavailable: Ctx = {
+      ...ctx,
+      httpGet: async () => ({ status: 503, html: '', finalUrl: '' }),
+    };
+    await assert.rejects(plugin.list(unavailable, { limit: 5 }), /HTTP 503/);
+  });
+
+  it('respects the requested item limit', async () => {
+    const items = await plugin.list(ctx, { limit: 1 });
+    assert.equal(items.length, 1);
+  });
+
+  it('reads an Atom entry without a publication date using its fallback link', async () => {
+    const minimal: Ctx = {
+      ...ctx,
+      httpGet: async () => ({
+        status: 200,
+        html: '<feed><entry><title>AI news</title><link href="https://www.theverge.com/ai"/></entry></feed>',
+        finalUrl: '',
+      }),
+    };
+    const items = await plugin.list(minimal, { limit: 5 });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].url, 'https://www.theverge.com/ai');
+    assert.ok(items[0].notes);
+  });
 });

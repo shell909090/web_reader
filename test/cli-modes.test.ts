@@ -112,3 +112,42 @@ test('MCP search preserves source errors and parsed search results', async (t) =
     ['Test article'],
   );
 });
+
+test('list preserves successful sources and reports complete failure', async (t) => {
+  let output = '';
+  t.mock.method(process.stdout, 'write', (chunk: string | Uint8Array) => {
+    output += String(chunk);
+    return true;
+  });
+  t.mock.method(process.stderr, 'write', () => true);
+  const request = t.mock.method(
+    undici,
+    'fetch',
+    async (url: Parameters<typeof undici.fetch>[0]) =>
+      new Response(
+        String(url).includes('theverge.com')
+          ? '<feed><entry><title>Useful article</title><link href="https://example.com/story"/></entry></feed>'
+          : 'Unavailable',
+        { status: String(url).includes('theverge.com') ? 200 : 404 },
+      ),
+  );
+  assert.equal(await main(['-s', 'theverge,polymarket']), 0);
+  assert.deepEqual(JSON.parse(output), [
+    {
+      source: 'theverge',
+      title: 'Useful article',
+      url: 'https://example.com/story',
+      notes: 'The Verge',
+    },
+  ]);
+  output = '';
+  request.mock.mockImplementation(async () => new Response('Unavailable', { status: 404 }));
+  assert.equal(await main(['-s', 'theverge']), 3);
+  assert.deepEqual(JSON.parse(output), []);
+});
+
+test('query rejects unavailable and non-searchable sources', async (t) => {
+  t.mock.method(process.stderr, 'write', () => true);
+  assert.equal(await main(['-q', 'unknown', 'topic']), 2);
+  assert.equal(await main(['-q', 'theverge', 'topic']), 2);
+});

@@ -19,12 +19,14 @@ build:
 unittest: coverage
 
 coverage:
+	# Pure type declarations have no runtime behavior to cover.
 	@test_files=$$(find test \( -name '*.test.ts' -o -name '*.test.mjs' \) 2>/dev/null | sort | tr '\n' ' '); \
 	if [ -z "$$test_files" ]; then \
 		echo "No test files found." >&2; exit 1; \
 	else \
 		npx c8 --all --include=lib.ts --include=read.ts --include='plugins/**/*.ts' --include='src/**/*.ts' \
-			--check-coverage --lines=51 --statements=51 --functions=51 --branches=51 \
+			--exclude=src/types.ts --exclude=src/cli/types.ts \
+			--check-coverage --per-file --lines=51 --statements=51 --functions=51 --branches=51 \
 			--reporter=text-summary --reporter=html node --test --import tsx $$test_files; \
 	fi
 
