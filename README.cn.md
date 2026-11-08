@@ -38,7 +38,7 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `people` | 人民网 | 中文 | ❌ | ✅ | |
 | `hf` | HuggingFace Papers | 英文 | ✅ | ✅ | 每日 ML 论文 |
 | `csdn` | CSDN | 中文 | ❌ | ✅ | |
-| `oschina` | 开源中国 | 中文 | ❌ | ✅ | |
+| `oschina` | 开源中国 | 中文 | ❌ | ✅ | 通过 API 读取正文；外链跳转条目需直接读取原站 URL。 |
 | `juejin` | 稀土掘金 | 中文 | ❌ | ✅ | |
 | `bsky` | Bluesky | 英文 | ✅ | ⚠️ | 分类：news/tech；外链帖可读全文，纯文字帖跳转 Bluesky 社区页 |
 | `polymarket` | Polymarket 预测市场 | 英文 | ❌ | ✅ | 按成交量排名的热门预测市场；全文通过 Gamma API 渲染 |

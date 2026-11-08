@@ -1,3 +1,4 @@
+import { OSCHINA_ARTICLE, readOSChina } from './feeds/oschina-detail.ts';
 import { makeLogger, httpGet, extractMarkdown, type Ctx } from '../lib.ts';
 import { loadPlugin } from './plugin-loader.ts';
 
@@ -5,8 +6,12 @@ export async function readUrls({ urls }: { urls: string[] }) {
   const chunks: string[] = [];
   for (const url of urls) {
     try {
-      const { html } = await httpGet(url);
-      const md = extractMarkdown(html, url);
+      const md = OSCHINA_ARTICLE.test(url)
+        ? await readOSChina(
+            { mode: 'http', httpGet, log: makeLogger('warn') },
+            { source: 'oschina', title: '', url, notes: '' },
+          )
+        : extractMarkdown((await httpGet(url)).html, url);
       const title = decodeURIComponent(
         new URL(url).pathname.split('/').filter(Boolean).pop() ?? url,
       );

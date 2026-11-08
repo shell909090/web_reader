@@ -1,3 +1,4 @@
+import { OSCHINA_ARTICLE, readOSChina } from '../src/feeds/oschina-detail.ts';
 // OSCHINA news list plugin — HTTP-based, uses cheerio to parse the OSCHINA news page.
 
 import * as cheerio from 'cheerio';
@@ -38,6 +39,8 @@ function parseOSCHINAPage(html: string, limit: number): Item[] {
 
 const plugin: Plugin = {
   id: 'oschina',
+  urlPattern: OSCHINA_ARTICLE,
+  detail: readOSChina,
 
   async list(ctx: Ctx, opts: { limit: number }): Promise<Item[]> {
     ctx.log.debug('Fetching OSCHINA news page', { url: OSCHINA_NEWS_URL });

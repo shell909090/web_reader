@@ -37,8 +37,8 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `infoq` | InfoQ CN | ZH | ❌ | ✅ | |
 | `people` | 人民网 | ZH | ❌ | ✅ | |
 | `hf` | HuggingFace Papers | EN | ✅ | ✅ | daily ML papers |
-| `csdn` | CSDN | ZH | ❌ | ✅ | |
-| `oschina` | 开源中国 | ZH | ❌ | ✅ | |
+| `csdn` | CSDN | ZH | ❌ | ❌ | Currently unavailable for article reading: HTTP 521 challenge pages instead of article content in the tested environment (2026-11-08). List fetching still works. |
+| `oschina` | 开源中国 | ZH | ❌ | ✅ | Article content via API; external redirect entries require reading the publisher URL directly. |
 | `juejin` | 稀土掘金 | ZH | ❌ | ✅ | |
 | `bsky` | Bluesky | EN | ✅ | ⚠️ | categories: news/tech; external link posts readable; pure-text posts link to Bluesky social pages |
 | `polymarket` | Polymarket | EN | ❌ | ✅ | top prediction markets by volume; detail renders via Gamma API |
