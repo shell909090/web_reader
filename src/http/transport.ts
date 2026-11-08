@@ -1,9 +1,9 @@
-import undici, { Agent, type RequestInit, type Response } from 'undici';
+import undici, { Agent, type RequestInit } from 'undici';
+import { requestLookup } from './dns.ts';
 import { CONFIG } from '../config.ts';
 import type { HttpResponse } from '../types.ts';
 
 const MAX_REDIRECTS = 5;
-const httpDispatcher = new Agent({ maxHeaderSize: CONFIG.HTTP_MAX_HEADER_SIZE });
 
 /** Extract charset from Content-Type header value, fallback to 'utf-8'. */
 function parseCharset(contentType: string | null): string {
@@ -28,42 +28,47 @@ export async function fetchOnce(
   while (true) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const dispatcher = new Agent({
+      maxHeaderSize: CONFIG.HTTP_MAX_HEADER_SIZE,
+      connect: { lookup: requestLookup(controller.signal) },
+    });
 
-    let response: Response;
     try {
       const requestOptions: RequestInit & { dispatcher: Agent } = {
-        dispatcher: httpDispatcher,
+        dispatcher,
         headers: mergedHeaders,
         redirect: 'manual',
         signal: controller.signal,
       };
-      response = await undici.fetch(currentUrl, requestOptions);
+      const response = await undici.fetch(currentUrl, requestOptions);
+
+      const status = response.status;
+
+      // Manual redirect handling
+      if (status >= 300 && status < 400) {
+        const location = response.headers.get('location');
+        if (!location) {
+          // No location header; treat as final response with empty body
+          return { status, html: '', finalUrl: currentUrl };
+        }
+        if (redirectsLeft === 0) {
+          throw new Error(`Too many redirects (>${MAX_REDIRECTS}) starting from ${url}`);
+        }
+        redirectsLeft--;
+        // Resolve relative redirects against current URL
+        currentUrl = new URL(location, currentUrl).href;
+        continue;
+      }
+
+      const charset = parseCharset(response.headers.get('content-type'));
+      const buffer = await response.arrayBuffer();
+      const html = new TextDecoder(charset).decode(buffer);
+
+      return { status, html, finalUrl: currentUrl };
     } finally {
       clearTimeout(timer);
+      controller.abort();
+      await dispatcher.destroy();
     }
-
-    const status = response.status;
-
-    // Manual redirect handling
-    if (status >= 300 && status < 400) {
-      const location = response.headers.get('location');
-      if (!location) {
-        // No location header; treat as final response with empty body
-        return { status, html: '', finalUrl: currentUrl };
-      }
-      if (redirectsLeft === 0) {
-        throw new Error(`Too many redirects (>${MAX_REDIRECTS}) starting from ${url}`);
-      }
-      redirectsLeft--;
-      // Resolve relative redirects against current URL
-      currentUrl = new URL(location, currentUrl).href;
-      continue;
-    }
-
-    const charset = parseCharset(response.headers.get('content-type'));
-    const buffer = await response.arrayBuffer();
-    const html = new TextDecoder(charset).decode(buffer);
-
-    return { status, html, finalUrl: currentUrl };
   }
 }

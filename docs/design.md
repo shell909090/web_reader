@@ -269,7 +269,7 @@ CLI 新增 `-p` / `--profile` 选项（默认 `default`），在 `main()` 最早
 
 `yahoo` 请求 `https://finance.yahoo.com/news/`，解析服务端渲染的 `data-testid="storyitem"` 新闻卡片标题链接，兼容旧新闻路径与新分类文章路径。仅保留财经站 HTTPS 文章，移除查询参数和锚点后去重。保留页面提供的摘要和发布信息；无绝对时间时不生成 `published_at`。非空请求解析不到文章时报错，避免页面变更被误报为成功。结果仅包含初始 HTML 中的新闻，不加载滚动分页。
 
-共享 HTTP 客户端使用同一 npm Undici 版本的 fetch 和独立 Agent，将每次响应头上限设为 64 KiB，不修改全局 dispatcher，CLI 和 MCP 共用；保持原有重定向和重试逻辑。为兼容 Node 20，使用 Undici 7.30.1+（7.x）及 jsdom 27.4.0+（27.x），保留安全更新。
+共享 HTTP 客户端使用同一 npm Undici 版本的 fetch，每个请求跳转拥有独立 Agent，将每次响应头上限设为 64 KiB，不修改全局 dispatcher，CLI 和 MCP 共用；保持原有重定向和重试逻辑，生命周期与DNS取消见下文。为兼容 Node 20，使用 Undici 7.30.1+（7.x）及 jsdom 27.4.0+（27.x），保留安全更新。
 
 
 ## 工程质量门禁
@@ -342,3 +342,20 @@ CLI 的参数解析、来源/分类合并、列表、详情和查询分别位于
 - 首次观察记录使用Node内置SQLite，路径为 `$WEB_READER_DATA_DIR/first-seen.sqlite`；未设置时使用 `$XDG_DATA_HOME/web-reader/first-seen.sqlite`，再默认 `~/.local/share/web-reader/first-seen.sqlite`。URL移除片段、utm参数、fbclid/gclid并排序查询参数，保留影响文章身份的参数；不猜测短链和重定向等价关系。
 - SQLite以URL为主键，事务内 `INSERT OR IGNORE` 和读取，竞争写入最多等待5秒，失败明确抛错；清理记录会重置后续首次观察，需按需备份。测试使用临时数据目录，不污染用户首次观察库。
 - 事件与撰稿的准确时间在本轮23源中未获明确字段依据，保持缺失；HF论文日、Polymarket结束日和社交索引/更新时间不填入四字段。维基旧 `event_date` 暂保留兼容，本轮没有重新迁移维基。
+
+## HTTP 超时与可取消 DNS（2026-11-08）
+
+HTTP-001：每个重定向跳转的 `timeoutMs` 覆盖 DNS、连接、响应头及完整正文读取；计时器在正文完成或异常后清理。重定向上限和网络错误重试一次的规则不变。
+
+HTTP-002：`dns.lookup()` 虽然提供异步回调，底层仍在线程池中调用阻塞式系统 `getaddrinfo`。HTTP 取消不会中断已经运行的系统查询；重试成功后，Node 的退出清理仍可能等待旧查询线程。因此 HTTP 连接改用同一进程内的 `dns.promises.Resolver`（c-ares），通过 Promise 与事件循环调度，不创建独立进程或工作线程来执行 DNS。
+
+- 每个解析操作拥有独立 Resolver；请求 AbortSignal 触发 `resolver.cancel()`，不会取消其他请求。解析完成后移除监听器并清理剩余查询。
+- 每个 HTTP 跳转使用独立 Undici Agent，绑定该跳转的取消信号；成功、失败、重定向均在 finally 中取消残留解析并销毁 Agent。避免旧连接尝试或重试后的查询存活到进程退出。代价是不再跨请求复用 HTTP 连接，可能增加 TLS 握手开销。
+- IP 字面量直接使用；域名优先读取 hosts 文件（Linux `/etc/hosts`，Windows 系统 hosts 路径），支持大小写不敏感别名、注释、IPv4/IPv6 和去重。hosts 文件不存在时继续查询 DNS，其他读取错误显式传播。
+- 外部域名使用当前 Node DNS 服务器配置，A/AAAA 并行查询；指定 family 时仅查询对应类型。任一类型有地址即可使用；两类都失败时返回解析错误。DNS 结果默认 IPv4 在前，可指定 IPv6 优先；本地 hosts 保留文件顺序。
+- Resolver 的单次查询基础超时为 2 秒，每服务器最多尝试 2 次；这不是整个解析阶段的固定总时限，整个阶段仍受 HTTP 请求计时器控制。请求取消时真正取消 DNS I/O，而不是仅让 Promise 提前返回。
+- 兼容边界：不走系统 NSS、mDNS、LDAP、搜索域补全或系统地址排序策略，不实现 `getaddrinfo` 的 ADDRCONFIG/V4MAPPED 标志。内网名称需要 hosts 显式配置或使用可直接解析的完整域名。不回退到 `dns.lookup()`，避免重新引入无法取消的系统查询。
+
+验证要求：本地静默 DNS 下请求超时后进程及时退出；取消后重试可恢复；并发请求取消相互隔离；hosts、地址族、部分解析失败及正文停滞均有覆盖。Polymarket 在线提取需检查 JSON 内容和进程退出，不能将已有完整输出的进程超时简单归为上游失败。
+
+DNS API依据：[Node.js DNS实现说明与Resolver取消接口](https://nodejs.org/api/dns.html#implementation-considerations)。
