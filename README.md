@@ -126,6 +126,8 @@ Exposes three tools: `list_news`, `read_url`, `search`. See `web_reader/SKILL.md
 
 ## Output
 
+Wikipedia lists expose optional `event_date` (YYYY-MM-DD), the calendar day assigned to the event by the portal, not the original article publication time. Missing, invalid, ambiguous or mismatched date metadata leaves this field absent; search results have no event date. Chinese Wikipedia uses the explicit month in its news contribution link and never guesses the year from the system clock.
+
 **List / query**: JSON array. Each record: `source`, `title`, `url`, `notes`, optional `summary`.
 
 **Detail**: Markdown articles separated by `---`, starting with `# title`.

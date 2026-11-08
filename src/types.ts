@@ -10,6 +10,7 @@ export type Item = {
   title: string;
   url: string;
   notes: string;
+  event_date?: string; // Calendar date (YYYY-MM-DD) of a reported event, not publication time
   published_at?: string; // ISO 8601 date when available (not all sources provide this)
 } & Record<string, unknown>;
 

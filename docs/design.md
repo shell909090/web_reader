@@ -39,6 +39,7 @@ type ItemCore = {
   title: string;
   url: string;
   notes: string;          // 摘要/时间/评分等，由 plugin 拼成人类可读文本
+  event_date?: string;    // YYYY-MM-DD，维基门户的事件归属日期，不是原文发布时间
   published_at?: string;  // ISO 8601 日期，有条件时提供
 };
 // plugin 可自由追加字段（summary, score, comments 等）
@@ -290,3 +291,8 @@ CLI 的参数解析、来源/分类合并、列表、详情和查询分别位于
 共用的 RSS 字段提取及 CNBC/MIT TR 新闻解析位于 src/feeds。collectFeedResults 只合并成功请求的条目，保持请求结果顺序及首次 URL 优先，并逐条记录失败。Bluesky、Reddit、Polymarket 的认证、字段转换和 Markdown 渲染按职责拆分，不改变输出字段和格式。
 
 复杂度、MI、覆盖率均包含新增 src/**/*.ts，圈复杂度≤9、认知复杂度≤14、每文件 MI>30 的阈值不变。回归测试覆盖公共入口、预置合并、参数校验、部分失败、stdin、MCP 工具返回和并发控制。
+
+
+## 维基新闻事件日期
+
+`Item.event_date?: string` 仅用于列表，格式为合法日历日期 `YYYY-MM-DD`，不做时区换算，不代填 `published_at`；搜索结果不添加该字段。英文源取日容器的完整年月日 ID；中文源取新闻编辑链接中唯一明确的年月，与月日标题匹配，排除 redlink 创建链接。年月缺失、冲突、月份不匹配或日期无效时省略字段，不使用系统年份推测。非日期标题终止中文事件日期上下文，避免给其他栏目误标日期。

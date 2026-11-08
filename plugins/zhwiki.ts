@@ -2,6 +2,7 @@
 // News:   https://zh.wikipedia.org/wiki/Portal:新闻动态
 // Search: https://zh.wikipedia.org/w/api.php
 
+import { chineseNewsMonth, chineseEventDate } from '../src/feeds/wiki-date.ts';
 import * as cheerio from 'cheerio';
 import type { Plugin, Item, Ctx } from '../lib.ts';
 
@@ -47,6 +48,7 @@ function parsePage(html: string, limit: number): Item[] {
   const items: Item[] = [];
   const seen = new Set<string>();
   let currentDate = '';
+  const month = chineseNewsMonth($);
 
   $('#mw-content-text *').each((_i, el) => {
     if (items.length >= limit) return false;
@@ -54,14 +56,17 @@ function parsePage(html: string, limit: number): Item[] {
 
     if (tag === 'h2' || tag === 'h3') {
       const text = $(el).text().trim();
-      if (/\d+月\d+日/.test(text)) currentDate = text;
+      currentDate = /^\d+月\d+日$/.test(text) ? text : '';
       return;
     }
 
     if (tag !== 'li' || !currentDate) return;
 
     const item = parseEvent($(el), currentDate, seen);
-    if (item) items.push(item);
+    if (item) {
+      item.event_date = chineseEventDate(currentDate, month);
+      items.push(item);
+    }
   });
 
   return items;

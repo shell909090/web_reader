@@ -2,6 +2,7 @@
 // Source: https://en.wikipedia.org/wiki/Portal:Current_events
 // Chinese edition: see zhwiki.ts
 
+import { englishEventDate } from '../src/feeds/wiki-date.ts';
 import * as cheerio from 'cheerio';
 import type { Plugin, Item, Ctx } from '../lib.ts';
 
@@ -17,6 +18,7 @@ function parseWikiPage(html: string, limit: number): Item[] {
     if (items.length >= limit) return false;
 
     const date = $(dayEl).attr('aria-label') ?? '';
+    const event_date = englishEventDate($(dayEl).attr('id') ?? '');
     const content = $(dayEl).find('div.current-events-content');
     let category = '';
 
@@ -35,13 +37,15 @@ function parseWikiPage(html: string, limit: number): Item[] {
         .each((_j, liEl) => {
           if (items.length >= limit) return false;
 
-          const articleLink = $(liEl).find('> a[href^="/wiki/"]').first();
+          const articleLink = $(liEl)
+            .find('> a[href^="/wiki/"], > a[href^="https://en.wikipedia.org/wiki/"]')
+            .first();
           if (!articleLink.length) return;
 
           const href = articleLink.attr('href') ?? '';
           if (/Special:|Talk:|Wikipedia:|Portal:|Help:|File:/.test(href)) return;
 
-          const url = 'https://en.wikipedia.org' + href;
+          const url = new URL(href, WIKI_URL).href;
           if (seen.has(url)) return;
           seen.add(url);
 
@@ -53,6 +57,7 @@ function parseWikiPage(html: string, limit: number): Item[] {
 
           items.push({
             source: 'wiki',
+            event_date,
             title,
             url,
             notes,
