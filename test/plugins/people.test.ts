@@ -42,3 +42,25 @@ describe('people plugin', () => {
     assert.ok(items.length <= 5, `Expected <= 5 items, got ${items.length}`);
   });
 });
+
+it('ignores hidden ancestors and links before deduplication and limiting', async () => {
+  const link = (id: number, title = 'Visible news article'): string =>
+    `<a href="https://politics.people.com.cn/n1/2026/1108/c1-${id}.html">${title}</a>`;
+  const html = `<div id="retired" style="display:none;">${link(1, 'Hidden duplicate article')}<section>${link(2)}</section></div>
+    <div style="color:red; DISPLAY : none !important">${link(3)}</div>
+    <div hidden>${link(4)}</div>
+    <a style="display: none" href="https://politics.people.com.cn/n1/2026/1108/c1-5.html">Hidden direct article</a>
+    <div style="display:block">${link(1)}${link(6)}</div>
+    <div style="--display:none">${link(7)}</div>`;
+  const local: Ctx = {
+    ...ctx,
+    httpGet: async () => ({ status: 200, html, finalUrl: 'https://www.people.com.cn/' }),
+  };
+  const items = await plugin.list(local, { limit: 10 });
+  assert.deepEqual(
+    items.map((item) => item.url.split('-').pop()),
+    ['1.html', '6.html', '7.html'],
+  );
+  assert.equal(items[0].title, 'Visible news article');
+  assert.deepEqual(await plugin.list(local, { limit: 2 }), items.slice(0, 2));
+});

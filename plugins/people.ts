@@ -21,6 +21,14 @@ function isArticleUrl(href: string): boolean {
 /** Parse People Daily homepage HTML into an Item list. */
 function parsePeoplePage(html: string, limit: number): Item[] {
   const $ = cheerio.load(html);
+  // Retired homepage features remain in the DOM with inline hiding rules.
+  $('[hidden]').remove();
+  $('[style]').each((_i, el) => {
+    const style = $(el).attr('style') ?? '';
+    if (/(?:^|;)\s*display\s*:\s*none\s*(?:!important\s*)?(?:;|$)/i.test(style)) {
+      $(el).remove();
+    }
+  });
   const items: Item[] = [];
   const seen = new Set<string>();
 

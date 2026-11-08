@@ -32,10 +32,10 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `nytimes` | NYT Chinese 纽约时报 | ZH | ❌ | ✅ | full text accessible |
 | `xinhua` | 新华社 | ZH | ❌ | ✅ | categories: politics world society finance tech mil legal health edu |
 | `thepaper` | 澎湃新闻 | ZH | ❌ | ✅ | breaking news |
-| `caixin` | 财新 | ZH | ❌ | ✅ | financial journalism |
+| `caixin` | 财新 | ZH | ❌ | ⚠️ | Full-text completeness unverified: both sampled pages returned only two paragraphs and loaded subscription components (2026-11-08). Content may be a preview; truncation has not been confirmed. |
 | `sina` | 新浪新闻 | ZH | ❌ | ✅ | GB2312 auto-decoded |
 | `infoq` | InfoQ CN | ZH | ❌ | ✅ | |
-| `people` | 人民网 | ZH | ❌ | ✅ | |
+| `people` | 人民网 | ZH | ❌ | ✅ | Homepage order; explicitly hidden sections excluded. Not sorted by publication date. |
 | `hf` | HuggingFace Papers | EN | ✅ | ✅ | daily ML papers |
 | `csdn` | CSDN | ZH | ❌ | ❌ | Currently unavailable for article reading: HTTP 521 challenge pages instead of article content in the tested environment (2026-11-08). List fetching still works. |
 | `oschina` | 开源中国 | ZH | ❌ | ✅ | Article content via API; external redirect entries require reading the publisher URL directly. |
