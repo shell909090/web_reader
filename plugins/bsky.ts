@@ -5,7 +5,7 @@ import {
   type SearchPostsResponse,
 } from '../src/feeds/bluesky-post.ts';
 // Bluesky plugin — author feeds and post search via the AT Protocol API.
-// Search requires auth: set BSKY_IDENTIFIER and BSKY_APP_PASSWORD env vars.
+// Search access depends on the endpoint; credentials do not guarantee access.
 
 import type { Plugin, Item, Ctx } from '../lib.ts';
 import { collectFeedResults } from '../src/feeds/results.ts';
@@ -91,7 +91,8 @@ const plugin: Plugin = {
     const { status, html } = await ctx.httpGet(url, { headers });
     if (status === 401 || status === 403) {
       throw new Error(
-        'Bluesky search requires authentication. ' +
+        `Bluesky search returned HTTP ${status}; access was refused by the current endpoint. ` +
+          'Authentication may be required, but this status alone does not establish the cause. ' +
           'Set BSKY_IDENTIFIER (your handle, e.g. user.bsky.social) and ' +
           'BSKY_APP_PASSWORD (from https://bsky.app/settings/app-passwords) env vars.',
       );

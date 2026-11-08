@@ -25,7 +25,7 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `mittr` | MIT Technology Review | 英文 | ❌ | ✅ | 分类：ai computing space biotech |
 | `wiki` | Wikipedia 时事 | 英文 | ✅ | ✅ | 含 `summary` 字段 |
 | `zhwiki` | 中文维基百科新闻动态 | 中文 | ✅ | ✅ | 含 `summary` 字段 |
-| `reddit` | Reddit | 英文 | ✅ | ✅ | 分类：ml llm ai tech prog investing stocks worldnews；返回条目均为外链帖 |
+| `reddit` | Reddit | 英文 | ❌ | ⚠️ | 列表部分可用：worldnews 成功，tech/ml 及搜索返回 429；讨论页样本返回 403。条目可能为外链或标注 discussion 的讨论帖，外链正文取决于发布方。 |
 | `yahoo` | Yahoo Finance | 英文 | ❌ | ✅ | HTML 新闻列表，条数随页面变化 |
 | `gnews` | Google News | 英文 | ✅ | ⚠️ | 分类：tech business science health sports entertainment world nation；文章链接为 JS 跳转，需直接访问发布方页面 |
 | `cnbc` | CNBC | 英文 | ❌ | ✅ | 分类：top world markets tech finance us health politics intl ai |
@@ -37,11 +37,21 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `infoq` | InfoQ 中文 | 中文 | ❌ | ✅ | |
 | `people` | 人民网 | 中文 | ❌ | ✅ | 按首页顺序获取，排除明确隐藏区块；不保证按发布时间排序。 |
 | `hf` | HuggingFace Papers | 英文 | ✅ | ✅ | 每日 ML 论文 |
-| `csdn` | CSDN | 中文 | ❌ | ✅ | |
+| `csdn` | CSDN | 中文 | ❌ | ❌ | 列表可用；正文样本返回 HTTP 521，未取得文章内容（2026-11-08）。受阻文章的发布时间也不可得。 |
 | `oschina` | 开源中国 | 中文 | ❌ | ✅ | 通过 API 读取正文；外链跳转条目需直接读取原站 URL。 |
 | `juejin` | 稀土掘金 | 中文 | ❌ | ✅ | |
-| `bsky` | Bluesky | 英文 | ✅ | ⚠️ | 分类：news/tech；外链帖可读全文，纯文字帖跳转 Bluesky 社区页 |
+| `bsky` | Bluesky | 英文 | ❌ | ⚠️ | news/tech 列表可用；当前搜索端点返回 403，认证路径未验证。The Verge 外链样本可读，NYT 外链样本返回 403；纯文字帖链接到社区页，不保证可读。 |
 | `polymarket` | Polymarket 预测市场 | 英文 | ❌ | ✅ | 按成交量排名的热门预测市场；全文通过 Gamma API 渲染 |
+
+### 访问限制与本次复核（2026-11-08）
+
+本工具简化 AI 对可访问网页的读取，不绕过登录、付费墙、验证码或站点访问限制。列表可读不代表文章可读；HTTP 200 或非空输出也不能证明全文完整。✅ 表示已有支持/样本成功，不保证所有页面；⚠️ 表示部分可用或完整性未确认；❌ 表示不支持或当前样本不可用，原因见备注。
+
+本次仅复核剩余的 CSDN、Reddit、Bluesky 问题，并非重新验证全部 25 个源。结果只代表当前环境和采样时间，429 是限流，不代表永久禁止。Reddit 部分 feed 失败时会警告并返回可用结果；不能把该列表当作完整覆盖。外链帖子和文章发布时间是不同概念，受阻页面不会补造发布时间。
+
+Bluesky 当前配置的 `public.api.bsky.app` 搜索返回 403；这不能单独证明缺少认证。程序支持通过 `BSKY_IDENTIFIER` 与 `BSKY_APP_PASSWORD` 尝试建立会话，但本次没有凭证，未验证认证访问，也不保证配置凭证后该端点可用。没有更换身份、代理或切换端点来规避拒绝。
+
+通用 CLI/MCP 正文读取会将非 2xx 响应明确报告为 HTTP 错误，不把拒绝页当文章。Google News 的 JS 跳转和财新可能仅有预览的既有限制仍保留。详细命令、样本与边界见 [访问复核记录](docs/source-access.md)。
 
 ## 环境要求
 

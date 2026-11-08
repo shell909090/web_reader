@@ -25,7 +25,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `mittr` | MIT Technology Review | EN | ❌ | ✅ | categories: ai computing space biotech |
 | `wiki` | Wikipedia Current Events | EN | ✅ | ✅ | `summary` field |
 | `zhwiki` | 中文维基百科新闻动态 | ZH | ✅ | ✅ | `summary` field |
-| `reddit` | Reddit | EN | ✅ | ✅ | categories: ml llm ai tech prog investing stocks worldnews; all returned items are external link posts |
+| `reddit` | Reddit | EN | ❌ | ⚠️ | Partial lists: worldnews worked; tech/ml and search returned 429. Sample discussion page returned 403. Items may be external links or discussion posts; publisher access varies. |
 | `yahoo` | Yahoo Finance | EN | ❌ | ✅ | HTML news stream; item count varies |
 | `gnews` | Google News | EN | ✅ | ⚠️ | categories: tech business science health sports entertainment world nation; article URLs are JS redirects — detail requires fetching the linked publisher page directly |
 | `cnbc` | CNBC | EN | ❌ | ✅ | categories: top world markets tech finance us health politics intl ai |
@@ -37,11 +37,21 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `infoq` | InfoQ CN | ZH | ❌ | ✅ | |
 | `people` | 人民网 | ZH | ❌ | ✅ | Homepage order; explicitly hidden sections excluded. Not sorted by publication date. |
 | `hf` | HuggingFace Papers | EN | ✅ | ✅ | daily ML papers |
-| `csdn` | CSDN | ZH | ❌ | ❌ | Currently unavailable for article reading: HTTP 521 challenge pages instead of article content in the tested environment (2026-11-08). List fetching still works. |
+| `csdn` | CSDN | ZH | ❌ | ❌ | Lists work; sampled articles returned HTTP 521 without article content (2026-11-08). Publication times are also unavailable for blocked articles. |
 | `oschina` | 开源中国 | ZH | ❌ | ✅ | Article content via API; external redirect entries require reading the publisher URL directly. |
 | `juejin` | 稀土掘金 | ZH | ❌ | ✅ | |
-| `bsky` | Bluesky | EN | ✅ | ⚠️ | categories: news/tech; external link posts readable; pure-text posts link to Bluesky social pages |
+| `bsky` | Bluesky | EN | ❌ | ⚠️ | news/tech lists work; current search endpoint returned 403, authenticated access unverified. A Verge link was readable; sampled NYT links returned 403. Text-only posts link to social pages; readability is not guaranteed. |
 | `polymarket` | Polymarket | EN | ❌ | ✅ | top prediction markets by volume; detail renders via Gamma API |
+
+### Access limits and verification (2026-11-08)
+
+This tool simplifies AI access to readable pages; it does not bypass login requirements, paywalls, CAPTCHAs, or site access restrictions. A working feed does not guarantee readable articles. HTTP 200 or nonempty output does not prove full-text completeness. ✅ means implemented support or a successful sample, not every page; ⚠️ means partial availability or unverified completeness; ❌ means unsupported or unavailable in the tested environment, as explained in Notes.
+
+This review covers the remaining CSDN, Reddit, and Bluesky issues, not a fresh audit of all 25 sources. Results are specific to the environment and sampling time; 429 indicates rate limiting, not a permanent ban. Reddit warns about failed feeds and returns successful feeds, so a partial list is not complete coverage. Post timestamps and linked article publication times are distinct; blocked articles do not receive fabricated publication times.
+
+Search on the configured Bluesky `public.api.bsky.app` endpoint returned 403; this alone does not prove missing authentication. The tool supports a session attempt using `BSKY_IDENTIFIER` and `BSKY_APP_PASSWORD`, but credentials were unavailable for this review. Authenticated access is unverified, and credentials are not guaranteed to make this endpoint accessible. No identity, proxy, or endpoint switching was used to evade refusals.
+
+Generic CLI/MCP article reads report non-2xx responses as HTTP errors instead of presenting denial pages as articles. Existing Google News JS-redirect and Caixin completeness limitations remain. See [commands, samples, and access findings](docs/source-access.md) (Chinese).
 
 ## Requirements
 

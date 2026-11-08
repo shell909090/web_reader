@@ -1,8 +1,9 @@
+import { extractResponse } from '../extract.ts';
 import { httpGet, type Ctx, type Logger } from '../../lib.ts';
 import type { ParsedArgs } from './types.ts';
 import { loadPlugin } from '../plugin-loader.ts';
 import { writeOutput } from './io.ts';
-import { extractMarkdown, type Plugin, type Item } from '../../lib.ts';
+import { type Plugin, type Item } from '../../lib.ts';
 import { KNOWN_SOURCES } from './sources.ts';
 import { USAGE } from './usage.ts';
 import { readStdinLines, logError } from './io.ts';
@@ -21,8 +22,7 @@ async function readArticle(
     md = await matched.plugin.detail!(ctx, item);
     title = url;
   } else {
-    const { html } = await httpGet(url);
-    md = extractMarkdown(html, url);
+    md = extractResponse(await httpGet(url));
     title = decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop() ?? url);
   }
   return `---\n# ${title}\n\n${md}\n`;

@@ -1,5 +1,6 @@
+import { extractResponse } from './extract.ts';
 import { OSCHINA_ARTICLE, readOSChina } from './feeds/oschina-detail.ts';
-import { makeLogger, httpGet, extractMarkdown, type Ctx } from '../lib.ts';
+import { makeLogger, httpGet, type Ctx } from '../lib.ts';
 import { loadPlugin } from './plugin-loader.ts';
 
 export async function readUrls({ urls }: { urls: string[] }) {
@@ -11,7 +12,7 @@ export async function readUrls({ urls }: { urls: string[] }) {
             { mode: 'http', httpGet, log: makeLogger('warn') },
             { source: 'oschina', title: '', url, notes: '' },
           )
-        : extractMarkdown((await httpGet(url)).html, url);
+        : extractResponse(await httpGet(url));
       const title = decodeURIComponent(
         new URL(url).pathname.split('/').filter(Boolean).pop() ?? url,
       );

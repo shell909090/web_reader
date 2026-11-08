@@ -1,3 +1,4 @@
+import type { HttpResponse } from './types.ts';
 import { createRequire } from 'node:module';
 const _require = createRequire(import.meta.url);
 
@@ -51,4 +52,14 @@ export function extractMarkdown(html: string, url: string): string {
   }
 
   return md;
+}
+
+/** Reject unsuccessful HTTP responses before treating their content as an article. */
+export function extractResponse(response: HttpResponse): string {
+  if (response.status < 200 || response.status >= 300) {
+    throw new ExtractError(
+      `HTTP ${response.status} at ${response.finalUrl}; article content unavailable`,
+    );
+  }
+  return extractMarkdown(response.html, response.finalUrl);
 }

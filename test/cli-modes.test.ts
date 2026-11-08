@@ -154,3 +154,27 @@ test('query rejects unavailable and non-searchable sources', async (t) => {
   assert.equal(await main(['-q', 'unknown', 'topic']), 2);
   assert.equal(await main(['-q', 'theverge', 'topic']), 2);
 });
+
+for (const status of [403, 429, 521]) {
+  test(`CLI and MCP reject HTTP ${status} even when the response resembles an article`, async (t) => {
+    t.mock.method(undici, 'fetch', async () => new Response(article, { status }));
+    let errors = '';
+    t.mock.method(process.stderr, 'write', (chunk: string) => {
+      errors += chunk;
+      return true;
+    });
+    const dir = await mkdtemp(join(tmpdir(), 'reader-denial-'));
+    const out = join(dir, 'article.md');
+    try {
+      const url = 'https://example.com/blocked';
+      assert.equal(await main(['-o', out, url]), 3);
+      assert.equal(await readFile(out, 'utf8'), '');
+      assert.ok(errors.includes(`HTTP ${status}`));
+      const result = await readUrls({ urls: [url] });
+      assert.ok(result.content[0].text.includes(`HTTP ${status}`));
+      assert.ok(result.content[0].text.includes('Error fetching'));
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+}
