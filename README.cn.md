@@ -55,7 +55,7 @@ npm install
 make install   # 通过 npm link 将 web_reader 安装为全局命令
 ```
 
-`make install` 同时将 `web_reader/` 链接到 `~/.claude/skills/web-reader` 和 `~/.codex/skills/web-reader`；OpenCode 通过 Claude 目录发现技能。只安装技能链接可运行 `make install-skill`。正确的已有链接会保留，冲突文件不会被覆盖。其他发现目录中的旧安装需自行清理，以免重复加载。安装不会清理项目数据。
+`make install` 同时将 `web_reader/` 链接到 `~/.claude/skills/web-reader` 和 `~/.agents/skills/web-reader`；Codex 使用共享的 `.agents/skills` 目录。只安装技能链接可运行 `make install-skill`。正确的已有链接会保留，冲突文件不会被覆盖。若 `~/.codex/skills/web-reader` 或 OpenCode 专用技能目录存在旧安装，会提示迁移但不自动删除；旧安装需自行清理，以免重复加载。安装不会清理项目数据。
 
 
 安装后可在任意目录使用 `web_reader` 命令。

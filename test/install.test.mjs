@@ -2,14 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { constants } from 'node:fs';
-import { access, mkdir, mkdtemp, readFile, readlink, rm, symlink } from 'node:fs/promises';
+import { access, lstat, mkdir, mkdtemp, readFile, readlink, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, URL } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const targets = ['.claude', '.codex'];
+const targets = ['.claude', '.agents'];
 
 async function temporaryHome(t) {
   const home = await mkdtemp(join(tmpdir(), 'web-reader install '));
@@ -34,6 +34,25 @@ test('skill installation links both agent directories and is idempotent', async 
       assert.equal(await readlink(destination), join(root, 'web_reader'));
       assert.match(await readFile(join(destination, 'SKILL.md'), 'utf8'), /name: web-reader/);
     }
+    await assert.rejects(lstat(join(home, '.codex')), { code: 'ENOENT' });
+  }
+});
+
+test('skill installation preserves and warns about a legacy Codex link', async (t) => {
+  const home = await temporaryHome(t);
+  const legacy = join(home, '.codex/skills/web-reader');
+  const previous = join(home, 'previous-skill');
+  await mkdir(previous);
+  await mkdir(dirname(legacy), { recursive: true });
+  await symlink(previous, legacy);
+
+  const result = install(home);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(await readlink(legacy), previous);
+  assert.match(result.stderr, /warning/i);
+  assert.ok(result.stderr.includes(legacy), result.stderr);
+  for (const agent of targets) {
+    assert.equal(await readlink(join(home, agent, 'skills/web-reader')), join(root, 'web_reader'));
   }
 });
 
@@ -52,6 +71,8 @@ for (const agent of targets) {
       }
       const result = install(home);
       assert.notEqual(result.status, 0);
+      const otherAgent = targets.find((target) => target !== agent);
+      await assert.rejects(lstat(join(home, otherAgent, 'skills/web-reader')), { code: 'ENOENT' });
       if (kind === 'directory') {
         await access(destination);
         await assert.rejects(readlink(destination));

@@ -55,7 +55,7 @@ npm install
 make install   # installs web_reader as a global command via npm link
 ```
 
-`make install` also links `web_reader/` into `~/.claude/skills/web-reader` and `~/.codex/skills/web-reader`. OpenCode discovers the Claude location. Run `make install-skill` to install only these links. Existing matching links are preserved; conflicting files are never overwritten. Remove obsolete installations from other discovery directories yourself to avoid duplicates. Installation does not clear project data.
+`make install` also links `web_reader/` into `~/.claude/skills/web-reader` and `~/.agents/skills/web-reader`. Codex uses the shared `.agents/skills` location. Run `make install-skill` to install only these links. Existing matching links are preserved; conflicting files are never overwritten. Existing installations in `~/.codex/skills/web-reader` or the OpenCode-specific skills directory produce a migration warning and are left untouched; remove obsolete installations yourself to avoid duplicates. Installation does not clear project data.
 
 
 After `make install`, `web_reader` is available from any directory.

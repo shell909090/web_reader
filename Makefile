@@ -39,8 +39,7 @@ install:
 	$(MAKE) install-skill
 	@echo "Installed: web_reader command is now available globally"
 
-# Claude and OpenCode share the Claude path; Codex uses its private path.
-# Do not also install into .agents/skills: agents may discover duplicates.
+# Claude uses its own path; Codex uses the shared .agents/skills path.
 install-skill:
 	bash scripts/install-skill.sh "$(CURDIR)"
 
