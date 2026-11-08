@@ -14,7 +14,7 @@ const SKIP_RE = /^(?:photos|video|vip)\./;
 function caixinItem(title: string, url: string): Item {
   const date = url.match(/\/(\d{4}-\d{2}-\d{2})\//)?.[1] ?? '';
   const notes = date ? `财新 · ${date}` : '财新';
-  return { source: 'caixin', title, url, notes, published_at: date || undefined };
+  return { source: 'caixin', title, url, notes };
 }
 
 function parsePage(html: string, limit: number): Item[] {

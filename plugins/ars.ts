@@ -30,7 +30,6 @@ function parseArsPage(html: string, limit: number): Item[] {
     seen.add(url);
 
     const channel = match[1];
-    const published_at = `${match[2]}-${match[3]}`;
 
     // Summary and date live in the card container around the title link
     const card = $(el).closest('div.grow, li, article');
@@ -41,7 +40,7 @@ function parseArsPage(html: string, limit: number): Item[] {
     if (date) noteParts.push(date);
     const notes = noteParts.join(' · ');
 
-    items.push({ source: 'ars', title, url, notes, summary: summary || undefined, published_at });
+    items.push({ source: 'ars', title, url, notes, summary: summary || undefined });
   });
 
   return items;

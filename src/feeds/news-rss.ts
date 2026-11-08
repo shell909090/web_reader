@@ -1,3 +1,4 @@
+import { newsTime } from '../timestamps.ts';
 import type { Item } from '../types.ts';
 import { extractText, rssLink, rssBlocks } from './rss.ts';
 
@@ -19,9 +20,9 @@ export function parseNewsRss(
       source,
       title,
       url,
-      notes: pubDate ? `${label} · ${pubDate.slice(0, 16)}` : emptyLabel,
+      notes: pubDate ? `${label} · ${newsTime(pubDate) ?? pubDate}` : emptyLabel,
       summary: summary || undefined,
-      published_at: pubDate ? new Date(pubDate).toISOString().slice(0, 10) : undefined,
+      published_at: newsTime(pubDate),
     });
   }
   return items;

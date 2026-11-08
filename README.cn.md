@@ -126,6 +126,11 @@ web_reader --mcp   # 以 MCP server 模式启动
 
 ## 输出格式
 
+列表及搜索提供 `first_seen_at`，并在可确认时提供 `published_at`；`occurred_at`（事件时间）、`written_at`（撰稿时间）无明确依据时省略。四字段统一为 `YYYY-MM-DDTHH:mm:ss+08:00`（北京时间），仅有日期不补零点，更新时间和转发时间不冒充原文发布时间。维基原有 `event_date` 暂保留兼容。
+
+首次观察按规范化 URL 保存于 `~/.local/share/web-reader/first-seen.sqlite`，支持 `XDG_DATA_HOME` 或 `WEB_READER_DATA_DIR` 自定义目录；跨进程和重复抓取保持首次值。该目录需可写；删除数据库会重置观察历史，请按需备份。缺少列表发布时间的部分源会额外请求文章元数据，耗时随条数增加；失败时保留条目、略去发布时间。逐源支持与实测限制见 [日期支持说明](docs/date-support.md)。
+
+
 维基新闻列表可提供 `event_date`（YYYY-MM-DD），表示门户对事件的日期归属，不是原新闻发布时间。日期依据缺失、无效、冲突或月份不匹配时省略该字段；搜索结果不提供事件日期。中文维基使用新闻贡献链接中的明确年月，不按系统当前年份猜测。
 
 **列表 / 查询**：JSON 数组，每条含 `source`、`title`、`url`、`notes`，部分含 `summary`。

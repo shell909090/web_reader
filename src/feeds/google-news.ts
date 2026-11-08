@@ -1,11 +1,9 @@
+import { newsTime } from '../timestamps.ts';
 import type { Item } from '../types.ts';
 import { extractText, rssLink, rssBlocks } from './rss.ts';
 
 function publicationDate(block: string): string | undefined {
-  const pubDate = extractText(block, 'pubDate');
-  if (!pubDate) return undefined;
-  const date = new Date(pubDate);
-  return isNaN(date.getTime()) ? undefined : date.toISOString().slice(0, 10);
+  return newsTime(extractText(block, 'pubDate'));
 }
 
 function parseItem(block: string): Item | null {

@@ -60,7 +60,7 @@ describe('yahoo plugin', () => {
     );
     const [item] = await plugin.list(context(html), { limit: 5 });
     assert.equal(item.summary, 'A useful summary.');
-    assert.equal(item.published_at, '2026-10-27T08:00:00.000Z');
+    assert.equal(item.published_at, '2026-10-27T16:00:00+08:00');
   });
 
   it('reports HTTP failures and unexpected page structure', async () => {

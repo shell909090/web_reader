@@ -126,6 +126,11 @@ Exposes three tools: `list_news`, `read_url`, `search`. See `web_reader/SKILL.md
 
 ## Output
 
+List and search results include persistent `first_seen_at` and, when confirmed, `published_at`. `occurred_at` (event time) and `written_at` (authoring time) are omitted without explicit evidence. All four fields use `YYYY-MM-DDTHH:mm:ss+08:00` (Beijing time). Date-only values are not padded to midnight; update and repost times are not publication times. Wikipedia's existing `event_date` remains for compatibility.
+
+First observations are stored by normalized URL in `~/.local/share/web-reader/first-seen.sqlite`; set `XDG_DATA_HOME` or `WEB_READER_DATA_DIR` to customize the location. Repeated runs preserve the initial value. The directory must be writable; deleting the database resets observation history, so back it up as needed. Some sources require additional article metadata requests when their lists lack publication times, increasing latency with result count; failures preserve items without a publication timestamp. See [source timestamp support and verification](docs/date-support.md) (Chinese).
+
+
 Wikipedia lists expose optional `event_date` (YYYY-MM-DD), the calendar day assigned to the event by the portal, not the original article publication time. Missing, invalid, ambiguous or mismatched date metadata leaves this field absent; search results have no event date. Chinese Wikipedia uses the explicit month in its news contribution link and never guesses the year from the system clock.
 
 **List / query**: JSON array. Each record: `source`, `title`, `url`, `notes`, optional `summary`.

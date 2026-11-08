@@ -10,8 +10,11 @@ export type Item = {
   title: string;
   url: string;
   notes: string;
+  occurred_at?: string; // Event occurrence instant
+  written_at?: string; // Explicit authoring instant
+  first_seen_at?: string; // Persisted at the application output boundary
   event_date?: string; // Calendar date (YYYY-MM-DD) of a reported event, not publication time
-  published_at?: string; // ISO 8601 date when available (not all sources provide this)
+  published_at?: string; // Original publication instant in Beijing time
 } & Record<string, unknown>;
 
 export type Ctx = {

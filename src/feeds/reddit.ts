@@ -43,23 +43,22 @@ function postMetadata(block: string, redditUrl: string) {
   const date = extractText(block, 'updated').slice(0, 10);
   const sub = redditUrl.match(/\/r\/([^/]+)/)?.[1] ?? '';
   const notes = date ? `r/${sub} · ${date}` : `r/${sub}`;
-  return { notes, published_at: date || undefined };
+  return { notes };
 }
 
 function postDetails(
   block: string,
   redditUrl: string,
-): Pick<Item, 'url' | 'notes' | 'published_at'> & { summary?: string; reddit_url?: string } {
+): Pick<Item, 'url' | 'notes'> & { summary?: string; reddit_url?: string } {
   const content = extractText(block, 'content');
   const extUrl = externalUrl(content);
   const summary = extUrl ? undefined : discussionSummary(content);
-  const { notes, published_at } = postMetadata(block, redditUrl);
+  const { notes } = postMetadata(block, redditUrl);
   return {
     url: extUrl ?? redditUrl,
     notes: extUrl ? notes : `${notes} (discussion)`,
     ...(extUrl ? { reddit_url: redditUrl } : {}),
     ...(summary ? { summary } : {}),
-    published_at,
   };
 }
 

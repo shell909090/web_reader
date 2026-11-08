@@ -1,3 +1,4 @@
+import { newsTime } from '../src/timestamps.ts';
 // The Verge AI plugin — HTTP-based, parses Atom feed for AI/artificial-intelligence section.
 
 import type { Plugin, Item, Ctx } from '../lib.ts';
@@ -40,11 +41,16 @@ function parseAtomFeed(xml: string, limit: number): Item[] {
     const url = urlMatch[1].trim();
     if (seen.has(url)) continue;
 
-    const publishedMatch = PUBLISHED_RE.exec(block);
-    const notes = publishedMatch ? publishedMatch[1].trim().slice(0, 10) : 'The Verge';
+    const { published_at, notes } = publication(block);
 
     seen.add(url);
-    items.push({ source: 'theverge', title, url, notes });
+    items.push({
+      source: 'theverge',
+      title,
+      url,
+      notes,
+      published_at,
+    });
   }
 
   return items;
@@ -68,3 +74,9 @@ const plugin: Plugin = {
 };
 
 export default plugin;
+
+function publication(block: string): { published_at?: string; notes: string } {
+  const raw = PUBLISHED_RE.exec(block)?.[1]?.trim();
+  const published_at = newsTime(raw);
+  return { published_at, notes: published_at ?? raw ?? 'The Verge' };
+}

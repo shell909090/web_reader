@@ -1,3 +1,4 @@
+import { newsTime } from '../src/timestamps.ts';
 // Yahoo Finance plugin — server-rendered news stream.
 
 import * as cheerio from 'cheerio';
@@ -38,14 +39,13 @@ function parsePage(html: string, limit: number): Item[] {
     const summary = card.find('p').first().text().trim();
     const publishing = card.find('.publishing').text().trim().replace(/\s+/g, ' ');
     const datetime = card.find('time[datetime]').attr('datetime');
-    const timestamp = datetime ? Date.parse(datetime) : NaN;
     items.push({
       source: 'yahoo',
       title,
       url: url.href,
       notes: publishing ? `Yahoo Finance · ${publishing}` : 'Yahoo Finance',
       summary: summary || undefined,
-      published_at: Number.isNaN(timestamp) ? undefined : new Date(timestamp).toISOString(),
+      published_at: newsTime(datetime),
     });
   });
 

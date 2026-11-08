@@ -20,7 +20,9 @@ unittest: coverage
 
 coverage:
 	# Pure type declarations have no runtime behavior to cover.
-	@test_files=$$(find test \( -name '*.test.ts' -o -name '*.test.mjs' \) 2>/dev/null | sort | tr '\n' ' '); \
+	@test_data_dir=$$(mktemp -d); trap 'rm -rf "$$test_data_dir"' EXIT; \
+	export WEB_READER_DATA_DIR="$$test_data_dir"; \
+	test_files=$$(find test \( -name '*.test.ts' -o -name '*.test.mjs' \) 2>/dev/null | sort | tr '\n' ' '); \
 	if [ -z "$$test_files" ]; then \
 		echo "No test files found." >&2; exit 1; \
 	else \

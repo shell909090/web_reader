@@ -132,7 +132,10 @@ test('list preserves successful sources and reports complete failure', async (t)
       ),
   );
   assert.equal(await main(['-s', 'theverge,polymarket']), 0);
-  assert.deepEqual(JSON.parse(output), [
+  const observed = JSON.parse(output);
+  assert.match(observed[0].first_seen_at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/);
+  delete observed[0].first_seen_at;
+  assert.deepEqual(observed, [
     {
       source: 'theverge',
       title: 'Useful article',

@@ -1,3 +1,4 @@
+import { newsTime } from '../src/timestamps.ts';
 import { extractText, rssLink } from '../src/feeds/rss.ts';
 // NYTimes Chinese edition plugin — parses the RSS feed for stable, structured output.
 // Feed URL: https://cn.nytimes.com/rss/
@@ -25,8 +26,8 @@ function parseRss(xml: string, limit: number): Item[] {
     seen.add(link);
 
     const pubDate = extractText(block, 'pubDate');
-    const notes = pubDate ? `纽约时报中文网 · ${pubDate.slice(0, 16)}` : '纽约时报中文网';
-    const published_at = pubDate ? new Date(pubDate).toISOString().slice(0, 10) : undefined;
+    const notes = pubDate ? `纽约时报中文网 · ${newsTime(pubDate) ?? pubDate}` : '纽约时报中文网';
+    const published_at = newsTime(pubDate);
 
     items.push({ source: 'nytimes', title, url: link, notes, published_at });
   }

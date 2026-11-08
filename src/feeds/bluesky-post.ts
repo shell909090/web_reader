@@ -61,6 +61,5 @@ export function postToItem(post: BskyPost): Item | null {
     title,
     url,
     notes: postNotes(post, date),
-    published_at: date || undefined,
   };
 }

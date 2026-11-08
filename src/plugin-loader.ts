@@ -1,3 +1,4 @@
+import { withNewsTimes } from './news-times.ts';
 import type { Plugin, Logger } from './types.ts';
 
 /** Dynamically import a plugin by source id; returns null if the file is not found. */
@@ -5,7 +6,7 @@ export async function loadPlugin(id: string, log: Logger): Promise<Plugin | null
   const pluginUrl = new URL(`../plugins/${id}.ts`, import.meta.url).href;
   try {
     const mod = (await import(pluginUrl)) as { default: Plugin };
-    return mod.default;
+    return withNewsTimes(mod.default);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (

@@ -3,7 +3,7 @@ export const CONFIG = {
   VIEWPORT: { width: 1280, height: 800 },
   LOCALE_EN: 'en-US',
   LOCALE_CN: 'zh-CN',
-  TIMEZONE: 'America/New_York',
+  TIMEZONE: 'Asia/Shanghai',
   HTTP_TIMEOUT_MS: 30_000,
   HTTP_MAX_HEADER_SIZE: 64 * 1024,
   TOTAL_TIMEOUT_MS: 600_000,
