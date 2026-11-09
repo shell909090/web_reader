@@ -36,7 +36,7 @@ clean:
 	rm -rf node_modules/ coverage/ data/ dist/ tmp/security/
 
 install:
-	npm install
+	npm ci
 	npm link
 	$(MAKE) install-skill
 	@echo "Installed: web_reader command is now available globally"
