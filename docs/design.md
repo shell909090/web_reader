@@ -359,3 +359,44 @@ HTTP-002：`dns.lookup()` 虽然提供异步回调，底层仍在线程池中调
 验证要求：本地静默 DNS 下请求超时后进程及时退出；取消后重试可恢复；并发请求取消相互隔离；hosts、地址族、部分解析失败及正文停滞均有覆盖。Polymarket 在线提取需检查 JSON 内容和进程退出，不能将已有完整输出的进程超时简单归为上游失败。
 
 DNS API依据：[Node.js DNS实现说明与Resolver取消接口](https://nodejs.org/api/dns.html#implementation-considerations)。
+
+
+## 搜索扩展与可选配置
+
+### 能力与结果
+
+- 在现有插件结构中允许 `list` 缺省，`search` 独立存在；加载器提供统一能力信息，CLI 和 MCP 依能力分派。列表 `all` 及新闻预设只包含具备 `list` 的插件，显式调用不支持的能力时报错。
+- 搜索插件 ID 为 `brave`、`duckduckgo`、`tavily`、`exa`、`baidu`、`bing`、`sogou`、`wolframalpha`、`searxng`。Brave、Tavily、Exa、WolframAlpha 优先使用官方 API；网页搜索的接入路径须核实访问政策，不使用退役接口或把即时答案接口当作完整网页搜索。SearXNG 连接用户配置的实例。
+- CLI 继续使用 `-q SOURCE`，MCP 继续使用 `search(source, query, limit?)`。共用能力判断与配置，不各自维护搜索源白名单。
+- 搜索保持 JSON 数组输出，引入网页与知识答案的联合类型：网页结果保留现有 source、title、url、notes 字段，可附 summary、publisher、rank；source 表示搜索提供方，rank 表示上游的一基位置。知识答案包含 source、title、answer，可附结构化内容和来源，不要求 url 或新闻时间。使用类型判别字段区分两种结果。
+- 搜索默认不调用新闻发布时间补全中的正文请求。有 URL 的结果保留首次观察契约；无 URL 的知识答案不进入新闻 URL 观察库。列表的时间补全行为不变，未知发布时间省略。
+
+### 配置加载
+
+- 使用 TOML，默认位置为 `$XDG_CONFIG_HOME/web_reader/config.toml`；XDG_CONFIG_HOME 未设置或为空时使用 `~/.config/web_reader/config.toml`。
+- `--config PATH` 在 CLI 和 MCP 进程启动时选择替代文件，不与默认文件叠加。不自动读取工作目录配置或 `.env`。默认文件不存在按空配置处理；显式文件不存在、不可读或解析失败时报错，不回显秘密值。
+- 独立配置模块统一解析并逐字段合并，优先级为环境变量 > 文件 > 默认值。仅在调用对应源时检查必需凭证，避免未配置的源阻止其他功能启动。
+- 文件允许直接保存凭证，含秘密值时推荐权限为 `0600`；仓库只放占位示例。示例：
+
+```toml
+[providers.brave]
+enabled = true
+api_key = "replace-with-your-key"
+
+[providers.searxng]
+enabled = true
+base_url = "https://search.example.com"
+```
+
+- 凭证映射为 `providers.brave.api_key` / `BRAVE_API_KEY`、`providers.tavily.api_key` / `TAVILY_API_KEY`、`providers.exa.api_key` / `EXA_API_KEY`、`providers.wolframalpha.app_id` / `WOLFRAMALPHA_APP_ID`。
+- 提供方的 enabled 映射为 `<ID>_ENABLED`，支持配置的 base_url 映射为 `<ID>_BASE_URL`（ID 大写，例如 SEARXNG_BASE_URL）。其他适配器若需要凭证，同样提供文件字段与环境变量两种入口。
+- 未设置的环境变量不覆盖文件；显式空凭证视为未配置，不回退到文件旧值。布尔值、地址及字段类型需校验。
+
+### 请求边界与验证
+
+- 各适配器按服务协议携带认证头或参数，公共 HTTP 层不配置全局 key；支持官方 API 所需的请求方法和 JSON 请求体，并保留超时与取消机制。
+- 带凭证请求的跨 origin 重定向默认拒绝，避免头、URL 或请求体泄漏。读取结果网页使用独立请求，不继承搜索凭证。
+- 正常与调试日志均脱敏，不直接输出认证头、含凭证 URL、请求体或未经处理的上游错误。401/403 不一概解释为缺少 key；验证码与 429 分别报告，保持 4xx 不自动重试，并识别服务方等待要求。
+- 不利用 HTTP profile、代理、身份或端点切换绕过拒绝。解析错误页不能返回成功空数组。
+- 离线测试覆盖能力分派、输出兼容、配置两种独立入口、逐字段覆盖、XDG 回退、显式配置路径、缺失或损坏文件、凭证隔离、受阻响应与知识答案。在线验证记录日期和状态，不以绕过限制为通过条件。
+- 实现时同步 CLI 帮助、MCP schema 及中英文 README，分别展示支持能力和实际验证状态。
