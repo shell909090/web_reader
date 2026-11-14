@@ -12,6 +12,8 @@ allowed-tools: Bash(web_reader:*)
 
 参数推断运行模式：`-s` → 列表，`-q` → 查询，否则 → 详情。
 
+通用网页搜索可用 `web_reader -q any "关键词" -n 5` 随机选择配置条件满足的供应商，或 `-q all` 查询全部候选、交错合并并按 URL 去重；`-n` 是最终结果上限。两者不包含 wiki、zhwiki、新闻源内部搜索及 WolframAlpha；可能使用已配置的收费服务。
+
 ---
 
 ## 使用方法论

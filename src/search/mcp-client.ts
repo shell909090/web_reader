@@ -1,3 +1,4 @@
+import { SearchUnavailable, statusFailure } from './errors.ts';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import {
   StreamableHTTPClientTransport,
@@ -71,10 +72,9 @@ export async function callSearchTool(request: SearchToolRequest): Promise<CallTo
   } catch (error) {
     if (error instanceof StreamableHTTPError)
       // Remote errors may contain credentials or server-provided instructions.
-      // eslint-disable-next-line preserve-caught-error
-      throw new Error(
-        `${request.source}: MCP access failed (HTTP ${error.code ?? 'unknown'}); no fallback attempted`,
-      );
+      throw statusFailure(request.source, error.code ?? 400);
+    if (controller.signal.aborted || error instanceof TypeError)
+      throw new SearchUnavailable(`${request.source}: MCP transport unavailable`);
     // eslint-disable-next-line preserve-caught-error
     throw new Error(
       `${request.source}: MCP search failed (timeout, transport, protocol or tool error); no fallback attempted`,

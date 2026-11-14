@@ -53,6 +53,11 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 
 ## 搜索来源与配置
 
+使用 `web_reader -q any "关键词" -n 5` 从启用且配置齐全的通用网页搜索供应商中随机选择一家；网络故障、服务不可用或明确的额度不足时尝试其他候选，有效空结果直接返回。使用 `web_reader -q all "关键词" -n 5` 调用全部候选，按各自排名交错合并并按 URL 去重，最终最多返回 5 条。重复 URL 的 `contributors` 记录各搜索供应商及原始排名；部分失败会报告警告并保留成功结果，全部失败则报错。
+
+候选范围为 Brave、DuckDuckGo、Tavily、Exa、Parallel、Firecrawl、Keenable 和 SearXNG；缺少必需凭证或实例地址、或已禁用的来源不参与。不额外发请求探测可用性；配置中的收费服务也可能被调用。百科、新闻源内部搜索和 WolframAlpha 需显式指定。MCP 的 `search.source` 同样接受 `any` 和 `all`。
+
+
 使用 `web_reader -q SOURCE "关键词" -n 5` 搜索。下列来源仅提供搜索，不加入新闻列表 `-s all` 或新闻预设。已有 wiki、zhwiki、reddit、gnews、hf、bsky 的搜索入口继续保留；其中 Reddit 和 Bluesky 有访问限制，见上文。
 
 | SOURCE | 凭证或配置 | 搜索方式 |
@@ -282,7 +287,7 @@ make fmt        # Prettier 格式化
 make lint       # tsc + ESLint
 make unittest   # 单元测试（含覆盖率）
 make clean      # 清理 node_modules/ coverage/ data/ dist/
-make install    # npm install + npm link
+make install    # npm ci + npm link
 make bundle     # esbuild 打包到 dist/web_reader.js
 ```
 
@@ -304,7 +309,9 @@ make bundle     # esbuild 打包到 dist/web_reader.js
 
 与参考项目一致，漏洞数量本身不导致 `security` 失败；扫描工具缺失、扫描出错、报告无效或漏扫任何锁定依赖会失败。扫描成功不表示没有漏洞。所有生产模块（含 `src/`）均参与检查；没有设置豁免或放宽阈值。
 
-TypeScript 暂使用最新兼容的 6.0.x：当前 typescript-eslint 和 SonarJS 要求 TypeScript <6.1，MI 脚本也依赖其编译器 API。运行时基线为 Node 26，使用 Node 26 类型定义和 node26 打包目标。jsdom 保留 27.x、Undici 保留 7.x；提高运行时基线不要求同步升级这些依赖的主版本。其余依赖保留安全升级结果。
+依赖更新使用支持 `min-release-age` 的 npm（本项目使用 npm 12），`.npmrc` 设置 `min-release-age=3`，排除发布不足 72 小时的版本，包括传递和可选依赖。安装使用 `npm ci` 复现锁文件，升级时同步维护锁文件。`glob` 和 `minimatch` 的覆盖项用于修复上游依赖范围尚未覆盖的漏洞；上游范围允许安全版本后再移除，并运行完整质量检查。
+
+TypeScript 使用兼容的 6.0.x：typescript-eslint 和 SonarJS 要求 TypeScript <6.1，MI 脚本也依赖其编译器 API。运行时基线为 Node 26，使用 Node 26 类型定义和 node26 打包目标；jsdom 使用 31.x，Undici 使用 8.x。
 
 ### 源码结构
 

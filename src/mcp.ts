@@ -88,7 +88,7 @@ export async function startMcp(configPath?: string): Promise<void> {
       source: z
         .string()
         .describe(
-          `Search provider or vertical source (wiki, zhwiki, reddit, gnews, hf, bsky, ${SEARCH_IDS.join(', ')})`,
+          `General web selector (any/all), search provider or vertical source (wiki, zhwiki, reddit, gnews, hf, bsky, ${SEARCH_IDS.join(', ')})`,
         ),
       query: z.string().min(1).describe('Search keywords'),
       limit: z.number().int().min(1).max(20).optional().describe('Max results (default 10)'),

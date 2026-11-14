@@ -87,3 +87,8 @@ export function credential(
     );
   return value;
 }
+
+/** Read the effective configuration without testing provider connectivity. */
+export function searchConfiguration(): SearchConfig {
+  return active ?? loadSearchConfig();
+}

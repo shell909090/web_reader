@@ -53,6 +53,11 @@ Article requests report unsuccessful HTTP responses rather than treating denial 
 
 ## Search providers and configuration
 
+Use `web_reader -q any "query" -n 5` to randomly select an enabled general web search provider with the required configuration. Network failures, service unavailability or explicit quota exhaustion allow trying another candidate; a valid empty response ends the search. Use `web_reader -q all "query" -n 5` to query every eligible provider, interleave their rankings and deduplicate URLs, returning at most 5 results. Duplicate URLs retain each provider and original rank in `contributors`. Partial failures produce warnings alongside successful results; total failure produces an error.
+
+Candidates are Brave, DuckDuckGo, Tavily, Exa, Parallel, Firecrawl, Keenable and SearXNG. Disabled providers and those missing required credentials or instance URLs are excluded. Selection sends no connectivity probes and may use configured paid services. Encyclopedia, news-source and WolframAlpha searches require an explicit source. MCP `search.source` also accepts `any` and `all`.
+
+
 Run `web_reader -q SOURCE "keywords" -n 5`. The providers below support search only and are excluded from `-s all` and news presets. Existing wiki, zhwiki, reddit, gnews, hf and bsky search entry points remain available; Reddit and Bluesky have the access limitations described above.
 
 | SOURCE | Required credential or setting | Search method |
@@ -282,7 +287,7 @@ make fmt        # Prettier
 make lint       # tsc + ESLint
 make unittest   # unit tests with coverage
 make clean      # remove node_modules/ coverage/ data/ dist/
-make install    # npm install + npm link
+make install    # npm ci + npm link
 make bundle     # esbuild bundle to dist/web_reader.js
 ```
 
@@ -304,7 +309,9 @@ Install [Trivy](https://trivy.dev/docs/latest/getting-started/installation/) sep
 
 As in the reference project, reported vulnerabilities alone do not fail `security`. A missing scanner, scan error, invalid report, or missing locked dependency does. A successful scan does not mean there are no vulnerabilities. Production modules are checked individually, including `src/`; no exemptions or relaxed thresholds are applied.
 
-TypeScript is pinned to the latest compatible 6.0.x release: current typescript-eslint and SonarJS require TypeScript <6.1, and the MI script uses its compiler API. The runtime baseline is Node 26, with Node 26 type definitions and a node26 bundle target. jsdom remains on 27.x and Undici on 7.x; raising the runtime baseline does not require upgrading their major versions. Other dependencies retain their security updates.
+Dependency updates require npm with `min-release-age` support (this project uses npm 12). The project `.npmrc` sets `min-release-age=3`, excluding releases younger than 72 hours, including transitive and optional dependencies. Use `npm ci` to reproduce the lockfile and update it alongside dependency changes. The `glob` and `minimatch` overrides address vulnerabilities outside upstream dependency ranges; remove them when upstream ranges permit safe versions, then run the full quality checks.
+
+TypeScript uses compatible 6.0.x releases: typescript-eslint and SonarJS require TypeScript <6.1, and the MI script uses its compiler API. The runtime baseline is Node 26, with Node 26 type definitions and a node26 bundle target; jsdom uses 31.x and Undici uses 8.x.
 
 ### Source layout
 

@@ -1,3 +1,4 @@
+import { SearchFailure } from './errors.ts';
 import { load } from 'cheerio';
 import type { Ctx, Item } from '../types.ts';
 import { providerConfig } from './config.ts';
@@ -30,7 +31,7 @@ export function parseWebSearch(source: WebSource, html: string, limit: number): 
     $('#challenge-form, .anomaly-modal, #captcha').length ||
     /验证码|安全验证|verify you are human/i.test($('title').text())
   )
-    throw new Error(`${source}: verification required; search stopped`);
+    throw new SearchFailure(`${source}: verification required; search stopped`);
   const layout = layouts[source];
   const rows: { title: string; url: string; description: string }[] = [];
   $(layout.card).each((_, element) => {
@@ -42,7 +43,7 @@ export function parseWebSearch(source: WebSource, html: string, limit: number): 
       rows.push({ title, url, description: card.find(layout.summary).text().trim() });
   });
   if (!rows.length && !$('.no-results, .no-results__message').length)
-    throw new Error(`${source}: unrecognized search page (possibly blocked)`);
+    throw new SearchFailure(`${source}: unrecognized search page (possibly blocked)`);
   return webItems(source, rows, limit);
 }
 

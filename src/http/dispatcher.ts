@@ -7,6 +7,8 @@ export function requestDispatcher(signal: AbortSignal): EnvHttpProxyAgent {
   const lookup = requestLookup(signal);
   try {
     return new EnvHttpProxyAgent({
+      // Keep HTTP CONNECT behavior across Undici versions, including proxy-side DNS.
+      proxyTunnel: true,
       maxHeaderSize: CONFIG.HTTP_MAX_HEADER_SIZE,
       connect: { lookup },
       proxyTls: { lookup },

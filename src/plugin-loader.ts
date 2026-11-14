@@ -1,8 +1,11 @@
+import { aggregateSearch, isSearchSelector } from './search/aggregate.ts';
 import { withNewsTimes } from './news-times.ts';
 import type { Plugin, Logger } from './types.ts';
 
 /** Dynamically import a plugin by source id; returns null if the file is not found. */
 export async function loadPlugin(id: string, log: Logger): Promise<Plugin | null> {
+  if (isSearchSelector(id))
+    return { id, search: (ctx, query, limit) => aggregateSearch(id, ctx, query, limit) };
   if (!/^[a-z][a-z0-9]*$/.test(id)) return null;
   const pluginUrl = new URL(`../plugins/${id}.ts`, import.meta.url).href;
   try {

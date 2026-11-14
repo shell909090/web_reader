@@ -281,7 +281,7 @@ Makefile 提供 `complexity`、`maintainability`、`coverage`、`security`、`qu
 
 ## 依赖升级兼容策略
 
-依赖更新到 Node 20 兼容范围内的稳定安全版本，并刷新传递依赖到上游约束允许的最新版。TypeScript 暂用 6.0.x：最新 typescript-eslint 与 SonarJS 的 peer 范围均为 <6.1，MI 依赖旧编译器 API；暂不强制安装不兼容的 TypeScript 7。MCP 直接使用 zod，显式声明为运行时依赖。Node 支持 20.x ≥20.19.0、22.x ≥22.13.0 或 ≥24.0.0，打包目标为 node20。jsdom 保持 27.x，Undici 保持 7.x，类型定义分别保持 @types/jsdom 27.x、@types/node 20.x；保持依赖漏洞扫描清零，不要求依赖跨入不兼容的新主版本。
+依赖在 Node 26 和上游兼容范围内选择发布已满 72 小时的最高稳定版本；直接、传递及可选依赖均受此限制。`.npmrc` 使用 `min-release-age=3`，升级同步维护锁文件，安装使用 `npm ci`。TypeScript 使用 6.0.x，以满足 typescript-eslint、SonarJS 的 <6.1 范围及 MI 脚本所需编译器 API。jsdom 使用 31.x，Undici 使用 8.x，@types/jsdom 使用 30.x，@types/node 使用 26.x，打包目标为 node26。glob 和 minimatch 保留安全版本覆盖：test-exclude 等上游范围仍会解析到受影响版本；升级时重新核查，不能仅凭最新版本号移除覆盖项。
 
 
 ## 代码质量重构

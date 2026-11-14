@@ -1,3 +1,4 @@
+import { SearchFailure, SearchUnavailable, statusFailure } from './errors.ts';
 import { z } from 'zod';
 import type { Ctx, HttpGetOpts, Item } from '../types.ts';
 
@@ -32,14 +33,13 @@ export async function searchResponse(
   try {
     response = await ctx.httpGet(url, { ...opts, sensitive: true, timeoutMs: 20000 });
   } catch {
-    throw new Error(`${source}: request failed (network, timeout or refused redirect)`);
+    throw new SearchUnavailable(`${source}: request failed (network, timeout or refused redirect)`);
   }
   if (response.status === 429)
-    throw new Error(
+    throw new SearchFailure(
       `${source}: rate limited (HTTP 429); retry later${response.retryAfter && /^\d{1,10}$/.test(response.retryAfter) ? '; Retry-After: ' + response.retryAfter : ''}`,
     );
-  if (response.status < 200 || response.status >= 300)
-    throw new Error(`${source}: access failed (HTTP ${response.status})`);
+  if (response.status < 200 || response.status >= 300) throw statusFailure(source, response.status);
   return response.html;
 }
 
@@ -48,7 +48,7 @@ export function searchJson<T>(body: string, schema: z.ZodType<T>, source: string
   try {
     return schema.parse(JSON.parse(body));
   } catch {
-    throw new Error(`${source}: invalid search response`);
+    throw new SearchFailure(`${source}: invalid search response`);
   }
 }
 

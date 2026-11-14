@@ -24,7 +24,7 @@ Options:
                                    caixin yahoo wiki nytimes hf oschina juejin gnews bsky
                                    polymarket
                            bsky: bsky:news/tech (default: all; search: -q bsky <keywords>)
-  -q, --query SOURCE       Query a data source; keywords follow as positional args
+  -q, --query SOURCE       Search SOURCE, any (one eligible web provider), or all (all eligible web providers)
                            Searchable sources: wiki, zhwiki, reddit, gnews, bsky, hf
                            brave, tavily, exa, parallel, firecrawl, keenable
                            wolframalpha, duckduckgo, searxng

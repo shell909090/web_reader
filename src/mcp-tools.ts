@@ -35,7 +35,15 @@ export async function search({
   query: string;
   limit?: number;
 }) {
-  const log = makeLogger('warn');
+  const warnings: string[] = [];
+  const logger = makeLogger('warn');
+  const log = {
+    ...logger,
+    warn: (message: string) => {
+      warnings.push(message);
+      logger.warn(message);
+    },
+  };
   const plugin = await loadPlugin(source, log);
   if (!plugin)
     return {
@@ -50,7 +58,12 @@ export async function search({
   const ctx: Ctx = { mode: 'http', httpGet, log };
   try {
     const items = await plugin.search(ctx, query, limit ?? 10);
-    return { content: [{ type: 'text' as const, text: JSON.stringify(items, null, 2) }] };
+    return {
+      content: [
+        { type: 'text' as const, text: JSON.stringify(items, null, 2) },
+        ...warnings.map((text) => ({ type: 'text' as const, text: `Warning: ${text}` })),
+      ],
+    };
   } catch (error) {
     return {
       content: [
