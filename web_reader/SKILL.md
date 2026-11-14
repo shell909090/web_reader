@@ -4,328 +4,150 @@ description: 使用 web_reader 获取新闻、搜索资料并读取网页正文�
 allowed-tools: Bash(web_reader:*)
 ---
 
-# web_reader — LLM 使用指南
+# web_reader 命令行使用指南
 
-`web_reader` 是一个命令行工具，提供新闻数据流抓取、搜索和网页阅读三种功能。网页正文以 **Markdown** 返回，便于阅读、引用与后续处理；新闻列表和搜索结果以 JSON 返回，包含标题、URL 等结构化信息。
-通过 `npm link` 全局安装，可在任意目录运行。
-项目支持 Node.js ≥26.0.0；无需 nvm。更新代码后运行 `npm ci` 同步锁定依赖，agent 启动环境的 PATH 也须使用兼容版本。
+获取新闻列表、搜索资料或读取给定 URL。列表与搜索返回 JSON，网页正文返回 **Markdown**。参数决定模式：`-s` 为列表，`-q` 为搜索，直接传 URL 或从 stdin 逐行读取 URL 为正文阅读。
 
-参数推断运行模式：`-s` → 列表，`-q` → 查询，否则 → 详情。
+## 新闻列表
 
-通用网页搜索可用 `web_reader -q any "关键词" -n 5` 随机选择配置条件满足的供应商，或 `-q all` 查询全部候选、交错合并并按 URL 去重；`-n` 是最终结果上限。两者不包含 wiki、zhwiki、新闻源内部搜索及 WolframAlpha；可能使用已配置的收费服务。
-
----
-
-## 使用方法论
-
-### 什么时候用
-
-以下情形应优先考虑调用 web_reader，而非依赖训练数据直接回答：
-
-- **时间敏感**：用户提到"最新"、"最近"、"今天"、"现在"、"当前"等词，或询问可能在训练截止后发生变化的信息
-- **持续变动的话题**：市场行情、政治动态、科技发布、突发事件——这类信息每天都在变
-- **用户给出了 URL**：直接用 detail 模式读取，不要猜测内容
-- **需要背景知识**：用户问某个概念、人物、事件的来龙去脉——Wikipedia 是最可靠的起点
-- **需要多角度对比**：同一事件在官方媒体、独立媒体、中文视角、英文视角下叙述不同；单一来源不够
-
-不适合用的情形：不需要实时信息的纯逻辑/计算/代码问题，或用户明确表示不想联网。
-
-### 为什么用（而不是直接回答）
-
-1. **实时性**：模型训练数据有截止日期，新闻每天更新；web_reader 拿到的是当下的数据
-2. **可溯源**：每条结果都有 `url` 字段，可以让用户验证原文，而不是凭记忆给出无法核查的陈述
-3. **多视角**：中英文、官方/独立、深度/快讯——不同来源的信息可以互相印证或对比
-
-### 决策流程
-
-拿到任务后，按以下顺序判断该走哪条路：
-
-```
-用户给了 URL？
-  → 是：直接 detail 模式读取
-
-用户要了解某个概念/人物/事件背景？
-  → web_reader -q wiki <关键词>（英文话题）
-  → web_reader -q zhwiki <关键词>（中文话题）
-  → 找到词条后再 detail 读全文
-
-用户要了解社区/从业者的看法？
-  → web_reader -q reddit <关键词>
-
-用户要获取当前新闻？
-  → 选合适的预设或源（见下方来源选择指南）
-  → list 模式获取列表，再按需 detail 读全文
-
-需要读全文？
-  → 先 list 拿 URL，再 pipe 到 detail：
-    web_reader -s hn -n 10 | jq -r '.[].url' | web_reader
-```
-
-### 组合使用模式
-
-**选源原则**：每种组合尽量少的来源，但尽量全面的视角。优先选详情链接确定可抓的来源。在条件允许下，同时满足：
-
-- 至少一个中文来源 + 一个英文来源
-- 至少一个独立媒体 + 一个官方/主流媒体
-
-常见有效组合：
-
-- **综合时事**：`-s bbc,nytimes,xinhua` — 英文独立（bbc）+ 中文独立（nytimes）+ 中文官方（xinhua），三者全文均可抓
-- **科技动态**：`-s hn,ars,infoq` — 社区热度（hn，外链可抓）+ 英文深度（ars，全文可抓）+ 中文（infoq，全文可抓）
-- **财经新闻**：`-s caixin,cnbc:markets` — 中文独立（caixin）+ 英文主流（cnbc），两者全文均可抓
-- **深度研究**：先 `-q wiki` 建立背景，再 `-s` 拉当前新闻，最后 detail 读关键原文
-- **多视角对比**：`-s nytimes,xinhua` — 同一中国话题，独立与官方叙述的最小对比组，两者全文均可抓
-
----
-
-## 模式一：新闻列表（`-s`）
-
-从新闻源获取文章列表，结果以 JSON 数组输出到 stdout。
-
-```
-web_reader -s <sources> [-n limit] [-o output.json]
-```
-
-**预设组合**（推荐）：
-- `-s news` → bbc + nytimes + xinhua + thepaper  （综合新闻，中英文）
-- `-s tech` → hn + ars + mittr + infoq           （科技新闻，中英文）
-- `-s fin`  → caixin + yahoo + cnbc:markets       （财经新闻，中英文）
-
-**单独数据源**（均通过 HTTP 访问）：
-- `hn` Hacker News（英文）— notes 字段含赞数（score）和评论数，反映社区热度
-- `bbc` BBC 新闻（英文）
-- `nytimes` 纽约时报中文版（中文）— 全文可直接访问
-- `xinhua` 新华社（中文）— 官方新闻通讯社
-- `thepaper` 澎湃新闻（中文）— 国内突发新闻
-- `caixin` 财新（中文）— 独立财经新闻
-- `gnews` Google 新闻（英文）— 头条 + 分类话题；支持关键词搜索
-- `cnbc` CNBC（英文）— 分类：top world markets tech finance us health politics intl ai
-- `ars` Ars Technica（英文）— 深度科技报道，含 `summary` 字段
-- `mittr` MIT 技术评论（英文）— 科技分析
-- `theverge` The Verge AI 频道（英文）— 约 10 条
-- `wiki` 维基百科当前事件（英文）— 人工整理的摘要，含 `summary` 字段
-- `zhwiki` 中文维基百科新闻动态（中文）— 人工整理的摘要，含 `summary` 字段
-- `reddit` Reddit（英文）— 分类：ml llm ai tech prog investing stocks worldnews
-- `infoq` InfoQ 中国（中文）
-- `techcrunch` TechCrunch（英文）
-- `sina` 新浪新闻（中文）
-- `people` 人民网（中文）
-- `hf` HuggingFace Papers（英文）— 每日机器学习论文
-- `csdn` CSDN（中文）
-- `oschina` 开源中国（中文）
-- `juejin` 稀土掘金（中文）
-- `bsky` Bluesky（英文）— 分类：news/tech
-
-**分类语法**：`source:category`，例如 `gnews:tech`、`cnbc:tech`、`reddit:ml`
-- `gnews`：tech business science health sports entertainment world nation（默认：头条）
-- `cnbc`：top world markets tech finance us health politics intl ai
-- `mittr`：ai computing space biotech（默认：主 RSS）
-- `xinhua`：politics world society finance tech mil legal health edu
-- `reddit`：ml llm ai tech prog investing stocks worldnews
-- `bsky`：news tech（默认：全部）
-
-**输出格式**（JSON 数组）：
-```json
-[
-  {
-    "source": "hn",
-    "title": "文章标题",
-    "url": "https://...",
-    "notes": "412 points · 187 comments",
-    "published_at": "2026-05-12T10:30:00+08:00",
-    "summary": "可选摘要"
-  }
-]
-```
-
-**`published_at` 字段说明**（ISO 8601 日期字符串）：
-- ✅ 有此字段：nytimes、yahoo、mittr、cnbc、caixin、xinhua、reddit、ars、gnews（仅精确到月份）
-- ❌ 列表模式下无此字段：bbc、thepaper（日期仅在文章详情页）
-- ❌ 无此字段：hn、infoq、people、sina、techcrunch、theverge、csdn、oschina、juejin、hf、bsky
-
----
-
-## 模式二：获取全文（详情模式）
-
-将 URL 作为参数或通过 stdin 传入，结果以 Markdown 格式输出到 stdout。
-
-```
-web_reader <url1> [url2 ...]
-web_reader -s hn -n 5 | jq -r '.[].url' | web_reader
-web_reader <url> -o article.md
-```
-
-- 使用 Readability + Turndown 提取正文
-- 过滤导航栏、广告、"阅读更多"等干扰内容
-- 输出格式：`---\n# 标题\n\nMarkdown 正文\n`
-- 多个 URL 之间以 `---` 分隔
-- Reddit 链接帖子会跳转到外部文章（详情可用）；纯文字帖子的正文在 `summary` 字段
-- 效果较好的来源：bbc、nytimes、ars、mittr、thepaper、caixin、xinhua、cnbc、infoq
-
----
-
-## 模式三：搜索数据源（`-q`）
-
-按关键词搜索参考来源，返回匹配文章的 JSON 列表。仅以下来源支持搜索，其余均不支持：
-
-```
-web_reader -q wiki <关键词...>
-web_reader -q zhwiki <中文关键词...>
-web_reader -q reddit <关键词...>
-web_reader -q gnews <关键词...>
-web_reader -q bsky <关键词...>
-```
-
-**可搜索的来源：**
-- `wiki` — 英文维基百科全文搜索
-- `zhwiki` — 中文维基百科全文搜索
-- `reddit` — Reddit 全站搜索（按相关性排序）
-- `gnews` — Google 新闻关键词搜索（无需 API key）
-- `bsky` — Bluesky 帖子搜索
-- `hf` — HuggingFace Papers 论文搜索（`/papers?q=query`，服务端渲染）
-
-ars、mittr 等来源**不支持搜索**（搜索页面为 JavaScript 渲染，纯 HTTP 无法抓取结果）。
-
-**典型用法：**
 ```bash
-# 搜索维基百科词条，再读取全文
-web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
-
-# 搜索中文维基百科
-web_reader -q zhwiki 注意力机制 | jq -r '.[0].url' | web_reader
+web_reader -s news -n 5
+web_reader -s tech -n 5
+web_reader -s fin -o fin.json
+web_reader -s hn,infoq -n 5
+web_reader -s cnbc:markets,cnbc:tech -n 30
 ```
 
----
+| 选择 | 来源 |
+|---|---|
+| `news` | BBC、纽约时报中文网、新华社、澎湃新闻 |
+| `tech` | Hacker News、Ars Technica、MIT Technology Review、InfoQ |
+| `fin` | 财新、Yahoo Finance、CNBC markets |
+
+可用逗号组合源 ID，以 `source:category` 选择栏目；`-s all` 获取全部新闻源，不包含仅搜索的供应商。列表模式的 `-n` 是每源上限。来源和栏目见下表。
+
+## 新闻源与特性
+
+表中“支持搜索”表示有 `-q` 入口，不保证外部服务允许访问。未标注搜索的来源只提供新闻列表和正文读取；正文能否取得、是否完整仍取决于原站。
+
+| ID / 来源 | 语言 | 内容与选用场景 | 功能与访问特点 | 选用评价 |
+|---|---|---|---|---|
+| `hn` Hacker News | 英文 | 技术社区热门文章与讨论 | `notes` 含评分和评论数；列表链接指向外部文章，正文取决于发布方 | 适合看技术社区关注度；高评分不等于内容正确，应阅读原文。 |
+| `bbc` BBC News | 英文 | 国际综合新闻 | 可读取新闻正文 | 适合作为英文综合新闻起点，争议事件宜与其他来源交叉阅读。 |
+| `techcrunch` TechCrunch | 英文 | 科技公司、创业、融资与产品动态 | 可读取新闻正文 | 适合跟踪融资、创业和产品发布，技术细节可再查专业资料。 |
+| `ars` Ars Technica | 英文 | 科技报道与技术分析 | 含 `summary`，可读取正文 | 适合了解技术细节和背景，快速扫新闻时可先读摘要。 |
+| `theverge` The Verge | 英文 | AI 产品与行业动态 | AI 版块 Atom feed，可读取正文 | 适合跟踪 AI 产品和消费科技动态；频道范围窄于综合科技新闻。 |
+| `mittr` MIT Technology Review | 英文 | 科技研究、产业及社会影响 | 支持分类，可读取正文 | 适合研究科技对产业和社会的影响，可与快讯来源搭配。 |
+| `wiki` Wikipedia 时事 | 英文 | 人工整理的事件摘要、百科背景 | 列表含 `summary`；支持百科搜索和词条正文读取 | 适合快速建立事件脉络，再沿引用查原始报道；百科整理不替代原始证据。 |
+| `zhwiki` 中文维基百科新闻动态 | 中文 | 中文事件摘要、百科背景 | 列表含 `summary`；支持百科搜索和词条正文读取 | 适合中文背景检索，可与英文词条对照补充视角。 |
+| `reddit` Reddit | 英文 | 技术、AI、投资等社区讨论 | 支持分类和搜索，但可能限流；讨论帖标注 `discussion`，讨论页可能返回 403，外链正文取决于发布方 | 适合寻找实践反馈和分歧观点；帖子不能代表整个行业，需辨别经验与事实。 |
+| `yahoo` Yahoo Finance | 英文 | 市场、企业与财经新闻 | HTML 新闻列表，返回条数随页面变化 | 适合追踪财经报道；新闻列表不等于实时行情或结构化财务数据。 |
+| `gnews` Google News | 英文 | 聚合新闻和按主题查找报道 | 支持分类、关键词搜索；部分文章链接依赖 JavaScript 跳转，需直接使用发布方 URL | 适合发现不同发布方的报道；同一事件可能重复，应核对原始来源。 |
+| `cnbc` CNBC | 英文 | 市场、商业、宏观与财经新闻 | 支持分类，可读取正文 | 适合英文市场和商业资讯，可用栏目缩小范围。 |
+| `nytimes` 纽约时报中文网 | 中文 | 国际、中国及社会新闻 | 使用中文站新闻源，可读取正文；不代表英文站访问权限 | 适合补充中文的国际媒体视角，不宜把单一媒体当作唯一依据。 |
+| `xinhua` 新华社 | 中文 | 官方新闻、政策与综合资讯 | 支持分类，可读取正文 | 适合了解政策发布和官方表态，分析事件时可配合其他报道。 |
+| `thepaper` 澎湃新闻 | 中文 | 国内社会事件与新闻报道 | 可读取正文 | 适合关注国内社会事件，可与全国性或国际来源对照。 |
+| `caixin` 财新 | 中文 | 中国经济、企业与财经报道 | 可能只返回订阅预览，不保证全文完整 | 适合经济和企业议题；仅有预览时不能据此声称读过全文。 |
+| `sina` 新浪新闻 | 中文 | 综合新闻与门户资讯 | 自动处理 GB2312 编码，可读取正文 | 适合广泛浏览门户新闻，应留意转载来源。 |
+| `infoq` InfoQ 中文 | 中文 | 企业技术、架构与开发实践 | 可读取正文 | 适合工程实践和架构背景，具体技术结论可再核对文档。 |
+| `people` 人民网 | 中文 | 官方新闻、政策与国内资讯 | 按首页顺序获取并排除明确隐藏区块，不保证按发布时间排序 | 适合关注官方政策报道；首页靠前不一定表示发布时间最新。 |
+| `hf` HuggingFace Papers | 英文 | 每日机器学习论文 | 支持论文搜索；读取论文页面可取得摘要，不等于论文全文 | 适合发现 AI/ML 论文；精选热度不等于学术结论可靠，深入分析需读论文。 |
+| `csdn` CSDN | 中文 | 开发者博客与技术文章 | 列表可读不代表正文可读；正文返回 521 时无法取得内容或发布时间 | 适合发现实操线索，文章质量和时效性需结合作者、版本判断。 |
+| `oschina` 开源中国 | 中文 | 开源项目、软件与社区动态 | 通过 API 读取正文；外链跳转条目需直接读取原站 URL | 适合追踪开源生态与项目动态，版本信息宜核对项目原站。 |
+| `juejin` 稀土掘金 | 中文 | 前端、全栈与开发经验 | 可读取技术文章正文 | 适合开发经验和问题排查，方案适用性取决于技术栈与版本。 |
+| `bsky` Bluesky | 英文 | 新闻与科技社区帖子 | 支持分类和搜索；搜索可能返回 403，凭证不保证可用；外链正文取决于发布方，纯文字帖链接到社区页 | 适合追踪作者观点和讨论线索；帖子与其引用的报道应分开判断。 |
+| `polymarket` Polymarket | 英文 | 热门预测市场 | 按成交量排序，详情为市场信息；不是新闻报道，市场结束时间不是新闻发布时间 | 适合观察市场预期；概率与成交量不代表事件已发生，也不是事实证据。 |
+
+### 常用来源组合
+
+| 目的 | 组合示例 | 选用思路 |
+|---|---|---|
+| 综合时事 | `-s bbc,nytimes,xinhua` | 对照英文国际报道、中文国际报道与官方消息 |
+| 科技动态 | `-s hn,ars,infoq` | 兼顾社区关注、技术分析和中文工程实践 |
+| 财经报道 | `-s caixin,cnbc:markets` | 对照中文经济报道与英文市场新闻，注意财新预览限制 |
+| 事件背景 | `-q wiki` 或 `-q zhwiki`，再读取相关原文 | 用词条建立脉络，再核对引用来源 |
+| 社区反馈 | `-s reddit:ml,reddit:llm` 或 `-s bsky:tech` | 获取讨论线索；访问受限时说明限制，不把帖子当作一致结论 |
+
+分类用 `source:category` 指定，例如 `cnbc:markets`、`reddit:ml`：
+
+| 来源 | 栏目 |
+|---|---|
+| `gnews` | `tech`、`business`、`science`、`health`、`sports`、`entertainment`、`world`、`nation`；默认头条 |
+| `cnbc` | `top`、`world`、`markets`、`tech`、`finance`、`us`、`health`、`politics`、`intl`、`ai` |
+| `mittr` | `ai`、`computing`、`space`、`biotech`；默认主 RSS |
+| `xinhua` | `politics`、`world`、`society`、`finance`、`tech`、`mil`、`legal`、`health`、`edu` |
+| `reddit` | `ml`、`llm`、`ai`、`tech`、`prog`、`investing`、`stocks`、`worldnews` |
+| `bsky` | `news`、`tech`；默认全部 |
+
+## 搜索
+
+```bash
+web_reader -q any "关键词" -n 5
+web_reader -q exa "关键词" -n 5
+web_reader -q all "关键词" -n 5
+web_reader -q zhwiki "注意力机制" -n 3
+web_reader -q gnews "open source LLM" -n 5
+web_reader -q hf "diffusion" -n 5
+```
+
+- 通用网页搜索：`brave`、`tavily`、`exa`、`parallel`、`firecrawl`、`keenable`、`duckduckgo`、`searxng`。
+- `any`：在启用且配置条件满足的通用供应商中随机选一家。网络故障、服务不可用或明确的额度不足可尝试其他候选；有效空结果直接返回。认证失败、访问拒绝、验证码和普通限流会报错，不继续切换。
+- `all`：调用所有候选，按各自排名交错合并并按 URL 去重。重复项的 `contributors` 保留各供应商及原始排名。部分失败时保留成功结果并报告警告，全部失败时报错。
+- 专项搜索需显式指定：`wiki` / `zhwiki` 搜索百科词条，`gnews` 搜索新闻，`hf` 搜索论文；`reddit` / `bsky` 搜索社区内容，可能受访问限制；`wolframalpha` 返回计算／知识答案。这些来源不参与 `any` / `all`。
+- 搜索模式的 `-n` 是最终结果上限，不保证填满。Brave / Tavily 单次最多 20 条，Exa / Firecrawl / Keenable 最多请求 100 条；Parallel 由服务返回候选后本地截取。所有来源均不自动翻页；WolframAlpha 返回一个包含多个区块的答案。
+- 单源保留上游顺序，不统一按时间排序；搜索不会自动读取结果页面的正文，也不会自动追加研究任务。
+- DuckDuckGo、Exa、Parallel、Firecrawl、Keenable 可免 key 查询，公共额度仍可能限流。Brave、Tavily、WolframAlpha 和 SearXNG 需要已有的服务配置；无需在普通查询命令中携带凭证。
+- `any` / `all` 不额外探测连通性，跳过缺少必需配置或禁用的来源，但可能使用已配置的收费服务。指定单一来源时，失败不会自动改用其他来源或认证方式。
+
+## 网页正文
+
+```bash
+web_reader 'https://example.com/article' -o article.md
+web_reader 'https://example.com/one' 'https://example.com/two' -o articles.md
+web_reader -s hn -n 3 | jq -r '.[].url' | web_reader
+web_reader -q wiki "attention mechanism" -n 1 | jq -r '.[].url' | web_reader
+```
+
+stdout 返回 Markdown 正文；多个 URL 的内容以 `---` 分隔。拿到列表或搜索结果后，按需读取其中的 URL，无需批量读取所有结果。
 
 ## 参数说明
 
-| 参数 | 缩写 | 默认值 | 说明 |
-|------|-------|---------|-------------|
-| `--sources` | `-s` | — | 数据源 ID、预设组合或 `all` |
-| `--query`   | `-q` | — | 搜索来源；关键词作为位置参数传入 |
-| `--limit`   | `-n` | `50` | 最大结果数 |
-| `--out`     | `-o` | stdout | 输出到文件（JSON 或 Markdown） |
-| `--concurrency` | `-c` | `2` | 并发数（列表模式） |
-| `--loglevel` | `-l` | `warn` | debug\|info\|warn\|error |
-| `--profile` | `-p` | `default` | HTTP 请求 profile：default\|chrome-win\|firefox\|mobile\|curl |
-| `--help`    | `-h` | — | 显示帮助 |
+| 短参数 | 长参数 | 默认值 | 用法 |
+|---|---|---|---|
+| `-s` | `--sources` | — | 逗号分隔的源 ID、预设 `news` / `tech` / `fin` 或 `all`；支持 `source:category` |
+| `-q` | `--query` | — | 搜索来源 ID 或 `any` / `all`，关键词作为后续位置参数 |
+| `-n` | `--limit` | `50` | 列表每源上限；搜索最终结果上限，不保证填满 |
+| `-o` | `--out` | stdout | 将 JSON 或 Markdown 写入指定文件 |
+| `-c` | `--concurrency` | `2` | 列表模式的来源并发数，不控制搜索或正文读取 |
+| `-l` | `--loglevel` | `warn` | `debug` / `info` / `warn` / `error`；诊断写入 stderr |
+| `-p` | `--profile` | `default` | 请求头预设：`default` / `chrome-win` / `firefox` / `mobile` / `curl`；不得用于规避访问限制 |
+| — | `--config` | — | 使用用户提供的替代配置文件 |
+| `-h` | `--help` | — | 查看命令帮助 |
 
----
+关键词可加引号，也可由多个位置参数组成，如 `web_reader -q wiki transformer architecture`。直接传入多个 URL 可批量读取正文；使用 stdin 时每行一个 URL。
 
-## MCP 工具（作为 MCP 服务器运行时）
+## 输出格式
 
-以 `web_reader --mcp` 启动时，向 MCP 客户端暴露三个工具：
+输出使用 UTF-8，中文内容可直接阅读；源页面的 GB2312 / GBK 编码由工具处理。
 
-- **`list_news(sources, limit?)`** — 同 `-s` 模式，返回 JSON 字符串
-- **`read_url(urls[])`** — 同详情模式，返回 Markdown 字符串
-- **`search(source, query, limit?)`** — 同 `-q` 模式，返回 JSON 字符串
-
----
-
-## 来源特性 — 如何选择
-
-### 了解时事
-
-| 需求 | 推荐来源 | 原因 |
-|---|---|---|
-| 全球新闻，立场中立 | `bbc` | 西方主流媒体，覆盖广，事实可靠，全文可抓 |
-| 中国新闻，独立视角 | `nytimes` | 纽约时报中文版，全文可访问，编辑独立 |
-| 中国官方立场 | `xinhua` | 官方通讯社，适合了解北京的表态，全文可抓 |
-| 中国国内事件 | `thepaper` | 国内突发社会/调查新闻，全文可抓 |
-| 整理摘要 | `wiki`、`zhwiki` | 人工编辑，事件有交叉引用，适合查"发生了什么" |
-
-### 财经新闻
-
-| 需求 | 推荐来源 | 原因 |
-|---|---|---|
-| 中国市场/企业，独立报道 | `caixin` | 中国最独立的财经媒体，调查深度强，全文可抓 |
-| 中国官方经济政策 | `xinhua:finance` | 官方口径，政策解读权威 |
-| 全球市场行情 | `yahoo` | Yahoo Finance 新闻列表页，市场数据全面，更新快，全文可抓 |
-| 英文财经综合 | `cnbc:markets` | 市场板块专业，全文可抓 |
-| 广泛财经新闻聚合 | `gnews:business` | 覆盖面广，可搜索，但链接跳转至原始发布方 |
-
-### 科技话题
-
-| 需求 | 推荐来源 | 原因 |
-|---|---|---|
-| 社区热度 | `hn` | notes 含赞数和评论数，反映技术社区当下关注点；文章外链可抓 |
-| 技术准确性 | `ars` | 领域专家撰写，适合"X 究竟是怎么工作的"，含 summary，全文可抓 |
-| 深度影响分析 | `mittr` | 科技政策、社会、伦理，比新闻更有深度，全文可抓 |
-| AI/ML 最新论文 | `hf` | HuggingFace Papers，每日论文，支持关键词搜索，全文页（摘要）可抓 |
-| 中国科技/开发者 | `infoq` | 国内企业和开发者社区，全文可抓 |
-| 从业者观点 | `reddit:ml`、`reddit:llm` | 一线从业者讨论实际效果，支持搜索；外链帖可抓，/comments/ 需登录 |
-
-### 详情模式（全文）：哪些可用
-
-| 详情可靠 | 部分可用 | 效果不稳定 |
-|---|---|---|
-| bbc、nytimes、thepaper | hn（外链可抓，HN 讨论页不是文章）| sina、people（中文门户） |
-| ars、mittr、theverge | reddit（外链帖可抓，/comments/ 需登录）| csdn、oschina、juejin |
-| caixin、xinhua、infoq、cnbc | gnews（跳转原始发布方，因媒体而异）| |
-| wiki、zhwiki、yahoo、hf | bsky（含外链的帖可抓，纯文字帖不是文章）| |
-
-### 查询模式：何时用 `-q`
-
-- `-q wiki` — 查询某个概念、人物、事件、技术的背景（英文）
-- `-q zhwiki` — 同上，适用于中文话题，也覆盖中国政治/历史背景
-- `-q reddit` — 了解社区对某话题的看法，适合"从业者怎么看 X"
-- `-q gnews` — 快速搜索近期新闻报道
-- `-q bsky` — 了解科技/AI 社区的实时讨论
-
-### 立场坐标图
-
-```
-独立 ←————————————————————→ 官方
-   nytimes · caixin · thepaper       xinhua · people
-
-深度 ←——————————————————————→ 快讯
- mittr · wiki                  hn · thepaper · xinhua
-
-英文 ←————————————————————→ 中文
- bbc · ars · gnews · hn   nytimes · caixin · thepaper · xinhua · zhwiki
-```
-
----
-
-## 各数据源评价
-
-| 来源 | 评价 |
+| 模式 | 输出内容 |
 |---|---|
-| `hn` | 技术社区的晴雨表。赞数（score）+ 评论数反映真实热度，但内容质量参差，需自行判断。文章是外链，质量取决于原始来源。 |
-| `bbc` | 英文世界可信度最高的综合新闻之一。事实导向，立场中立，覆盖全球。全文可抓，是英文时事的首选基准。 |
-| `techcrunch` | 科技创业报道为主，适合了解融资、产品发布、创投动态。深度不如 ars/mittr，但更新快，覆盖面广。 |
-| `ars` | 技术深度报道的标杆。文章由工程师/科学家撰写，对技术细节有独到见解。含 summary，全文可抓，是英文技术类的最优先选择。 |
-| `theverge` | AI 频道约 10 条，条目少但更新频繁，适合快速了解 AI 产品和行业动态。全文可抓。 |
-| `mittr` | MIT 技术评论，专注科技对社会的深层影响——政策、伦理、未来预测。适合深度分析而非追新闻。全文可抓。 |
-| `wiki` | 最可靠的背景资料来源。当前事件由人工编辑整理，有 summary，全文随时可抓，适合快速建立对某事件的基本认知。 |
-| `zhwiki` | 中文维基百科新闻动态，覆盖中文话题的历史/政治/文化背景，支持搜索，全文可抓。中文话题背景查询的首选。 |
-| `reddit` | 社区真实讨论的最好来源。ml/llm/tech 分类聚集大量从业者，支持搜索。外链帖全文可抓，/comments/ 页需登录。 |
-| `yahoo` | Yahoo Finance 新闻列表页，市场行情、股票、宏观经济覆盖较全，更新快，全文可抓。适合财经类实时数据。 |
-| `gnews` | Google 新闻聚合器，覆盖最广，支持关键词搜索，分类丰富。缺点：链接跳转至原始发布方，可抓性因媒体而异。 |
-| `cnbc` | 美国主流财经媒体，市场/商业/宏观分类细致。全文可抓，适合英文财经报道。 |
-| `nytimes` | 纽约时报中文版，独立于中国官方叙事，全文可直接抓取，是最佳的"中文 + 独立 + 全文可抓"三合一来源。 |
-| `xinhua` | 新华社，理解中国官方立场的必备来源。分类丰富（politics/finance/tech 等），全文可抓。不代表事实，但代表官方口径。 |
-| `thepaper` | 澎湃新闻，中国国内突发新闻和深度调查的重要来源。报道及时，部分独立于官方叙事，全文可抓。 |
-| `caixin` | 财新，中国最独立的财经媒体。深度调查报道，对中国经济数据和企业事件的分析无可替代。全文可抓。 |
-| `sina` | 新浪新闻，信息量大，但编辑立场普通，深度有限。GB2312 自动转码；详情页抓取效果不稳定。 |
-| `infoq` | InfoQ 中国，企业级技术实践报道为主，偏工程师和架构师视角。全文可抓，适合了解国内技术社区的实际落地情况。 |
-| `people` | 人民网，官方立场与 xinhua 类似，覆盖更广泛的国内政治/社会话题。详情页抓取效果不稳定。 |
-| `hf` | HuggingFace Papers，每日 ML 论文精选，是跟踪 AI 学术前沿的最直接来源。支持关键词搜索，论文摘要页可抓。 |
-| `csdn` | CSDN 博客平台，质量参差不齐，适合了解国内开发者社区的技术动态和流行工具趋势，而非深度技术参考。 |
-| `oschina` | 开源中国，跟踪国内外开源软件动态的较好来源，覆盖开源社区新闻和项目发布。详情页抓取效果不稳定。 |
-| `juejin` | 稀土掘金，前端/全栈开发者社区，技术文章质量较高。更多是经验分享而非新闻，适合了解开发者的实际问题和趋势。 |
-| `bsky` | Bluesky，科技/AI 话题的新兴社区。包含外链的帖子可抓，纯文字帖为社区讨论。支持关键词搜索，反映英文 AI 社区的实时观点。 |
+| 新闻列表 | JSON 数组，条目含 `source`、`title`、`url`、`notes`，部分含 `summary` |
+| 通用网页搜索 | JSON 数组，条目含 `kind: "web"`、`source`、`title`、`url`、`rank`，摘要存在时含 `summary`；`source` 是搜索供应商，非文章发布方；`rank` 是上游排名 |
+| WolframAlpha | `kind: "answer"` 的答案条目，含 `answer` 和 `sections`；一个答案可有多个区块，不保证有 URL |
+| 网页正文 | Markdown，以 `---` 分隔文章，带 `# 标题`；可直接阅读或用 `-o` 保存 |
 
----
+`all` 合并后的重复 URL 以首条命中的内容为主，`contributors` 列出各命中供应商的 `source` 和原始 `rank`。
 
-## 给 LLM 的使用说明
+新闻列表及含 URL 的搜索结果提供 `first_seen_at`，并在可确认时提供 `published_at`；`occurred_at` 表示事件发生时间，`written_at` 表示撰稿时间，无明确依据时省略。四字段格式为 `YYYY-MM-DDTHH:mm:ss+08:00`（北京时间）；只有日期的信息不补零点，更新时间、转发时间不能当作原文发布时间。
 
-- **列表模式**是被动订阅：从数据源获取文章元数据流
-- **详情模式**是主动获取：将列表输出的 URL 传入以获取完整可读文本
-- **查询模式**用于参考查找；与详情模式结合可获取完整文章
-- 所有输出均为 UTF-8；中文内容原生支持（新浪的 GB2312 自动解码）
-- 错误输出到 stderr；stdout 始终为干净的 JSON 或 Markdown
-- `wiki` 和 `zhwiki` 是最可靠的数据源：结构化，全文可访问
-- `nytimes`（中文版）提供高质量全文；大多数其他来源在详情级别可能有付费墙
-- Reddit 评论页（URL 含 `/comments/`）需要登录，会返回拦截页面
-- 不确定选哪个来源时，`web_reader -s news` 可提供均衡的多角度起点
+首次观察按规范化 URL 持久保存，跨进程和重复抓取保持首次值；它只代表本机记录，不是全网首次发布时间，清除观察记录会重置历史。部分新闻列表需要额外请求文章元数据补发布时间，条数越多可能越慢；失败时仍返回条目并省略发布时间。搜索不会为此额外读取结果网页。
+
+维基列表的 `event_date` 格式为 `YYYY-MM-DD`，表示门户对事件的日期归属，不是原新闻发布时间；日期依据不足时省略，搜索结果不提供该字段。
+
+## 错误与访问限制
+
+- 知识答案可能没有 URL，应读取 `answer`，不要直接送入正文管道。
+- 诊断信息写入 stderr，stdout 保持 JSON 或 Markdown。缺少配置、禁用、网络故障、拒绝访问与限流均应明确报告，不作为有效空结果。某个来源缺少配置不影响其他来源。
+- 列表可读不代表正文可读，成功提取也不保证全文完整。财新可能只返回预览；Google News 部分跳转链接需直接使用发布方 URL；社区外链取决于原站访问权限。
+- 遇到登录、付费墙、验证码、403 或 429 时说明限制，不轮换代理、身份或端点绕过。403 不一定是缺少认证，429 不表示永久封禁。正文非成功响应会报错，不把拒绝页面当文章；搜索凭证不会传给结果页面。
