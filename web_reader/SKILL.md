@@ -1,12 +1,12 @@
 ---
 name: web-reader
-description: 使用web_reader命令行工具，抓取新闻源，搜索参考资料。
+description: 使用 web_reader 获取新闻、搜索资料并读取网页正文。主要新闻源包括 BBC、纽约时报中文网、新华社、Hacker News 和 InfoQ 等；主要搜索供应商包括 Brave、Tavily、Exa 和 DuckDuckGo 等。网页正文返回 Markdown，新闻列表和搜索结果返回 JSON。
 allowed-tools: Bash(web_reader:*)
 ---
 
 # web_reader — LLM 使用指南
 
-`web_reader` 是一个命令行工具，用于抓取新闻源、以 Markdown 格式读取网页，以及搜索参考资料。
+`web_reader` 是一个命令行工具，提供新闻数据流抓取、搜索和网页阅读三种功能。网页正文以 **Markdown** 返回，便于阅读、引用与后续处理；新闻列表和搜索结果以 JSON 返回，包含标题、URL 等结构化信息。
 通过 `npm link` 全局安装，可在任意目录运行。
 项目支持 Node.js ≥26.0.0；无需 nvm。更新代码后运行 `npm ci` 同步锁定依赖，agent 启动环境的 PATH 也须使用兼容版本。
 
@@ -130,7 +130,7 @@ web_reader -s <sources> [-n limit] [-o output.json]
     "title": "文章标题",
     "url": "https://...",
     "notes": "412 points · 187 comments",
-    "published_at": "2026-05-12",
+    "published_at": "2026-05-12T10:30:00+08:00",
     "summary": "可选摘要"
   }
 ]

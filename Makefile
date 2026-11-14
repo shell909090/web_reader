@@ -26,7 +26,7 @@ coverage:
 	export WEB_READER_DATA_DIR="$$test_data_dir"; \
 	export XDG_CONFIG_HOME="$$test_data_dir/config"; \
 	unset HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy; \
-	unset BRAVE_API_KEY TAVILY_API_KEY EXA_API_KEY WOLFRAMALPHA_APP_ID SEARXNG_BASE_URL; \
+	unset BRAVE_API_KEY TAVILY_API_KEY EXA_API_KEY PARALLEL_API_KEY FIRECRAWL_API_KEY KEENABLE_API_KEY EXA_MCP_URL PARALLEL_MCP_URL FIRECRAWL_MCP_URL WOLFRAMALPHA_APP_ID SEARXNG_BASE_URL; \
 	test_files=$$(find test \( -name '*.test.ts' -o -name '*.test.mjs' \) 2>/dev/null | sort | tr '\n' ' '); \
 	if [ -z "$$test_files" ]; then \
 		echo "No test files found." >&2; exit 1; \

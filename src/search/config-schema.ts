@@ -5,6 +5,9 @@ export const SEARCH_IDS = [
   'duckduckgo',
   'tavily',
   'exa',
+  'parallel',
+  'firecrawl',
+  'keenable',
   'wolframalpha',
   'searxng',
 ] as const;
@@ -13,6 +16,7 @@ export const providerSchema = z
     enabled: z.boolean().optional(),
     api_key: z.string().optional(),
     app_id: z.string().optional(),
+    mcp_url: z.string().url().optional(),
     base_url: z
       .string()
       .url()

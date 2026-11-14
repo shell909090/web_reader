@@ -302,7 +302,7 @@ CLI 的参数解析、来源/分类合并、列表、详情和查询分别位于
 
 ## 新闻时间统一契约
 
-本节为目标接口，优先于前文旧实现描述；当前源码尚未全部迁移。仅定义以下四个有业务意义的时间，不将更新时间、索引时间或市场结束时间混入。
+仅定义以下四个有业务意义的时间，不将更新时间、索引时间或市场结束时间混入。
 
 | 字段 | 类型 | 含义与取值依据 |
 |---|---|---|
@@ -325,12 +325,11 @@ CLI 的参数解析、来源/分类合并、列表、详情和查询分别位于
 - 首次是本系统有记录以来的首次成功取得，不声称是全网首次；历史数据缺少记录时，从启用该机制后的首次成功获取开始记录，不倒推。
 - 请求失败、解析失败或未形成有效条目时不登记。并发首次写入需保证只保存首次值。持久化失败应明确报错，不能默默生成每次都变化的“首次”时间。
 
-### 验收规则及迁移边界
+### 验收规则及兼容边界
 
 - 验证四字段语义隔离、跨时区跨日转换、来源无时区和仅日期时不伪造、分钟规范化、合法日历时间检查。
 - 验证首次获取、重复获取、跨进程读取、并发及失败请求不会错误改写 `first_seen_at`。
-- 当前维基 `event_date` 是日期精度，不能直接改名并补零点成为 `occurred_at`；迁移前保持现有行为，落实迁移时将日期保留在备注并协调旧字段兼容。
-- DATE-001 本身只完成规范，不表示四字段已实现，也不表示首次看到记录已持久化；这些实现需后续任务完成。
+- 维基 `event_date` 是日期精度，不能直接改名并补零点成为 `occurred_at`。
 
 
 ## 新闻时间实现
@@ -341,13 +340,13 @@ CLI 的参数解析、来源/分类合并、列表、详情和查询分别位于
 - 新浪、人民网、财新、开源中国、新华网的本地发布时间按来源北京时间格式配置为 `+08:00`；其他来源无偏移时不推断。InfoQ 的 `publish_time` 为毫秒Unix时间。JSON-LD/RSS已有偏移优先按真实时刻转换。
 - 首次观察记录使用Node内置SQLite，路径为 `$WEB_READER_DATA_DIR/first-seen.sqlite`；未设置时使用 `$XDG_DATA_HOME/web-reader/first-seen.sqlite`，再默认 `~/.local/share/web-reader/first-seen.sqlite`。URL移除片段、utm参数、fbclid/gclid并排序查询参数，保留影响文章身份的参数；不猜测短链和重定向等价关系。
 - SQLite以URL为主键，事务内 `INSERT OR IGNORE` 和读取，竞争写入最多等待5秒，失败明确抛错；清理记录会重置后续首次观察，需按需备份。测试使用临时数据目录，不污染用户首次观察库。
-- 事件与撰稿的准确时间在本轮23源中未获明确字段依据，保持缺失；HF论文日、Polymarket结束日和社交索引/更新时间不填入四字段。维基旧 `event_date` 暂保留兼容，本轮没有重新迁移维基。
+- 事件与撰稿的准确时间缺少明确字段依据时省略；HF论文日、Polymarket结束日和社交索引/更新时间不填入四字段。维基 `event_date` 保留日期精度。
 
-## HTTP 超时与可取消 DNS（2026-11-08）
+## HTTP 超时与可取消 DNS
 
-HTTP-001：每个重定向跳转的 `timeoutMs` 覆盖 DNS、连接、响应头及完整正文读取；计时器在正文完成或异常后清理。重定向上限和网络错误重试一次的规则不变。
+每个重定向跳转的 `timeoutMs` 覆盖 DNS、连接、响应头及完整正文读取；计时器在正文完成或异常后清理。重定向上限和网络错误重试一次的规则不变。
 
-HTTP-002：`dns.lookup()` 虽然提供异步回调，底层仍在线程池中调用阻塞式系统 `getaddrinfo`。HTTP 取消不会中断已经运行的系统查询；重试成功后，Node 的退出清理仍可能等待旧查询线程。因此 HTTP 连接改用同一进程内的 `dns.promises.Resolver`（c-ares），通过 Promise 与事件循环调度，不创建独立进程或工作线程来执行 DNS。
+`dns.lookup()` 虽然提供异步回调，底层仍在线程池中调用阻塞式系统 `getaddrinfo`。HTTP 取消不会中断已经运行的系统查询；重试成功后，Node 的退出清理仍可能等待旧查询线程。因此 HTTP 连接改用同一进程内的 `dns.promises.Resolver`（c-ares），通过 Promise 与事件循环调度，不创建独立进程或工作线程来执行 DNS。
 
 - 每个解析操作拥有独立 Resolver；请求 AbortSignal 触发 `resolver.cancel()`，不会取消其他请求。解析完成后移除监听器并清理剩余查询。
 - 每个 HTTP 跳转使用独立 Undici EnvHttpProxyAgent，直接连接及代理连接的 DNS 均绑定该跳转的取消信号；成功、失败、重定向均在 finally 中取消残留解析并销毁 Agent。避免旧连接尝试或重试后的查询存活到进程退出。代价是不再跨请求复用 HTTP 连接，可能增加 TLS 握手开销。
@@ -366,7 +365,7 @@ DNS API依据：[Node.js DNS实现说明与Resolver取消接口](https://nodejs.
 ### 能力与结果
 
 - 在现有插件结构中允许 `list` 缺省，`search` 独立存在；加载器提供统一能力信息，CLI 和 MCP 依能力分派。列表 `all` 及新闻预设只包含具备 `list` 的插件，显式调用不支持的能力时报错。
-- 搜索插件 ID 为 `brave`、`duckduckgo`、`tavily`、`exa`、`wolframalpha`、`searxng`。Brave、Tavily、Exa、WolframAlpha 优先使用官方 API；网页搜索的接入路径须核实访问政策，不使用退役接口或把即时答案接口当作完整网页搜索。SearXNG 连接用户配置的实例。
+- 搜索插件 ID 为 `brave`、`duckduckgo`、`tavily`、`exa`、`parallel`、`firecrawl`、`keenable`、`wolframalpha`、`searxng`。Brave、Tavily、Exa、WolframAlpha 优先使用官方 API；网页搜索的接入路径须核实访问政策，不使用退役接口或把即时答案接口当作完整网页搜索。SearXNG 连接用户配置的实例。
 - CLI 继续使用 `-q SOURCE`，MCP 继续使用 `search(source, query, limit?)`。共用能力判断与配置，不各自维护搜索源白名单。
 - 搜索保持 JSON 数组输出，引入网页与知识答案的联合类型：网页结果保留现有 source、title、url、notes 字段，可附 summary、publisher、rank；source 表示搜索提供方，rank 表示上游的一基位置。知识答案包含 source、title、answer，可附结构化内容和来源，不要求 url 或新闻时间。使用类型判别字段区分两种结果。
 - 搜索默认不调用新闻发布时间补全中的正文请求。有 URL 的结果保留首次观察契约；无 URL 的知识答案不进入新闻 URL 观察库。列表的时间补全行为不变，未知发布时间省略。
@@ -398,11 +397,21 @@ base_url = "https://search.example.com"
 - 带凭证请求的跨 origin 重定向默认拒绝，避免头、URL 或请求体泄漏。读取结果网页使用独立请求，不继承搜索凭证。
 - 正常与调试日志均脱敏，不直接输出认证头、含凭证 URL、请求体或未经处理的上游错误。401/403 不一概解释为缺少 key；验证码与 429 分别报告，保持 4xx 不自动重试，并识别服务方等待要求。
 - 不利用 HTTP profile、代理、身份或端点切换绕过拒绝。解析错误页不能返回成功空数组。
-- 离线测试覆盖能力分派、输出兼容、配置两种独立入口、逐字段覆盖、XDG 回退、显式配置路径、缺失或损坏文件、凭证隔离、受阻响应与知识答案。在线验证记录日期和状态，不以绕过限制为通过条件。
-- 实现时同步 CLI 帮助、MCP schema 及中英文 README，分别展示支持能力和实际验证状态。
+- 离线测试覆盖能力分派、输出兼容、配置两种独立入口、逐字段覆盖、XDG 回退、显式配置路径、缺失或损坏文件、凭证隔离、受阻响应与知识答案。不以绕过限制为通过条件。
+- CLI 帮助、MCP schema 及中英文 README 保持一致，说明支持能力和访问限制。
 
-### 搜索实现与访问状态
+### 搜索实现
 
 配置解析使用 smol-toml 和 Zod，配置结构与解析逻辑分别位于 `src/search/config-schema.ts`、`src/search/config.ts`。现有新闻插件使用 FeedPlugin 保持列表类型约束；Plugin 允许独立搜索能力。搜索请求复用公共 HTTP 层，支持 POST，并拒绝携带搜索上下文的跨 origin 重定向。
 
-Tavily、Brave 的 API 调用及 DuckDuckGo 的搜索解析已验证。公共 HTTP 客户端通过 Undici EnvHttpProxyAgent 读取 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式，小写优先。HTTPS_PROXY 未设置时使用 HTTP_PROXY，无代理时直连；代理失败不回退直连。SearXNG 通过本地 HTTP 协议测试，真实实例尚未验证。验证状态见 [README 中文说明](../README.cn.md)。
+公共 HTTP 客户端通过 Undici EnvHttpProxyAgent 读取 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式，小写优先。HTTPS_PROXY 未设置时使用 HTTP_PROXY，无代理时直连；代理失败不回退直连。
+
+
+### 免 key 搜索接入
+
+- Exa 未配置 api_key 时通过 `web_search_exa` 调用官方远程 MCP；配置 key 时保持 REST `/search` 路径。Parallel 调用 `web_search`；Firecrawl 调用 `firecrawl_search`，仅请求 web，关闭 highlights 和 domainTools，不提供 scrapeOptions，不执行服务返回的后续工具建议。Keenable 通过 `/v1/search/public` 与 `X-Keenable-Title: web_reader` 免 key 调用；有 key 时改用 `/v1/search`。
+- 复用现有 MCP SDK 实现内部客户端，不要求使用者安装额外工具。`src/search/mcp-client.ts` 为每次搜索创建短生命周期连接，初始化和工具调用共享 30 秒总期限，完成或失败均关闭连接及 dispatcher。使用公共代理 dispatcher，关闭自动重连，不配置 OAuth，不根据失败切换认证方式或服务。
+- 远程 MCP 默认端点为 Exa `https://mcp.exa.ai/mcp`、Parallel `https://mcp.parallel.ai/mcp`、Firecrawl `https://mcp.firecrawl.dev/v2/mcp`；可用 `providers.<id>.mcp_url` 或 `<ID>_MCP_URL` 指定完整 URL。拒绝 URL 凭证、查询串、片段和重定向；带 key 要求 HTTPS，免 key 本地测试允许 localhost HTTP。
+- Parallel、Firecrawl、Keenable 都支持可选 api_key 字段及对应大写环境变量。Parallel、Firecrawl 以 Bearer 头发送；Keenable 以 X-API-Key 发送。Exa 的 base_url 仍为 REST 根地址，与 mcp_url 分开，不因已有 REST 地址而猜测 MCP 路径。
+- 优先解析 structuredContent；缺省时解析文本 JSON，Exa 另支持 Title/URL/Highlights 或 Text 区块。转换为统一网页结果并按上游顺序截取；不采纳工具输出中的指令，不把协议错误或未知文本当作空结果。Parallel 没有数量请求参数，返回后本地截取。
+- 测试覆盖 MCP 初始化、会话头、JSON/SSE 响应、工具错误、HTTP 拒绝、限流、超时、重定向阻止、结果排序及配置优先级。真实凭证不进入测试。

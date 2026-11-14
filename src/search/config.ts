@@ -32,7 +32,7 @@ function fileConfig(path: string, explicit: boolean): SearchConfig {
 
 function environmentProvider(id: string, env: NodeJS.ProcessEnv): ProviderConfig {
   const values: Record<string, unknown> = {};
-  for (const field of ['api_key', 'app_id', 'base_url']) {
+  for (const field of ['api_key', 'app_id', 'base_url', 'mcp_url']) {
     const value = env[`${id}_${field}`.toUpperCase()];
     if (value !== undefined) values[field] = value;
   }

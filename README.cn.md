@@ -25,46 +25,61 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `mittr` | MIT Technology Review | 英文 | ❌ | ✅ | 分类：ai computing space biotech |
 | `wiki` | Wikipedia 时事 | 英文 | ✅ | ✅ | 含 `summary` 字段 |
 | `zhwiki` | 中文维基百科新闻动态 | 中文 | ✅ | ✅ | 含 `summary` 字段 |
-| `reddit` | Reddit | 英文 | ❌ | ⚠️ | 列表部分可用：worldnews 成功，tech/ml 及搜索返回 429；讨论页样本返回 403。条目可能为外链或标注 discussion 的讨论帖，外链正文取决于发布方。 |
+| `reddit` | Reddit | 英文 | ❌ | ⚠️ | 列表和搜索受访问限制，可能返回 429；讨论页可能返回 403。条目可能为外链或 discussion 讨论帖，外链正文取决于发布方。 |
 | `yahoo` | Yahoo Finance | 英文 | ❌ | ✅ | HTML 新闻列表，条数随页面变化 |
 | `gnews` | Google News | 英文 | ✅ | ⚠️ | 分类：tech business science health sports entertainment world nation；文章链接为 JS 跳转，需直接访问发布方页面 |
 | `cnbc` | CNBC | 英文 | ❌ | ✅ | 分类：top world markets tech finance us health politics intl ai |
 | `nytimes` | 纽约时报中文网 | 中文 | ❌ | ✅ | 全文可读 |
 | `xinhua` | 新华社 | 中文 | ❌ | ✅ | 分类：politics world society finance tech mil legal health edu |
 | `thepaper` | 澎湃新闻 | 中文 | ❌ | ✅ | 国内突发新闻 |
-| `caixin` | 财新 | 中文 | ❌ | ⚠️ | 全文完整性未确认：两个样本页面均仅返回两段正文，并加载订阅组件（2026-11-08）。可能为预览，尚未证实存在截断。 |
+| `caixin` | 财新 | 中文 | ❌ | ⚠️ | 可能只返回订阅预览，不保证全文完整。 |
 | `sina` | 新浪新闻 | 中文 | ❌ | ✅ | GB2312 自动转码 |
 | `infoq` | InfoQ 中文 | 中文 | ❌ | ✅ | |
 | `people` | 人民网 | 中文 | ❌ | ✅ | 按首页顺序获取，排除明确隐藏区块；不保证按发布时间排序。 |
 | `hf` | HuggingFace Papers | 英文 | ✅ | ✅ | 每日 ML 论文 |
-| `csdn` | CSDN | 中文 | ❌ | ❌ | 列表可用；正文样本返回 HTTP 521，未取得文章内容（2026-11-08）。受阻文章的发布时间也不可得。 |
+| `csdn` | CSDN | 中文 | ❌ | ❌ | 列表与正文的访问限制不同；正文返回 HTTP 521 时无法取得内容或发布时间。 |
 | `oschina` | 开源中国 | 中文 | ❌ | ✅ | 通过 API 读取正文；外链跳转条目需直接读取原站 URL。 |
 | `juejin` | 稀土掘金 | 中文 | ❌ | ✅ | |
-| `bsky` | Bluesky | 英文 | ❌ | ⚠️ | news/tech 列表可用；2026-11-08 的搜索样本返回 403，认证路径未验证。The Verge 外链样本可读，NYT 外链样本返回 403；纯文字帖链接到社区页，不保证可读。 |
+| `bsky` | Bluesky | 英文 | ❌ | ⚠️ | news/tech 列表与搜索的访问限制不同；搜索可能返回 403，配置凭证不保证可用。外链正文取决于发布方，纯文字帖链接到社区页。 |
 | `polymarket` | Polymarket 预测市场 | 英文 | ❌ | ✅ | 按成交量排名的热门预测市场；全文通过 Gamma API 渲染 |
 
 ### 访问限制
 
-本工具不绕过登录、付费墙、验证码或站点的自动访问限制。新闻列表可读不代表链接文章可读；成功返回内容也不保证全文完整。表中 ✅ 表示功能已实现或存在成功样本，⚠️ 表示部分可用或完整性未确认，❌ 的具体原因见备注。
+本工具不绕过登录、付费墙、验证码或站点的自动访问限制。新闻列表可读不代表链接文章可读；成功返回内容也不保证全文完整。表中 ✅ 表示支持该功能，⚠️ 表示部分可用或完整性未确认，❌ 的具体原因见备注。
 
-表中的 CSDN、Reddit、Bluesky 和财新访问现象来自 **2026-11-08 的样本测试**，日期表示测试时间，不是故障开始时间或最后修复时间。这些结果不是对所有页面的保证：CSDN 正文样本返回 521；Reddit 部分列表与搜索返回 429（限流）；Bluesky 搜索返回 403，未验证配置凭证后的访问。403 本身不能证明缺少认证，配置凭证也不保证能够访问。详细样本见 [访问测试记录](docs/source-access.md)。
+403 本身不能证明缺少认证，配置凭证也不保证能够访问。各来源的限制和错误处理见 [信息源访问说明](docs/source-access.md)。
 
-正文请求遇到非成功状态时会报错，不把拒绝页面当作文章。Google News 的部分链接需要直接使用发布方网址；财新可能只返回预览。搜索实现和实际可用性见下面的独立表格。
+正文请求遇到非成功状态时会报错，不把拒绝页面当作文章。Google News 的部分链接需要直接使用发布方网址；财新可能只返回预览。搜索方式和配置要求见下面的独立表格。
 
 ## 搜索来源与配置
 
 使用 `web_reader -q SOURCE "关键词" -n 5` 搜索。下列来源仅提供搜索，不加入新闻列表 `-s all` 或新闻预设。已有 wiki、zhwiki、reddit、gnews、hf、bsky 的搜索入口继续保留；其中 Reddit 和 Bluesky 有访问限制，见上文。
 
-| SOURCE | 凭证或配置 | 实现与验证状态（2026-11-14） |
+| SOURCE | 凭证或配置 | 搜索方式 |
 |---|---|---|
-| `brave` | Brave Search API key | API 调用已验证 |
-| `tavily` | Tavily API key | API 调用已验证 |
-| `exa` | Exa API key | 官方 API 适配及离线测试完成；未使用真实 key 验证 |
-| `wolframalpha` | Full Results API AppID | 返回计算／知识答案；离线测试完成，未使用真实 AppID 验证 |
-| `duckduckgo` | 无 | 搜索及结果解析已验证 |
-| `searxng` | 实例地址，实例需启用 JSON | 接口、离线和本地 HTTP 协议测试完成；尚未验证真实实例 |
+| `brave` | Brave Search API key | Brave 网页搜索 API |
+| `tavily` | Tavily API key | Tavily 搜索 API |
+| `exa` | 无；API key 可选 | 免 key 使用远程 MCP；配置 key 后使用 REST API |
+| `parallel` | 无；API key 可选 | 远程 MCP 网页搜索 |
+| `firecrawl` | 无；API key 可选 | 远程 MCP 网页搜索 |
+| `keenable` | 无；API key 可选 | 免 key 公共 HTTP 接口；配置 key 后使用认证接口 |
+| `wolframalpha` | Full Results API AppID | 返回计算／知识答案 |
+| `duckduckgo` | 无 | HTML 网页搜索 |
+| `searxng` | 实例地址，实例需启用 JSON | 配置实例的 JSON 搜索接口 |
 
-日期表示以上状态的验证时间。
+
+### 无需 key 的搜索
+
+Exa、Parallel、Firecrawl、Keenable 不需要创建配置文件、注册账户或安装额外客户端即可查询：
+
+```bash
+web_reader -q exa "TypeScript documentation" -n 5
+web_reader -q parallel "TypeScript documentation" -n 5
+web_reader -q firecrawl "TypeScript documentation" -n 5
+web_reader -q keenable "TypeScript documentation" -n 5
+```
+
+未配置 key 时使用服务方的公共额度，可能受到限流。配置该来源的 `api_key` 或对应环境变量后，调用会使用该凭证，额度及计费按服务方账户规则执行；失败或限流时不会自动切换认证方式、端点或其他来源。程序只执行搜索，不追加正文抓取或研究任务。
 
 ### HTTP 代理
 
@@ -87,7 +102,8 @@ MCP 读取启动进程的环境变量；通过客户端启动时，在客户端�
 
 - [Brave Search API](https://api-dashboard.search.brave.com/)：注册并获取 Search API key。
 - [Tavily](https://app.tavily.com/)：获取 API key。
-- [Exa](https://dashboard.exa.ai/)：获取 API key。
+- [Exa](https://dashboard.exa.ai/)：可选申请 API key。
+- [Parallel](https://platform.parallel.ai/)、[Firecrawl](https://www.firecrawl.dev/app/api-keys)、[Keenable](https://app.keenable.ai/)：可选注册账户并申请 API key。
 - [WolframAlpha](https://developer.wolframalpha.com/)：创建应用取得 AppID，并确认可使用 Full Results API。
 
 账户是否收费、额度及服务权限由提供方决定。本工具不会自动创建账户、购买服务或切换到另一个收费来源。
@@ -96,7 +112,7 @@ MCP 读取启动进程的环境变量；通过客户端启动时，在客户端�
 
 默认文件为 `$XDG_CONFIG_HOME/web_reader/config.toml`；未设置 XDG_CONFIG_HOME 时为 `~/.config/web_reader/config.toml`。文件可不存在，仅使用无需配置的来源时不必创建。
 
-按需填写以下区块；尚未申请凭证的区块可以整个省略。示例地址和凭证必须替换为自己的值。
+按需填写以下区块。无需 key 使用的来源可以整个省略；不要填写占位 key，否则程序会把它当作真实凭证发送。示例地址和凭证必须替换为自己的值。
 
 ```toml
 [providers.brave]
@@ -126,6 +142,15 @@ web_reader --config /path/to/config.toml --mcp
 
 显式文件替代默认文件；文件不存在或格式错误会报错。程序不自动加载当前目录的配置或 `.env`。
 
+可选凭证的配置字段与环境变量对应如下，任选一种即可：
+
+| 来源 | TOML 字段 | 环境变量 |
+|---|---|---|
+| Exa | `providers.exa.api_key` | `EXA_API_KEY` |
+| Parallel | `providers.parallel.api_key` | `PARALLEL_API_KEY` |
+| Firecrawl | `providers.firecrawl.api_key` | `FIRECRAWL_API_KEY` |
+| Keenable | `providers.keenable.api_key` | `KEENABLE_API_KEY` |
+
 ### 方式二：环境变量
 
 可以完全不创建配置文件，直接设置需要的变量：
@@ -139,9 +164,11 @@ export SEARXNG_BASE_URL='https://search.example.com'
 web_reader -q brave "TypeScript documentation" -n 5
 ```
 
-两种方式同时存在时，环境变量逐字段覆盖配置文件，其余字段仍来自文件。空凭证环境变量会覆盖文件中的凭证并报告未配置，不回退到旧值。`<SOURCE>_ENABLED` 接受 `true` 或 `false`，例如 `BRAVE_ENABLED=false`。
+两种方式同时存在时，环境变量逐字段覆盖配置文件，其余字段仍来自文件。空凭证环境变量会覆盖文件中的凭证，不回退到旧值；可免 key 的来源使用公共入口，必须有凭证的来源报告未配置。`<SOURCE>_ENABLED` 接受 `true` 或 `false`，例如 `BRAVE_ENABLED=false`。
 
-API 来源可选用 `base_url`（或大写来源名加 `_BASE_URL`）指定受信任的 API 根地址，必须使用 HTTPS；路径由适配器追加。默认根地址是 Brave 的 `https://api.search.brave.com`、Tavily 的 `https://api.tavily.com`、Exa 的 `https://api.exa.ai` 和 WolframAlpha 的 `https://api.wolframalpha.com`。这项设置会改变凭证的接收方，不用于绕过拒绝。DuckDuckGo 不使用自定义地址。
+REST API 来源可选用 `base_url`（或大写来源名加 `_BASE_URL`）指定受信任的 API 根地址，必须使用 HTTPS；路径由适配器追加。默认根地址是 Brave 的 `https://api.search.brave.com`、Tavily 的 `https://api.tavily.com`、Exa 的 `https://api.exa.ai`、WolframAlpha 的 `https://api.wolframalpha.com` 和 Keenable 的 `https://api.keenable.ai`。这项设置会改变凭证的接收方，不用于绕过拒绝。DuckDuckGo 不使用自定义地址。
+
+Exa 的免 key 路径、Parallel 和 Firecrawl 使用内置远程 MCP 接入，无需配置外部 MCP 客户端。需要指定受信任的服务地址时，使用对应来源的 `mcp_url` 或 `<SOURCE>_MCP_URL`，值是完整端点 URL。默认分别为 `https://mcp.exa.ai/mcp`、`https://mcp.parallel.ai/mcp`、`https://mcp.firecrawl.dev/v2/mcp`。带凭证时必须使用 HTTPS；免 key 的本地服务可使用 localhost HTTP。Exa 配置 key 时走 REST API，其 `base_url` 只对带 key 路径生效。
 
 SearXNG 的 `base_url` 是实例根地址，可包含部署子路径；允许 HTTP 以便连接本地实例。需要实例管理员在 `search.formats` 中启用 `json`。程序不会寻找或轮换公共实例。
 
@@ -149,7 +176,7 @@ SearXNG 的 `base_url` 是实例根地址，可包含部署子路径；允许 HT
 
 网页结果是 JSON 数组，保留上游顺序。新增来源返回 `kind: "web"`、`source`、`title`、`url`、`rank`，有摘要时包含 `summary`；`source` 是搜索引擎，不是文章发布方。WolframAlpha 返回 `kind: "answer"`、`answer` 和 `sections`，不伪造文章链接或时间。
 
-`-n` 是结果上限，不保证条数：Brave/Tavily 单次最多 20 条，Exa 最多 100 条；网页及 SearXNG 只取一次响应，不自动翻页。WolframAlpha 返回一个包含多个内容区块的答案。搜索不会额外打开结果网页，阅读时请另行传入 URL。
+`-n` 是结果上限，不保证条数：Brave/Tavily 单次最多 20 条，Exa、Firecrawl、Keenable 最多请求 100 条；Parallel 不提供结果数量请求参数，程序按 `-n` 截取。所有来源均不自动翻页。WolframAlpha 返回一个包含多个内容区块的答案。搜索不会额外打开结果网页，阅读时请另行传入 URL。
 
 未配置凭证只影响该来源；其他来源仍可使用。缺少配置、禁用、网络错误、拒绝访问和限流会明确报告，不作为空结果返回。凭证不会传给结果页面，跨站重定向被拒绝；日志不打印凭证。
 

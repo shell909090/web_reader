@@ -26,7 +26,8 @@ Options:
                            bsky: bsky:news/tech (default: all; search: -q bsky <keywords>)
   -q, --query SOURCE       Query a data source; keywords follow as positional args
                            Searchable sources: wiki, zhwiki, reddit, gnews, bsky, hf
-                           brave, tavily, exa, wolframalpha, duckduckgo, searxng
+                           brave, tavily, exa, parallel, firecrawl, keenable
+                           wolframalpha, duckduckgo, searxng
   -n, --limit N            Max results (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})

@@ -56,7 +56,7 @@ test('official APIs preserve order and send credentials only to search endpoints
     const empty = id === 'brave' ? { query: { original: 'x' } } : { results: [] };
     assert.deepEqual(await plugin.search(context(empty), 'x', 2), []);
     delete process.env[`${id.toUpperCase()}_API_KEY`];
-    await assert.rejects(plugin.search(ctx, 'x', 2), /missing api_key/);
+    if (id !== 'exa') await assert.rejects(plugin.search(ctx, 'x', 2), /missing api_key/);
   }
 });
 

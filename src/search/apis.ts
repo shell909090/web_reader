@@ -1,3 +1,4 @@
+import { exaKeyless } from './remote.ts';
 import { z } from 'zod';
 import type { Ctx, Item } from '../types.ts';
 import { providerConfig, credential } from './config.ts';
@@ -49,6 +50,7 @@ export async function tavily(ctx: Ctx, query: string, limit: number): Promise<It
 /** Search Exa without requesting target-page content. */
 export async function exa(ctx: Ctx, query: string, limit: number): Promise<Item[]> {
   const config = providerConfig('exa');
+  if (!config.api_key?.trim()) return exaKeyless(query, limit, config);
   const key = credential(config, 'exa');
   const body = await searchResponse(
     ctx,
