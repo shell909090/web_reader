@@ -1,7 +1,7 @@
 import { parseNewsRss } from '../src/feeds/news-rss.ts';
 // MIT Technology Review plugin — main RSS feed by default, topic feeds as categories.
 
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 import { collectFeedResults } from '../src/feeds/results.ts';
 
 const BASE = 'https://www.technologyreview.com';

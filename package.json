@@ -10,6 +10,7 @@
     "@mozilla/readability": "^0.6.0",
     "cheerio": "^1.2.0",
     "jsdom": "^27.4.0",
+    "smol-toml": "^1.9.1",
     "tsx": "^4.23.15",
     "turndown": "^7.2.4",
     "undici": "^7.30.1",

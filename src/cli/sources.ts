@@ -1,3 +1,4 @@
+import { SEARCH_IDS } from '../search/config.ts';
 export const KNOWN_SOURCES = [
   'hn',
   'bbc',
@@ -47,7 +48,7 @@ export function parseSourceTokens(input: string): SourceRequest[] | null {
     const colon = tok.indexOf(':');
     const id = colon >= 0 ? tok.slice(0, colon) : tok;
     const cat = colon >= 0 ? tok.slice(colon + 1) : '';
-    if (!(KNOWN_SOURCES as readonly string[]).includes(id)) {
+    if (![...KNOWN_SOURCES, ...SEARCH_IDS].includes(id as (typeof KNOWN_SOURCES)[number])) {
       process.stderr.write(`[ERROR] Unknown source: ${id}\n`);
       return null;
     }

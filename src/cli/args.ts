@@ -4,7 +4,12 @@ import { parseListArgs, parseQueryArgs } from './mode-args.ts';
 import type { ParsedArgs } from './types.ts';
 
 const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
-export type CommonArgs = { out: string | null; loglevel: LogLevel; profile: ProfileName };
+export type CommonArgs = {
+  config?: string;
+  out: string | null;
+  loglevel: LogLevel;
+  profile: ProfileName;
+};
 
 function commonArgs(v: RawArgs['values']): CommonArgs | null {
   const loglevel = (v.loglevel as string).toLowerCase() as LogLevel;
@@ -21,7 +26,12 @@ function commonArgs(v: RawArgs['values']): CommonArgs | null {
     );
     return null;
   }
-  return { loglevel, profile, out: v.out !== undefined ? (v.out as string) : null };
+  return {
+    ...(v.config !== undefined ? { config: String(v.config) } : {}),
+    loglevel,
+    profile,
+    out: v.out !== undefined ? (v.out as string) : null,
+  };
 }
 
 /** Parse and validate CLI arguments without changing mode precedence. */

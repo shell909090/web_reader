@@ -1,4 +1,4 @@
-import type { Ctx, Item, Plugin } from './types.ts';
+import type { Ctx, Item, Plugin, FeedPlugin } from './types.ts';
 import { newsTime } from './timestamps.ts';
 import { recordFirstSeen } from './first-seen.ts';
 import { publicationMetadata, publisherTime } from './publication-metadata.ts';
@@ -62,14 +62,26 @@ export async function observeNews(items: Item[], ctx: Ctx): Promise<Item[]> {
 }
 
 /** Apply the same timestamp contract to CLI and MCP plugin outputs. */
+export function withNewsTimes(plugin: FeedPlugin): FeedPlugin;
+export function withNewsTimes(plugin: Plugin): Plugin;
 export function withNewsTimes(plugin: Plugin): Plugin {
   return {
     ...plugin,
-    list: async (ctx, opts) => observeNews(await plugin.list(ctx, opts), ctx),
+    ...(plugin.list
+      ? {
+          list: async (ctx: Ctx, opts: { limit: number; categories?: string[] }) =>
+            observeNews(await plugin.list!(ctx, opts), ctx),
+        }
+      : {}),
     ...(plugin.search
       ? {
-          search: async (ctx: Ctx, query: string, limit: number) =>
-            observeNews(await plugin.search!(ctx, query, limit), ctx),
+          search: async (ctx: Ctx, query: string, limit: number) => {
+            const results = await plugin.search!(ctx, query, limit);
+            const items = results.filter((item): item is Item => typeof item.url === 'string');
+            recordFirstSeen(items);
+            for (const item of items) item.published_at = newsTime(item.published_at);
+            return results;
+          },
         }
       : {}),
   };

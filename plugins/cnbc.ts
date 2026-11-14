@@ -3,7 +3,7 @@ import { parseNewsRss } from '../src/feeds/news-rss.ts';
 // RSS feeds use: https://www.cnbc.com/id/{id}/device/rss/rss.html
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 import { collectFeedResults } from '../src/feeds/results.ts';
 
 const RSS_BASE = 'https://www.cnbc.com/id';

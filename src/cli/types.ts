@@ -1,7 +1,7 @@
 import type { LogLevel, ProfileName } from '../../lib.ts';
 import type { SourceRequest } from './sources.ts';
 
-export type ParsedArgs =
+export type ParsedArgs = { config?: string } & (
   | {
       mode: 'list';
       sources: SourceRequest[];
@@ -20,4 +20,5 @@ export type ParsedArgs =
       out: string | null;
       loglevel: LogLevel;
       profile: ProfileName;
-    };
+    }
+);

@@ -1,6 +1,6 @@
 # web_reader
 
-A Node.js tool for fetching news feeds, reading web pages as Markdown, and searching reference sources.
+A Node.js tool for fetching news feeds, reading web pages as Markdown, and searching the web and reference sources.
 
 > [中文说明](README.cn.md)
 
@@ -8,7 +8,7 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 
 - **25 sources** across EN and ZH — see table below
 - **Three presets**: `news`, `tech`, `fin`
-- **Three modes**: list (news feeds) · detail (full text) · query (reference search)
+- **Three modes**: list (news feeds) · detail (full text) · query (search)
 - **MCP server mode** for AI agent integration (`--mcp`)
 - **Pure HTTP**: no browser dependency
 - **GB2312/GBK support**: Chinese sources decoded correctly
@@ -40,18 +40,106 @@ A Node.js tool for fetching news feeds, reading web pages as Markdown, and searc
 | `csdn` | CSDN | ZH | ❌ | ❌ | Lists work; sampled articles returned HTTP 521 without article content (2026-11-08). Publication times are also unavailable for blocked articles. |
 | `oschina` | 开源中国 | ZH | ❌ | ✅ | Article content via API; external redirect entries require reading the publisher URL directly. |
 | `juejin` | 稀土掘金 | ZH | ❌ | ✅ | |
-| `bsky` | Bluesky | EN | ❌ | ⚠️ | news/tech lists work; current search endpoint returned 403, authenticated access unverified. A Verge link was readable; sampled NYT links returned 403. Text-only posts link to social pages; readability is not guaranteed. |
+| `bsky` | Bluesky | EN | ❌ | ⚠️ | news/tech lists work; search endpoint returned 403 in the 2026-11-08 sample test, authenticated access unverified. A Verge link was readable; sampled NYT links returned 403. Text-only posts link to social pages; readability is not guaranteed. |
 | `polymarket` | Polymarket | EN | ❌ | ✅ | top prediction markets by volume; detail renders via Gamma API |
 
-### Access limits and verification (2026-11-08)
+### Access restrictions
 
-This tool simplifies AI access to readable pages; it does not bypass login requirements, paywalls, CAPTCHAs, or site access restrictions. A working feed does not guarantee readable articles. HTTP 200 or nonempty output does not prove full-text completeness. ✅ means implemented support or a successful sample, not every page; ⚠️ means partial availability or unverified completeness; ❌ means unsupported or unavailable in the tested environment, as explained in Notes.
+The tool does not bypass logins, paywalls, CAPTCHAs, or restrictions on automated access. A readable feed does not guarantee readable linked articles, and a successful response does not prove that the full article was retrieved. In the table, ✅ means implemented support or a successful sample, ⚠️ means partial access or uncertain completeness, and ❌ is explained in Notes.
 
-This review covers the remaining CSDN, Reddit, and Bluesky issues, not a fresh audit of all 25 sources. Results are specific to the environment and sampling time; 429 indicates rate limiting, not a permanent ban. Reddit warns about failed feeds and returns successful feeds, so a partial list is not complete coverage. Post timestamps and linked article publication times are distinct; blocked articles do not receive fabricated publication times.
+The CSDN, Reddit, Bluesky and Caixin observations in the table come from **sample tests on November 8, 2026**. This is the test date, not the date a restriction began or was fixed. CSDN article samples returned 521; some Reddit feeds and searches returned 429 (rate limiting); Bluesky search returned 403, with authenticated access untested. A 403 response does not by itself identify missing credentials, and credentials do not guarantee access. See the [sample test records](docs/source-access.md) (Chinese).
 
-Search on the configured Bluesky `public.api.bsky.app` endpoint returned 403; this alone does not prove missing authentication. The tool supports a session attempt using `BSKY_IDENTIFIER` and `BSKY_APP_PASSWORD`, but credentials were unavailable for this review. Authenticated access is unverified, and credentials are not guaranteed to make this endpoint accessible. No identity, proxy, or endpoint switching was used to evade refusals.
+Article requests report unsuccessful HTTP responses rather than treating denial pages as content. Some Google News links require the publisher's URL; Caixin may return a preview. Search capabilities and their validation status are listed separately below.
 
-Generic CLI/MCP article reads report non-2xx responses as HTTP errors instead of presenting denial pages as articles. Existing Google News JS-redirect and Caixin completeness limitations remain. See [commands, samples, and access findings](docs/source-access.md) (Chinese).
+## Search providers and configuration
+
+Run `web_reader -q SOURCE "keywords" -n 5`. The providers below support search only and are excluded from `-s all` and news presets. Existing wiki, zhwiki, reddit, gnews, hf and bsky search entry points remain available; Reddit and Bluesky have the access limitations described above.
+
+| SOURCE | Required credential or setting | Implementation and validation status (November 14, 2026) |
+|---|---|---|
+| `brave` | Brave Search API key | Official API adapter and offline tests complete; not tested with a real key |
+| `tavily` | Tavily API key | Official API adapter and offline tests complete; not tested with a real key |
+| `exa` | Exa API key | Official API adapter and offline tests complete; not tested with a real key |
+| `wolframalpha` | Full Results API AppID | Computational answers; offline tests complete, not tested with a real AppID |
+| `duckduckgo` | None | HTML adapter and offline tests complete; the local direct connection timed out (ETIMEDOUT), so online access is unverified |
+| `baidu` | Not applicable | HTML parser retained; robots.txt prohibits general automated access, so no search request is sent |
+| `bing` | Not applicable | HTML parser retained; robots.txt prohibits the search path, so no search request is sent |
+| `sogou` | Not applicable | HTML parser retained; robots.txt prohibits general automated access, so no search request is sent |
+| `searxng` | Instance URL with JSON enabled | Adapter, offline and local HTTP protocol tests complete; a real instance is unverified |
+
+The date identifies when these statuses were checked. Setting `enabled = true` does not override access restrictions. The retired Bing Search API is not an alternative supported endpoint.
+
+The automated-access restrictions were checked against the official robots.txt files for [Baidu](https://www.baidu.com/robots.txt), [Bing](https://www.bing.com/robots.txt) and [Sogou](https://www.sogou.com/robots.txt) on November 14, 2026.
+
+### Obtain credentials
+
+- [Brave Search API](https://api-dashboard.search.brave.com/): create an account and obtain a Search API key.
+- [Tavily](https://app.tavily.com/): obtain an API key.
+- [Exa](https://dashboard.exa.ai/): obtain an API key.
+- [WolframAlpha](https://developer.wolframalpha.com/): create an application for an AppID with Full Results API access.
+
+Pricing, quotas and API access depend on the provider. This tool does not create accounts, purchase access or automatically switch to another paid provider.
+
+### Option 1: configuration file
+
+The default is `$XDG_CONFIG_HOME/web_reader/config.toml`, or `~/.config/web_reader/config.toml` when XDG_CONFIG_HOME is unset. The file is optional.
+
+Include only the sections you need. Omit a provider's entire section until you obtain its credentials. Replace all example credentials and addresses with your own values.
+
+```toml
+[providers.brave]
+api_key = "your-brave-key"
+
+[providers.tavily]
+api_key = "your-tavily-key"
+
+[providers.exa]
+api_key = "your-exa-key"
+
+[providers.wolframalpha]
+app_id = "your-wolframalpha-app-id"
+
+[providers.searxng]
+base_url = "https://search.example.com"
+```
+
+No environment variables are required when the file contains the settings. Use file permissions `0600` and keep real credentials out of git. Add `enabled = false` to any provider section to disable it.
+
+To select another file:
+
+```bash
+web_reader --config /path/to/config.toml -q brave "TypeScript documentation" -n 5
+web_reader --config /path/to/config.toml --mcp
+```
+
+An explicit file replaces the default file; a missing or malformed explicit file is an error. The program does not automatically load configuration or `.env` from the working directory.
+
+### Option 2: environment variables
+
+No configuration file is needed. Set only the variables for providers you use:
+
+```bash
+export BRAVE_API_KEY='your-brave-key'
+export TAVILY_API_KEY='your-tavily-key'
+export EXA_API_KEY='your-exa-key'
+export WOLFRAMALPHA_APP_ID='your-wolframalpha-app-id'
+export SEARXNG_BASE_URL='https://search.example.com'
+web_reader -q brave "TypeScript documentation" -n 5
+```
+
+When both are present, environment variables override individual file fields; other fields still come from the file. An explicitly empty credential overrides the file value and produces a missing-credential error. `<SOURCE>_ENABLED` accepts `true` or `false`, for example `BRAVE_ENABLED=false`.
+
+API providers also accept `base_url` (or the uppercase source name plus `_BASE_URL`) for a trusted API root, using HTTPS. The adapter appends its endpoint path. Defaults are `https://api.search.brave.com`, `https://api.tavily.com`, `https://api.exa.ai` and `https://api.wolframalpha.com`. Changing this address changes who receives the credential; it is not a mechanism for bypassing refusals. DuckDuckGo and the restricted HTML providers do not use custom endpoints.
+
+SearXNG's `base_url` is the instance root and may include a deployment subpath. HTTP is allowed for local instances. Its administrator must enable `json` in `search.formats`. The program does not find or rotate public instances.
+
+### Results and errors
+
+Web results are JSON arrays in upstream order. New web providers return `kind: "web"`, `source`, `title`, `url`, `rank` and `summary` when available. `source` identifies the search engine, not the article publisher. WolframAlpha returns `kind: "answer"`, `answer` and `sections`, without inventing article URLs or timestamps.
+
+`-n` is an upper bound, not a guaranteed count. Brave/Tavily return at most 20 results per request and Exa at most 100. HTML and SearXNG adapters use one response without automatic pagination. WolframAlpha returns one answer containing multiple sections. Search does not open result pages; pass a result URL to reading mode separately.
+
+Missing credentials affect only that provider. Missing configuration, disabled providers, network errors, access refusals and rate limiting are reported as errors, not empty results. Credentials are not sent to result pages; cross-origin search redirects are refused, and credentials are not logged.
 
 ## Requirements
 
@@ -61,7 +149,7 @@ Generic CLI/MCP article reads report non-2xx responses as HTTP errors instead of
 ## Installation
 
 ```bash
-npm install
+npm ci
 make install   # installs web_reader as a global command via npm link
 ```
 
@@ -104,7 +192,8 @@ web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 | Short | Long | Default | Description |
 |-------|------|---------|-------------|
 | `-s` | `--sources` | — | Source IDs, preset names (`news`/`tech`/`fin`), or `all` |
-| `-q` | `--query` | — | Query source (`wiki`/`zhwiki`/`reddit`/`gnews`); keywords follow |
+| — | `--config` | — | Select an alternative TOML file for CLI / MCP |
+| `-q` | `--query` | — | Search source ID from the tables above; keywords follow |
 | `-n` | `--limit` | `50` | Max results |
 | `-o` | `--out` | stdout | Write output to FILE |
 | `-c` | `--concurrency` | `2` | Parallel sources (list mode) |
@@ -136,7 +225,7 @@ Exposes three tools: `list_news`, `read_url`, `search`. See `web_reader/SKILL.md
 
 ## Output
 
-List and search results include persistent `first_seen_at` and, when confirmed, `published_at`. `occurred_at` (event time) and `written_at` (authoring time) are omitted without explicit evidence. All four fields use `YYYY-MM-DDTHH:mm:ss+08:00` (Beijing time). Date-only values are not padded to midnight; update and repost times are not publication times. Wikipedia's existing `event_date` remains for compatibility.
+News lists and URL-bearing search results include persistent `first_seen_at` and, when confirmed, `published_at`. `occurred_at` (event time) and `written_at` (authoring time) are omitted without explicit evidence. All four fields use `YYYY-MM-DDTHH:mm:ss+08:00` (Beijing time). Date-only values are not padded to midnight; update and repost times are not publication times. Wikipedia's existing `event_date` remains for compatibility.
 
 First observations are stored by normalized URL in `~/.local/share/web-reader/first-seen.sqlite`; set `XDG_DATA_HOME` or `WEB_READER_DATA_DIR` to customize the location. Repeated runs preserve the initial value. The directory must be writable; deleting the database resets observation history, so back it up as needed. Some sources require additional article metadata requests when their lists lack publication times, increasing latency with result count; failures preserve items without a publication timestamp. See [source timestamp support and verification](docs/date-support.md) (Chinese).
 

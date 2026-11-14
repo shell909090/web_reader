@@ -3,6 +3,7 @@ import type { Plugin, Logger } from './types.ts';
 
 /** Dynamically import a plugin by source id; returns null if the file is not found. */
 export async function loadPlugin(id: string, log: Logger): Promise<Plugin | null> {
+  if (!/^[a-z][a-z0-9]*$/.test(id)) return null;
   const pluginUrl = new URL(`../plugins/${id}.ts`, import.meta.url).href;
   try {
     const mod = (await import(pluginUrl)) as { default: Plugin };

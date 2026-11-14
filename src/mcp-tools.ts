@@ -48,6 +48,18 @@ export async function search({
       isError: true,
     };
   const ctx: Ctx = { mode: 'http', httpGet, log };
-  const items = await plugin.search(ctx, query, limit ?? 10);
-  return { content: [{ type: 'text' as const, text: JSON.stringify(items, null, 2) }] };
+  try {
+    const items = await plugin.search(ctx, query, limit ?? 10);
+    return { content: [{ type: 'text' as const, text: JSON.stringify(items, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: `Error: ${error instanceof Error ? error.message : 'Search failed'}`,
+        },
+      ],
+      isError: true,
+    };
+  }
 }

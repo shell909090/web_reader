@@ -1,7 +1,7 @@
 // CSDN list plugin — HTTP-based, uses cheerio to parse the CSDN homepage.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const CSDN_HOME = 'https://www.csdn.net/';
 

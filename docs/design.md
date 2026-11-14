@@ -400,3 +400,9 @@ base_url = "https://search.example.com"
 - 不利用 HTTP profile、代理、身份或端点切换绕过拒绝。解析错误页不能返回成功空数组。
 - 离线测试覆盖能力分派、输出兼容、配置两种独立入口、逐字段覆盖、XDG 回退、显式配置路径、缺失或损坏文件、凭证隔离、受阻响应与知识答案。在线验证记录日期和状态，不以绕过限制为通过条件。
 - 实现时同步 CLI 帮助、MCP schema 及中英文 README，分别展示支持能力和实际验证状态。
+
+### 搜索实现与访问状态
+
+配置解析使用 smol-toml 和 Zod，配置结构与解析逻辑分别位于 `src/search/config-schema.ts`、`src/search/config.ts`。现有新闻插件使用 FeedPlugin 保持列表类型约束；Plugin 允许独立搜索能力。搜索请求复用公共 HTTP 层，支持 POST，并拒绝携带搜索上下文的跨 origin 重定向。
+
+百度、Bing、搜狗的网页解析保留在 `src/search/web.ts`，因官方 robots.txt 禁止相应自动访问，其搜索入口在发请求前报告限制，enabled 不覆盖该限制。DuckDuckGo 在线直连测试超时；SearXNG 通过本地 HTTP 协议测试，真实实例尚未验证。验证日期和访问政策依据见 [README 中文说明](../README.cn.md)。

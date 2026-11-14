@@ -1,4 +1,5 @@
 // CLI and MCP entry point.
+import { configureSearch } from './src/search/config.ts';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { CONFIG, setActiveProfile, makeLogger } from './lib.ts';
@@ -27,6 +28,7 @@ export async function main(argv: string[]): Promise<number> {
       process.stderr.write(USAGE + '\n');
       return 2;
     }
+    configureSearch(args.config);
     setActiveProfile(args.profile);
     const log = makeLogger(args.loglevel);
     switch (args.mode) {
@@ -45,7 +47,9 @@ export async function main(argv: string[]): Promise<number> {
 if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
   const isMcp = process.argv.includes('--mcp');
   if (isMcp) {
-    startMcp().catch((err) => {
+    const startup = parseCLI(process.argv.slice(2).filter((arg) => arg !== '--mcp'));
+    if (!startup) process.exit(2);
+    startMcp(startup.config).catch((err) => {
       process.stderr.write(`[FATAL] ${err}\n`);
       process.exit(1);
     });

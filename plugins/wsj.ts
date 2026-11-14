@@ -1,6 +1,6 @@
 // Wall Street Journal plugin — RSS feeds from feeds.a.dj.com (wsj.com homepage is 401).
 
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const FEED_BASE = 'https://feeds.a.dj.com/rss';
 

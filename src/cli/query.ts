@@ -13,9 +13,7 @@ export async function runQuery(
     return 2;
   }
   if (!plugin.search) {
-    log.error(
-      `Source "${args.source}" does not support search. Searchable: wiki, zhwiki, reddit, gnews, bsky`,
-    );
+    log.error(`Source "${args.source}" does not support search`);
     return 2;
   }
   const query = args.keywords.join(' ');

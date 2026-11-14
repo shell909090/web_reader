@@ -29,6 +29,7 @@ export async function runList(
   await pConcurrent(loaded, args.concurrency, async ({ plugin, categories }) => {
     const label = categories.length ? `${plugin.id}:${categories.join('+')}` : plugin.id;
     try {
+      if (!plugin.list) throw new Error(`${plugin.id}: does not support news lists`);
       const items = await plugin.list(ctx, { limit: args.limit, categories });
       allItems.push(...items);
     } catch (err) {

@@ -1,7 +1,7 @@
 // BBC News list plugin — HTTP-based, uses cheerio to parse the BBC News homepage.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const BBC_BASE = 'https://www.bbc.com';
 const BBC_HOME = `${BBC_BASE}/news`;

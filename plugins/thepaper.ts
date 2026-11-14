@@ -1,7 +1,7 @@
 // ThePaper (澎湃新闻) plugin — parses the breaking news list page.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const LIST_URL = 'https://www.thepaper.cn/list_25428';
 const BASE = 'https://www.thepaper.cn';

@@ -1,7 +1,7 @@
 import undici, { Agent, type RequestInit } from 'undici';
 import { requestLookup } from './dns.ts';
 import { CONFIG } from '../config.ts';
-import type { HttpResponse } from '../types.ts';
+import type { HttpResponse, HttpGetOpts } from '../types.ts';
 
 const MAX_REDIRECTS = 5;
 
@@ -21,6 +21,7 @@ export async function fetchOnce(
   url: string,
   mergedHeaders: Record<string, string>,
   timeoutMs: number,
+  opts: HttpGetOpts = {},
 ): Promise<HttpResponse> {
   let currentUrl = url;
   let redirectsLeft = MAX_REDIRECTS;
@@ -35,6 +36,8 @@ export async function fetchOnce(
 
     try {
       const requestOptions: RequestInit & { dispatcher: Agent } = {
+        method: opts.method,
+        body: opts.body,
         dispatcher,
         headers: mergedHeaders,
         redirect: 'manual',
@@ -56,7 +59,7 @@ export async function fetchOnce(
         }
         redirectsLeft--;
         // Resolve relative redirects against current URL
-        currentUrl = new URL(location, currentUrl).href;
+        currentUrl = redirectTarget(location, currentUrl, opts);
         continue;
       }
 
@@ -64,11 +67,28 @@ export async function fetchOnce(
       const buffer = await response.arrayBuffer();
       const html = new TextDecoder(charset).decode(buffer);
 
-      return { status, html, finalUrl: currentUrl };
+      return {
+        status,
+        html,
+        finalUrl: currentUrl,
+        ...retryMetadata(response.headers),
+      };
     } finally {
       clearTimeout(timer);
       controller.abort();
       await dispatcher.destroy();
     }
   }
+}
+
+function redirectTarget(location: string, current: string, opts: HttpGetOpts): string {
+  const next = new URL(location, current);
+  if (opts.sensitive && next.origin !== new URL(current).origin)
+    throw new Error('Cross-origin search redirect refused');
+  return next.href;
+}
+
+function retryMetadata(headers: { get(name: string): string | null }): { retryAfter?: string } {
+  const value = headers.get('retry-after');
+  return value === null ? {} : { retryAfter: value };
 }

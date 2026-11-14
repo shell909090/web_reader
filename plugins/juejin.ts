@@ -1,6 +1,6 @@
 // Juejin list plugin — HTTP-based, uses the recommend API (POST).
 
-import type { Plugin, Ctx, Item } from '../lib.ts';
+import type { FeedPlugin as Plugin, Ctx, Item } from '../lib.ts';
 
 const API_URL =
   'https://api.juejin.cn/recommend_api/v1/article/recommend_all_feed?aid=2608&uuid=&cursor=0&limit=20&sort_type=200';

@@ -3,7 +3,7 @@ import { extractText, rssLink } from '../src/feeds/rss.ts';
 // NYTimes Chinese edition plugin — parses the RSS feed for stable, structured output.
 // Feed URL: https://cn.nytimes.com/rss/
 
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const RSS_URL = 'https://cn.nytimes.com/rss/';
 

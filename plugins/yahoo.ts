@@ -2,7 +2,7 @@ import { newsTime } from '../src/timestamps.ts';
 // Yahoo Finance plugin — server-rendered news stream.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const NEWS_URL = 'https://finance.yahoo.com/news/';
 

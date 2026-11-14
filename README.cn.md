@@ -1,6 +1,6 @@
 # web_reader
 
-Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全文 Markdown、搜索参考资料，以及 MCP server 模式供 AI agent 集成。
+Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全文 Markdown、搜索网页和参考资料，以及 MCP server 模式供 AI agent 集成。
 
 > [English](README.md)
 
@@ -8,7 +8,7 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 
 - **25 个数据源**，涵盖中英文——详见下表
 - **三个预置组合**：`news`（综合）、`tech`（科技）、`fin`（财经）
-- **三种模式**：list（新闻列表）· detail（抓全文）· query（参考搜索）
+- **三种模式**：list（新闻列表）· detail（抓全文）· query（搜索）
 - **MCP server 模式**，供 AI agent 调用（`--mcp`）
 - **纯 HTTP**：无浏览器依赖
 - **GB2312/GBK 支持**：中文源编码自动处理
@@ -40,18 +40,106 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 | `csdn` | CSDN | 中文 | ❌ | ❌ | 列表可用；正文样本返回 HTTP 521，未取得文章内容（2026-11-08）。受阻文章的发布时间也不可得。 |
 | `oschina` | 开源中国 | 中文 | ❌ | ✅ | 通过 API 读取正文；外链跳转条目需直接读取原站 URL。 |
 | `juejin` | 稀土掘金 | 中文 | ❌ | ✅ | |
-| `bsky` | Bluesky | 英文 | ❌ | ⚠️ | news/tech 列表可用；当前搜索端点返回 403，认证路径未验证。The Verge 外链样本可读，NYT 外链样本返回 403；纯文字帖链接到社区页，不保证可读。 |
+| `bsky` | Bluesky | 英文 | ❌ | ⚠️ | news/tech 列表可用；2026-11-08 的搜索样本返回 403，认证路径未验证。The Verge 外链样本可读，NYT 外链样本返回 403；纯文字帖链接到社区页，不保证可读。 |
 | `polymarket` | Polymarket 预测市场 | 英文 | ❌ | ✅ | 按成交量排名的热门预测市场；全文通过 Gamma API 渲染 |
 
-### 访问限制与本次复核（2026-11-08）
+### 访问限制
 
-本工具简化 AI 对可访问网页的读取，不绕过登录、付费墙、验证码或站点访问限制。列表可读不代表文章可读；HTTP 200 或非空输出也不能证明全文完整。✅ 表示已有支持/样本成功，不保证所有页面；⚠️ 表示部分可用或完整性未确认；❌ 表示不支持或当前样本不可用，原因见备注。
+本工具不绕过登录、付费墙、验证码或站点的自动访问限制。新闻列表可读不代表链接文章可读；成功返回内容也不保证全文完整。表中 ✅ 表示功能已实现或存在成功样本，⚠️ 表示部分可用或完整性未确认，❌ 的具体原因见备注。
 
-本次仅复核剩余的 CSDN、Reddit、Bluesky 问题，并非重新验证全部 25 个源。结果只代表当前环境和采样时间，429 是限流，不代表永久禁止。Reddit 部分 feed 失败时会警告并返回可用结果；不能把该列表当作完整覆盖。外链帖子和文章发布时间是不同概念，受阻页面不会补造发布时间。
+表中的 CSDN、Reddit、Bluesky 和财新访问现象来自 **2026-11-08 的样本测试**，日期表示测试时间，不是故障开始时间或最后修复时间。这些结果不是对所有页面的保证：CSDN 正文样本返回 521；Reddit 部分列表与搜索返回 429（限流）；Bluesky 搜索返回 403，未验证配置凭证后的访问。403 本身不能证明缺少认证，配置凭证也不保证能够访问。详细样本见 [访问测试记录](docs/source-access.md)。
 
-Bluesky 当前配置的 `public.api.bsky.app` 搜索返回 403；这不能单独证明缺少认证。程序支持通过 `BSKY_IDENTIFIER` 与 `BSKY_APP_PASSWORD` 尝试建立会话，但本次没有凭证，未验证认证访问，也不保证配置凭证后该端点可用。没有更换身份、代理或切换端点来规避拒绝。
+正文请求遇到非成功状态时会报错，不把拒绝页面当作文章。Google News 的部分链接需要直接使用发布方网址；财新可能只返回预览。搜索实现和实际可用性见下面的独立表格。
 
-通用 CLI/MCP 正文读取会将非 2xx 响应明确报告为 HTTP 错误，不把拒绝页当文章。Google News 的 JS 跳转和财新可能仅有预览的既有限制仍保留。详细命令、样本与边界见 [访问复核记录](docs/source-access.md)。
+## 搜索来源与配置
+
+使用 `web_reader -q SOURCE "关键词" -n 5` 搜索。下列来源仅提供搜索，不加入新闻列表 `-s all` 或新闻预设。已有 wiki、zhwiki、reddit、gnews、hf、bsky 的搜索入口继续保留；其中 Reddit 和 Bluesky 有访问限制，见上文。
+
+| SOURCE | 凭证或配置 | 实现与验证状态（2026-11-14） |
+|---|---|---|
+| `brave` | Brave Search API key | 官方 API 适配及离线测试完成；未使用真实 key 验证 |
+| `tavily` | Tavily API key | 官方 API 适配及离线测试完成；未使用真实 key 验证 |
+| `exa` | Exa API key | 官方 API 适配及离线测试完成；未使用真实 key 验证 |
+| `wolframalpha` | Full Results API AppID | 返回计算／知识答案；离线测试完成，未使用真实 AppID 验证 |
+| `duckduckgo` | 无 | HTML 搜索适配及离线测试完成；本机直连请求超时（ETIMEDOUT），尚未通过在线验证 |
+| `baidu` | 不适用 | 保留 HTML 解析能力；robots.txt 禁止通用自动访问，程序不发送搜索请求 |
+| `bing` | 不适用 | 保留 HTML 解析能力；robots.txt 禁止搜索路径，程序不发送搜索请求 |
+| `sogou` | 不适用 | 保留 HTML 解析能力；robots.txt 禁止通用自动访问，程序不发送搜索请求 |
+| `searxng` | 实例地址，实例需启用 JSON | 接口、离线和本地 HTTP 协议测试完成；尚未验证真实实例 |
+
+日期表示以上状态的检查时间。对受限来源设置 `enabled = true` 不会绕过访问限制。Bing 使用已退役的旧 Search API 不是可用替代方案。
+
+自动访问限制依据为 2026-11-14 检查的官方 robots.txt：[百度](https://www.baidu.com/robots.txt)、[Bing](https://www.bing.com/robots.txt)、[搜狗](https://www.sogou.com/robots.txt)。
+
+### 申请凭证
+
+- [Brave Search API](https://api-dashboard.search.brave.com/)：注册并获取 Search API key。
+- [Tavily](https://app.tavily.com/)：获取 API key。
+- [Exa](https://dashboard.exa.ai/)：获取 API key。
+- [WolframAlpha](https://developer.wolframalpha.com/)：创建应用取得 AppID，并确认可使用 Full Results API。
+
+账户是否收费、额度及服务权限由提供方决定。本工具不会自动创建账户、购买服务或切换到另一个收费来源。
+
+### 方式一：配置文件
+
+默认文件为 `$XDG_CONFIG_HOME/web_reader/config.toml`；未设置 XDG_CONFIG_HOME 时为 `~/.config/web_reader/config.toml`。文件可不存在，仅使用无需配置的来源时不必创建。
+
+按需填写以下区块；尚未申请凭证的区块可以整个省略。示例地址和凭证必须替换为自己的值。
+
+```toml
+[providers.brave]
+api_key = "your-brave-key"
+
+[providers.tavily]
+api_key = "your-tavily-key"
+
+[providers.exa]
+api_key = "your-exa-key"
+
+[providers.wolframalpha]
+app_id = "your-wolframalpha-app-id"
+
+[providers.searxng]
+base_url = "https://search.example.com"
+```
+
+不需要同时设置环境变量。推荐文件权限为 `0600`，不要把真实配置提交到 git。每个来源都可增加 `enabled = false` 来禁用。
+
+指定其他文件：
+
+```bash
+web_reader --config /path/to/config.toml -q brave "TypeScript documentation" -n 5
+web_reader --config /path/to/config.toml --mcp
+```
+
+显式文件替代默认文件；文件不存在或格式错误会报错。程序不自动加载当前目录的配置或 `.env`。
+
+### 方式二：环境变量
+
+可以完全不创建配置文件，直接设置需要的变量：
+
+```bash
+export BRAVE_API_KEY='your-brave-key'
+export TAVILY_API_KEY='your-tavily-key'
+export EXA_API_KEY='your-exa-key'
+export WOLFRAMALPHA_APP_ID='your-wolframalpha-app-id'
+export SEARXNG_BASE_URL='https://search.example.com'
+web_reader -q brave "TypeScript documentation" -n 5
+```
+
+两种方式同时存在时，环境变量逐字段覆盖配置文件，其余字段仍来自文件。空凭证环境变量会覆盖文件中的凭证并报告未配置，不回退到旧值。`<SOURCE>_ENABLED` 接受 `true` 或 `false`，例如 `BRAVE_ENABLED=false`。
+
+API 来源可选用 `base_url`（或大写来源名加 `_BASE_URL`）指定受信任的 API 根地址，必须使用 HTTPS；路径由适配器追加。默认根地址是 Brave 的 `https://api.search.brave.com`、Tavily 的 `https://api.tavily.com`、Exa 的 `https://api.exa.ai` 和 WolframAlpha 的 `https://api.wolframalpha.com`。这项设置会改变凭证的接收方，不用于绕过拒绝。DuckDuckGo 和受限网页搜索源不使用自定义地址。
+
+SearXNG 的 `base_url` 是实例根地址，可包含部署子路径；允许 HTTP 以便连接本地实例。需要实例管理员在 `search.formats` 中启用 `json`。程序不会寻找或轮换公共实例。
+
+### 结果与错误
+
+网页结果是 JSON 数组，保留上游顺序。新增来源返回 `kind: "web"`、`source`、`title`、`url`、`rank`，有摘要时包含 `summary`；`source` 是搜索引擎，不是文章发布方。WolframAlpha 返回 `kind: "answer"`、`answer` 和 `sections`，不伪造文章链接或时间。
+
+`-n` 是结果上限，不保证条数：Brave/Tavily 单次最多 20 条，Exa 最多 100 条；网页及 SearXNG 只取一次响应，不自动翻页。WolframAlpha 返回一个包含多个内容区块的答案。搜索不会额外打开结果网页，阅读时请另行传入 URL。
+
+未配置凭证只影响该来源；其他来源仍可使用。缺少配置、禁用、网络错误、拒绝访问和限流会明确报告，不作为空结果返回。凭证不会传给结果页面，跨站重定向被拒绝；日志不打印凭证。
 
 ## 环境要求
 
@@ -61,7 +149,7 @@ Bluesky 当前配置的 `public.api.bsky.app` 搜索返回 403；这不能单独
 ## 安装
 
 ```bash
-npm install
+npm ci
 make install   # 通过 npm link 将 web_reader 安装为全局命令
 ```
 
@@ -104,7 +192,8 @@ web_reader -q wiki attention mechanism | jq -r '.[0].url' | web_reader
 | 短参数 | 长参数 | 默认值 | 说明 |
 |--------|--------|--------|------|
 | `-s` | `--sources` | — | 数据源 ID、预置名（`news`/`tech`/`fin`）或 `all` |
-| `-q` | `--query` | — | 查询数据源（`wiki`/`zhwiki`/`reddit`/`gnews`），关键词跟在后面 |
+| — | `--config` | — | 指定替代 TOML 配置文件，CLI / MCP 共用 |
+| `-q` | `--query` | — | 搜索来源 ID（见上表），关键词跟在后面 |
 | `-n` | `--limit` | `50` | 最大结果数 |
 | `-o` | `--out` | stdout | 输出到文件 |
 | `-c` | `--concurrency` | `2` | 并发数（list 模式）|
@@ -136,7 +225,7 @@ web_reader --mcp   # 以 MCP server 模式启动
 
 ## 输出格式
 
-列表及搜索提供 `first_seen_at`，并在可确认时提供 `published_at`；`occurred_at`（事件时间）、`written_at`（撰稿时间）无明确依据时省略。四字段统一为 `YYYY-MM-DDTHH:mm:ss+08:00`（北京时间），仅有日期不补零点，更新时间和转发时间不冒充原文发布时间。维基原有 `event_date` 暂保留兼容。
+新闻列表及含 URL 的搜索结果提供 `first_seen_at`，并在可确认时提供 `published_at`；`occurred_at`（事件时间）、`written_at`（撰稿时间）无明确依据时省略。四字段统一为 `YYYY-MM-DDTHH:mm:ss+08:00`（北京时间），仅有日期不补零点，更新时间和转发时间不冒充原文发布时间。维基原有 `event_date` 暂保留兼容。
 
 首次观察按规范化 URL 保存于 `~/.local/share/web-reader/first-seen.sqlite`，支持 `XDG_DATA_HOME` 或 `WEB_READER_DATA_DIR` 自定义目录；跨进程和重复抓取保持首次值。该目录需可写；删除数据库会重置观察历史，请按需备份。缺少列表发布时间的部分源会额外请求文章元数据，耗时随条数增加；失败时保留条目、略去发布时间。逐源支持与实测限制见 [日期支持说明](docs/date-support.md)。
 

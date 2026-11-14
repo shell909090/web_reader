@@ -10,6 +10,7 @@ Usage:
   Mode is inferred: -s → list, -q → query, otherwise → detail.
 
 Options:
+      --config PATH        Optional TOML configuration file (also with --mcp)
   -s, --sources <ids|all>  Comma-separated source IDs, set names, or "all"
                            Presets: news (bbc+nytimes+xinhua+thepaper)
                                     tech (hn+ars+mittr+infoq)
@@ -24,7 +25,9 @@ Options:
                                    polymarket
                            bsky: bsky:news/tech (default: all; search: -q bsky <keywords>)
   -q, --query SOURCE       Query a data source; keywords follow as positional args
-                           Searchable sources: wiki (EN), zhwiki (中文), reddit, gnews, bsky, hf
+                           Searchable sources: wiki, zhwiki, reddit, gnews, bsky, hf
+                           brave, tavily, exa, wolframalpha, duckduckgo, searxng
+                           baidu, bing, sogou (automated access restricted)
   -n, --limit N            Max results (default: ${CONFIG.DEFAULT_LIMIT})
   -o, --out FILE           Write output to FILE instead of stdout
   -c, --concurrency N      [list] Parallel sources (default: ${CONFIG.DEFAULT_CONCURRENCY})

@@ -4,7 +4,7 @@
 
 import { chineseNewsMonth, chineseEventDate } from '../src/feeds/wiki-date.ts';
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const NEWS_URL = 'https://zh.wikipedia.org/wiki/Portal:%E6%96%B0%E8%81%9E%E5%8B%95%E6%85%8B';
 const BASE = 'https://zh.wikipedia.org';

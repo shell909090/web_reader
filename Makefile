@@ -16,6 +16,8 @@ lint:
 build:
 	npx tsc --noEmit
 
+test: unittest
+
 unittest: coverage
 
 coverage:

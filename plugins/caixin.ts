@@ -1,7 +1,7 @@
 // Caixin (财新) plugin — HTTP-based, parses caixin.com homepage.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const CAIXIN_HOME = 'https://www.caixin.com/';
 

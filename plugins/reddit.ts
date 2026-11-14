@@ -2,7 +2,7 @@ import { parseFeed } from '../src/feeds/reddit.ts';
 // Reddit plugin — subreddit RSS feeds and global search.
 // Uses public .rss endpoints; no API key required.
 
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 import { collectFeedResults } from '../src/feeds/results.ts';
 
 const BASE = 'https://www.reddit.com';

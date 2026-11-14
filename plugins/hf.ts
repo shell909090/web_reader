@@ -1,7 +1,7 @@
 // HuggingFace Papers list plugin — HTTP-based, uses cheerio to parse the HF papers page.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const HF_BASE = 'https://huggingface.co';
 const HF_PAPERS_URL = `${HF_BASE}/papers`;

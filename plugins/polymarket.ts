@@ -2,7 +2,7 @@ import { buildNotes, type Market } from '../src/feeds/market.ts';
 import { renderMarketMd } from '../src/feeds/market-markdown.ts';
 // Polymarket plugin — top prediction markets by volume.
 
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const BASE_URL = 'https://gamma-api.polymarket.com';
 const MARKET_URL = 'https://polymarket.com/event';

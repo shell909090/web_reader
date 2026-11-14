@@ -2,7 +2,7 @@ import { OSCHINA_ARTICLE, readOSChina } from '../src/feeds/oschina-detail.ts';
 // OSCHINA news list plugin — HTTP-based, uses cheerio to parse the OSCHINA news page.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const OSCHINA_NEWS_URL = 'https://www.oschina.net/news';
 

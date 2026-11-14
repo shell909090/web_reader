@@ -7,7 +7,7 @@ import {
 // Bluesky plugin — author feeds and post search via the AT Protocol API.
 // Search access depends on the endpoint; credentials do not guarantee access.
 
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 import { collectFeedResults } from '../src/feeds/results.ts';
 
 const BSKY_XRPC = 'https://public.api.bsky.app/xrpc';

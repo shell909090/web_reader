@@ -2,7 +2,7 @@
 // (RSS feeds at xinhuanet.com are stale since 2022; news.cn HTML has current content.)
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const HOME_URL = 'https://www.news.cn/';
 

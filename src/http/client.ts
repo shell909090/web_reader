@@ -30,7 +30,7 @@ export async function httpGet(url: string, opts?: HttpGetOpts): Promise<HttpResp
   const timeoutMs = opts?.timeoutMs ?? CONFIG.HTTP_TIMEOUT_MS;
   const mergedHeaders: Record<string, string> = { ...buildDefaultHeaders(), ...opts?.headers };
 
-  const attempt = async (): Promise<HttpResponse> => fetchOnce(url, mergedHeaders, timeoutMs);
+  const attempt = async (): Promise<HttpResponse> => fetchOnce(url, mergedHeaders, timeoutMs, opts);
 
   let result: HttpResponse;
   try {

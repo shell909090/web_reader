@@ -1,7 +1,7 @@
 // TechCrunch list plugin — HTTP-based, uses cheerio to parse the TechCrunch homepage.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const TC_HOME = 'https://techcrunch.com/';
 

@@ -3,7 +3,7 @@
 // Sina's DOM classes change frequently; we rely on URL patterns instead of class selectors.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const SINA_HOME = 'https://news.sina.com.cn/';
 

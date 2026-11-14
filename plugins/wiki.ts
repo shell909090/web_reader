@@ -4,7 +4,7 @@
 
 import { englishEventDate } from '../src/feeds/wiki-date.ts';
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const WIKI_URL = 'https://en.wikipedia.org/wiki/Portal:Current_events';
 

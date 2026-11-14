@@ -1,7 +1,7 @@
 // Hacker News list plugin — HTTP-based, uses cheerio to parse the HN homepage.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const HN_BASE = 'https://news.ycombinator.com';
 const HN_HOME = `${HN_BASE}/`;

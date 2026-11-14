@@ -1,7 +1,7 @@
 // InfoQ China list plugin — HTTP-based, uses cheerio to parse the InfoQ CN homepage.
 
 import * as cheerio from 'cheerio';
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const INFOQ_HOME = 'https://www.infoq.cn/';
 const INFOQ_BASE = 'https://www.infoq.cn';

@@ -10,6 +10,7 @@ export function parseOptions(argv: string[]): RawArgs | null {
     return parseArgs({
       args: argv,
       options: {
+        config: { type: 'string' },
         sources: { type: 'string', short: 's' },
         query: { type: 'string', short: 'q' },
         limit: { type: 'string', short: 'n', default: String(CONFIG.DEFAULT_LIMIT) },

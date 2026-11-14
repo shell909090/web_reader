@@ -1,7 +1,7 @@
 import { parseFeed } from '../src/feeds/google-news.ts';
 // Google News RSS plugin — top headlines by default, topic feeds as categories, keyword search.
 
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 import { collectFeedResults } from '../src/feeds/results.ts';
 
 const BASE_URL = 'https://news.google.com/rss';

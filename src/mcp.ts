@@ -1,10 +1,12 @@
+import { configureSearch, SEARCH_IDS } from './search/config.ts';
 import { readUrls, search } from './mcp-tools.ts';
 import { CONFIG, makeLogger, httpGet, type Item, type Plugin, type Ctx } from '../lib.ts';
 import { parseSourceTokens } from './cli/sources.ts';
 import { loadPlugin } from './plugin-loader.ts';
 import { pConcurrent } from './concurrency.ts';
 
-export async function startMcp(): Promise<void> {
+export async function startMcp(configPath?: string): Promise<void> {
+  configureSearch(configPath);
   const { McpServer } = await import('@modelcontextprotocol/sdk/server/mcp.js');
   const { StdioServerTransport } = await import('@modelcontextprotocol/sdk/server/stdio.js');
   const { z } = await import('zod');
@@ -39,6 +41,11 @@ export async function startMcp(): Promise<void> {
       const loaded: { plugin: Plugin; categories: string[] }[] = [];
       for (const req of parsed) {
         const plugin = await loadPlugin(req.id, log);
+        if (plugin && !plugin.list)
+          return {
+            content: [{ type: 'text', text: `Error: ${plugin.id} does not support news lists` }],
+            isError: true,
+          };
         if (plugin) loaded.push({ plugin, categories: req.categories });
       }
       if (loaded.length === 0)
@@ -48,6 +55,7 @@ export async function startMcp(): Promise<void> {
       const ctx: Ctx = { mode: 'http', httpGet, log };
       await pConcurrent(loaded, CONFIG.DEFAULT_CONCURRENCY, async ({ plugin, categories }) => {
         try {
+          if (!plugin.list) throw new Error(`${plugin.id}: does not support news lists`);
           const items = await plugin.list(ctx, {
             limit: limit ?? CONFIG.DEFAULT_LIMIT,
             categories,
@@ -79,7 +87,9 @@ export async function startMcp(): Promise<void> {
     {
       source: z
         .string()
-        .describe('Source to search: wiki (English Wikipedia), zhwiki (中文维基百科), reddit'),
+        .describe(
+          `Search provider or vertical source (wiki, zhwiki, reddit, gnews, hf, bsky, ${SEARCH_IDS.join(', ')})`,
+        ),
       query: z.string().min(1).describe('Search keywords'),
       limit: z.number().int().min(1).max(20).optional().describe('Max results (default 10)'),
     },

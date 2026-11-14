@@ -1,7 +1,7 @@
 import { newsTime } from '../src/timestamps.ts';
 // The Verge AI plugin — HTTP-based, parses Atom feed for AI/artificial-intelligence section.
 
-import type { Plugin, Item, Ctx } from '../lib.ts';
+import type { FeedPlugin as Plugin, Item, Ctx } from '../lib.ts';
 
 const FEED_URL = 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml';
 
