@@ -350,7 +350,7 @@ HTTP-001：每个重定向跳转的 `timeoutMs` 覆盖 DNS、连接、响应头�
 HTTP-002：`dns.lookup()` 虽然提供异步回调，底层仍在线程池中调用阻塞式系统 `getaddrinfo`。HTTP 取消不会中断已经运行的系统查询；重试成功后，Node 的退出清理仍可能等待旧查询线程。因此 HTTP 连接改用同一进程内的 `dns.promises.Resolver`（c-ares），通过 Promise 与事件循环调度，不创建独立进程或工作线程来执行 DNS。
 
 - 每个解析操作拥有独立 Resolver；请求 AbortSignal 触发 `resolver.cancel()`，不会取消其他请求。解析完成后移除监听器并清理剩余查询。
-- 每个 HTTP 跳转使用独立 Undici Agent，绑定该跳转的取消信号；成功、失败、重定向均在 finally 中取消残留解析并销毁 Agent。避免旧连接尝试或重试后的查询存活到进程退出。代价是不再跨请求复用 HTTP 连接，可能增加 TLS 握手开销。
+- 每个 HTTP 跳转使用独立 Undici EnvHttpProxyAgent，直接连接及代理连接的 DNS 均绑定该跳转的取消信号；成功、失败、重定向均在 finally 中取消残留解析并销毁 Agent。避免旧连接尝试或重试后的查询存活到进程退出。代价是不再跨请求复用 HTTP 连接，可能增加 TLS 握手开销。
 - IP 字面量直接使用；域名优先读取 hosts 文件（Linux `/etc/hosts`，Windows 系统 hosts 路径），支持大小写不敏感别名、注释、IPv4/IPv6 和去重。hosts 文件不存在时继续查询 DNS，其他读取错误显式传播。
 - 外部域名使用当前 Node DNS 服务器配置，A/AAAA 并行查询；指定 family 时仅查询对应类型。任一类型有地址即可使用；两类都失败时返回解析错误。DNS 结果默认 IPv4 在前，可指定 IPv6 优先；本地 hosts 保留文件顺序。
 - Resolver 的单次查询基础超时为 2 秒，每服务器最多尝试 2 次；这不是整个解析阶段的固定总时限，整个阶段仍受 HTTP 请求计时器控制。请求取消时真正取消 DNS I/O，而不是仅让 Promise 提前返回。
@@ -366,7 +366,7 @@ DNS API依据：[Node.js DNS实现说明与Resolver取消接口](https://nodejs.
 ### 能力与结果
 
 - 在现有插件结构中允许 `list` 缺省，`search` 独立存在；加载器提供统一能力信息，CLI 和 MCP 依能力分派。列表 `all` 及新闻预设只包含具备 `list` 的插件，显式调用不支持的能力时报错。
-- 搜索插件 ID 为 `brave`、`duckduckgo`、`tavily`、`exa`、`baidu`、`bing`、`sogou`、`wolframalpha`、`searxng`。Brave、Tavily、Exa、WolframAlpha 优先使用官方 API；网页搜索的接入路径须核实访问政策，不使用退役接口或把即时答案接口当作完整网页搜索。SearXNG 连接用户配置的实例。
+- 搜索插件 ID 为 `brave`、`duckduckgo`、`tavily`、`exa`、`wolframalpha`、`searxng`。Brave、Tavily、Exa、WolframAlpha 优先使用官方 API；网页搜索的接入路径须核实访问政策，不使用退役接口或把即时答案接口当作完整网页搜索。SearXNG 连接用户配置的实例。
 - CLI 继续使用 `-q SOURCE`，MCP 继续使用 `search(source, query, limit?)`。共用能力判断与配置，不各自维护搜索源白名单。
 - 搜索保持 JSON 数组输出，引入网页与知识答案的联合类型：网页结果保留现有 source、title、url、notes 字段，可附 summary、publisher、rank；source 表示搜索提供方，rank 表示上游的一基位置。知识答案包含 source、title、answer，可附结构化内容和来源，不要求 url 或新闻时间。使用类型判别字段区分两种结果。
 - 搜索默认不调用新闻发布时间补全中的正文请求。有 URL 的结果保留首次观察契约；无 URL 的知识答案不进入新闻 URL 观察库。列表的时间补全行为不变，未知发布时间省略。
@@ -405,4 +405,4 @@ base_url = "https://search.example.com"
 
 配置解析使用 smol-toml 和 Zod，配置结构与解析逻辑分别位于 `src/search/config-schema.ts`、`src/search/config.ts`。现有新闻插件使用 FeedPlugin 保持列表类型约束；Plugin 允许独立搜索能力。搜索请求复用公共 HTTP 层，支持 POST，并拒绝携带搜索上下文的跨 origin 重定向。
 
-百度、Bing、搜狗的网页解析保留在 `src/search/web.ts`，因官方 robots.txt 禁止相应自动访问，其搜索入口在发请求前报告限制，enabled 不覆盖该限制。DuckDuckGo 在线直连测试超时；SearXNG 通过本地 HTTP 协议测试，真实实例尚未验证。验证日期和访问政策依据见 [README 中文说明](../README.cn.md)。
+Tavily、Brave 的 API 调用及 DuckDuckGo 的搜索解析已验证。公共 HTTP 客户端通过 Undici EnvHttpProxyAgent 读取 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 及其小写形式，小写优先。HTTPS_PROXY 未设置时使用 HTTP_PROXY，无代理时直连；代理失败不回退直连。SearXNG 通过本地 HTTP 协议测试，真实实例尚未验证。验证状态见 [README 中文说明](../README.cn.md)。

@@ -57,19 +57,31 @@ Node.js 新闻抓取与网页阅读工具，支持获取新闻列表、抓取全
 
 | SOURCE | 凭证或配置 | 实现与验证状态（2026-11-14） |
 |---|---|---|
-| `brave` | Brave Search API key | 官方 API 适配及离线测试完成；未使用真实 key 验证 |
-| `tavily` | Tavily API key | 官方 API 适配及离线测试完成；未使用真实 key 验证 |
+| `brave` | Brave Search API key | API 调用已验证 |
+| `tavily` | Tavily API key | API 调用已验证 |
 | `exa` | Exa API key | 官方 API 适配及离线测试完成；未使用真实 key 验证 |
 | `wolframalpha` | Full Results API AppID | 返回计算／知识答案；离线测试完成，未使用真实 AppID 验证 |
-| `duckduckgo` | 无 | HTML 搜索适配及离线测试完成；本机直连请求超时（ETIMEDOUT），尚未通过在线验证 |
-| `baidu` | 不适用 | 保留 HTML 解析能力；robots.txt 禁止通用自动访问，程序不发送搜索请求 |
-| `bing` | 不适用 | 保留 HTML 解析能力；robots.txt 禁止搜索路径，程序不发送搜索请求 |
-| `sogou` | 不适用 | 保留 HTML 解析能力；robots.txt 禁止通用自动访问，程序不发送搜索请求 |
+| `duckduckgo` | 无 | 搜索及结果解析已验证 |
 | `searxng` | 实例地址，实例需启用 JSON | 接口、离线和本地 HTTP 协议测试完成；尚未验证真实实例 |
 
-日期表示以上状态的检查时间。对受限来源设置 `enabled = true` 不会绕过访问限制。Bing 使用已退役的旧 Search API 不是可用替代方案。
+日期表示以上状态的验证时间。
 
-自动访问限制依据为 2026-11-14 检查的官方 robots.txt：[百度](https://www.baidu.com/robots.txt)、[Bing](https://www.bing.com/robots.txt)、[搜狗](https://www.sogou.com/robots.txt)。
+### HTTP 代理
+
+CLI 和 MCP 的所有公共 HTTP 请求均读取代理环境变量，无需修改配置文件：
+
+```bash
+export HTTP_PROXY='http://PROXY_HOST:PROXY_PORT'
+export HTTPS_PROXY='http://PROXY_HOST:PROXY_PORT'
+export NO_PROXY='localhost,127.0.0.1'
+web_reader -q duckduckgo "TypeScript documentation" -n 5
+```
+
+将示例地址替换为自己的代理地址。`HTTP_PROXY` 用于 HTTP 目标，`HTTPS_PROXY` 用于 HTTPS 目标；未设置后者时，HTTPS 请求也使用 HTTP_PROXY。这里的变量名表示目标网站协议，HTTPS_PROXY 的值可以是 HTTP 代理地址。
+
+支持小写 `http_proxy`、`https_proxy`、`no_proxy`；同名大小写同时设置时，小写优先。`NO_PROXY` 用逗号分隔免代理主机或域名，可附端口；`*` 表示全部直连。没有代理配置时直接连接，不会自动寻找代理。代理连接失败会报错，不自动切换为直连。
+
+MCP 读取启动进程的环境变量；通过客户端启动时，在客户端的 MCP 环境配置中设置这些变量。代理支持不会改变超时、访问限制和搜索凭证隔离规则。
 
 ### 申请凭证
 
@@ -129,7 +141,7 @@ web_reader -q brave "TypeScript documentation" -n 5
 
 两种方式同时存在时，环境变量逐字段覆盖配置文件，其余字段仍来自文件。空凭证环境变量会覆盖文件中的凭证并报告未配置，不回退到旧值。`<SOURCE>_ENABLED` 接受 `true` 或 `false`，例如 `BRAVE_ENABLED=false`。
 
-API 来源可选用 `base_url`（或大写来源名加 `_BASE_URL`）指定受信任的 API 根地址，必须使用 HTTPS；路径由适配器追加。默认根地址是 Brave 的 `https://api.search.brave.com`、Tavily 的 `https://api.tavily.com`、Exa 的 `https://api.exa.ai` 和 WolframAlpha 的 `https://api.wolframalpha.com`。这项设置会改变凭证的接收方，不用于绕过拒绝。DuckDuckGo 和受限网页搜索源不使用自定义地址。
+API 来源可选用 `base_url`（或大写来源名加 `_BASE_URL`）指定受信任的 API 根地址，必须使用 HTTPS；路径由适配器追加。默认根地址是 Brave 的 `https://api.search.brave.com`、Tavily 的 `https://api.tavily.com`、Exa 的 `https://api.exa.ai` 和 WolframAlpha 的 `https://api.wolframalpha.com`。这项设置会改变凭证的接收方，不用于绕过拒绝。DuckDuckGo 不使用自定义地址。
 
 SearXNG 的 `base_url` 是实例根地址，可包含部署子路径；允许 HTTP 以便连接本地实例。需要实例管理员在 `search.formats` 中启用 `json`。程序不会寻找或轮换公共实例。
 

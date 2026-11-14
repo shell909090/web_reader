@@ -24,6 +24,9 @@ coverage:
 	# Pure type declarations have no runtime behavior to cover.
 	@test_data_dir=$$(mktemp -d); trap 'rm -rf "$$test_data_dir"' EXIT; \
 	export WEB_READER_DATA_DIR="$$test_data_dir"; \
+	export XDG_CONFIG_HOME="$$test_data_dir/config"; \
+	unset HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy; \
+	unset BRAVE_API_KEY TAVILY_API_KEY EXA_API_KEY WOLFRAMALPHA_APP_ID SEARXNG_BASE_URL; \
 	test_files=$$(find test \( -name '*.test.ts' -o -name '*.test.mjs' \) 2>/dev/null | sort | tr '\n' ' '); \
 	if [ -z "$$test_files" ]; then \
 		echo "No test files found." >&2; exit 1; \

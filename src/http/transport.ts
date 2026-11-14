@@ -1,6 +1,5 @@
-import undici, { Agent, type RequestInit } from 'undici';
-import { requestLookup } from './dns.ts';
-import { CONFIG } from '../config.ts';
+import undici, { type Dispatcher, type RequestInit } from 'undici';
+import { requestDispatcher } from './dispatcher.ts';
 import type { HttpResponse, HttpGetOpts } from '../types.ts';
 
 const MAX_REDIRECTS = 5;
@@ -28,14 +27,11 @@ export async function fetchOnce(
 
   while (true) {
     const controller = new AbortController();
+    const dispatcher = requestDispatcher(controller.signal);
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const dispatcher = new Agent({
-      maxHeaderSize: CONFIG.HTTP_MAX_HEADER_SIZE,
-      connect: { lookup: requestLookup(controller.signal) },
-    });
 
     try {
-      const requestOptions: RequestInit & { dispatcher: Agent } = {
+      const requestOptions: RequestInit & { dispatcher: Dispatcher } = {
         method: opts.method,
         body: opts.body,
         dispatcher,

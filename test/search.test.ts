@@ -119,11 +119,6 @@ test('web parsers extract ranked links and reject challenges and unexpected page
   const pages = {
     duckduckgo:
       '<div class="result"><a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2F">Title</a><div class="result__snippet">Summary</div></div>',
-    bing: '<li class="b_algo"><h2><a href="https://example.com/">Title</a></h2><div class="b_caption"><p>Summary</p></div></li>',
-    baidu:
-      '<div id="content_left"><div class="result"><h3><a href="https://example.com/">Title</a></h3><div class="c-abstract">Summary</div></div></div>',
-    sogou:
-      '<div class="vrwrap"><h3><a href="https://example.com/">Title</a></h3><div class="str_info">Summary</div></div>',
   };
   for (const [id, html] of Object.entries(pages)) {
     const result = parseWebSearch(id as keyof typeof pages, html, 1)[0];
@@ -136,7 +131,7 @@ test('web parsers extract ranked links and reject challenges and unexpected page
     () => parseWebSearch('duckduckgo', '<form id="challenge-form"></form>', 5),
     /verification/,
   );
-  assert.throws(() => parseWebSearch('bing', '<title>安全验证</title>', 5), /verification/);
+  assert.throws(() => parseWebSearch('duckduckgo', '<title>安全验证</title>', 5), /verification/);
   assert.throws(() => parseWebSearch('duckduckgo', '<div>Unknown page</div>', 5), /unrecognized/);
   assert.throws(
     () =>
@@ -147,14 +142,6 @@ test('web parsers extract ranked links and reject challenges and unexpected page
       ),
     /unrecognized/,
   );
-});
-
-test('restricted engines never send requests, even when explicitly enabled', async () => {
-  for (const id of ['bing', 'baidu', 'sogou']) {
-    const plugin = await loadPlugin(id, log);
-    const ctx = context('', () => assert.fail('must not request prohibited path'));
-    await assert.rejects(plugin!.search!(ctx, 'example', 3), /robots.txt/);
-  }
 });
 
 test('DuckDuckGo makes one request and stops on refusal, rate limiting or malformed data', async () => {

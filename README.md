@@ -57,19 +57,31 @@ Run `web_reader -q SOURCE "keywords" -n 5`. The providers below support search o
 
 | SOURCE | Required credential or setting | Implementation and validation status (November 14, 2026) |
 |---|---|---|
-| `brave` | Brave Search API key | Official API adapter and offline tests complete; not tested with a real key |
-| `tavily` | Tavily API key | Official API adapter and offline tests complete; not tested with a real key |
+| `brave` | Brave Search API key | API requests verified |
+| `tavily` | Tavily API key | API requests verified |
 | `exa` | Exa API key | Official API adapter and offline tests complete; not tested with a real key |
 | `wolframalpha` | Full Results API AppID | Computational answers; offline tests complete, not tested with a real AppID |
-| `duckduckgo` | None | HTML adapter and offline tests complete; the local direct connection timed out (ETIMEDOUT), so online access is unverified |
-| `baidu` | Not applicable | HTML parser retained; robots.txt prohibits general automated access, so no search request is sent |
-| `bing` | Not applicable | HTML parser retained; robots.txt prohibits the search path, so no search request is sent |
-| `sogou` | Not applicable | HTML parser retained; robots.txt prohibits general automated access, so no search request is sent |
+| `duckduckgo` | None | Search and result parsing verified |
 | `searxng` | Instance URL with JSON enabled | Adapter, offline and local HTTP protocol tests complete; a real instance is unverified |
 
-The date identifies when these statuses were checked. Setting `enabled = true` does not override access restrictions. The retired Bing Search API is not an alternative supported endpoint.
+The date identifies when these statuses were verified.
 
-The automated-access restrictions were checked against the official robots.txt files for [Baidu](https://www.baidu.com/robots.txt), [Bing](https://www.bing.com/robots.txt) and [Sogou](https://www.sogou.com/robots.txt) on November 14, 2026.
+### HTTP proxies
+
+All shared HTTP requests in CLI and MCP read proxy environment variables. No configuration file changes are needed:
+
+```bash
+export HTTP_PROXY='http://PROXY_HOST:PROXY_PORT'
+export HTTPS_PROXY='http://PROXY_HOST:PROXY_PORT'
+export NO_PROXY='localhost,127.0.0.1'
+web_reader -q duckduckgo "TypeScript documentation" -n 5
+```
+
+Replace the example address with your proxy address. `HTTP_PROXY` handles HTTP destinations; `HTTPS_PROXY` handles HTTPS destinations and falls back to HTTP_PROXY when unset. The variable name describes the destination protocol: HTTPS_PROXY may contain an HTTP proxy URL.
+
+Lowercase `http_proxy`, `https_proxy` and `no_proxy` are also supported and take precedence over their uppercase equivalents. `NO_PROXY` accepts comma-separated hosts or domains, optionally with ports; `*` bypasses the proxy for all destinations. Without proxy settings, connections are direct. A failed proxy connection is reported as an error, without an automatic direct fallback.
+
+MCP inherits the environment of its launching process. When a client launches the server, set these variables in that client's MCP environment configuration. Proxy support preserves request timeouts, access restrictions and search credential isolation.
 
 ### Obtain credentials
 
@@ -129,7 +141,7 @@ web_reader -q brave "TypeScript documentation" -n 5
 
 When both are present, environment variables override individual file fields; other fields still come from the file. An explicitly empty credential overrides the file value and produces a missing-credential error. `<SOURCE>_ENABLED` accepts `true` or `false`, for example `BRAVE_ENABLED=false`.
 
-API providers also accept `base_url` (or the uppercase source name plus `_BASE_URL`) for a trusted API root, using HTTPS. The adapter appends its endpoint path. Defaults are `https://api.search.brave.com`, `https://api.tavily.com`, `https://api.exa.ai` and `https://api.wolframalpha.com`. Changing this address changes who receives the credential; it is not a mechanism for bypassing refusals. DuckDuckGo and the restricted HTML providers do not use custom endpoints.
+API providers also accept `base_url` (or the uppercase source name plus `_BASE_URL`) for a trusted API root, using HTTPS. The adapter appends its endpoint path. Defaults are `https://api.search.brave.com`, `https://api.tavily.com`, `https://api.exa.ai` and `https://api.wolframalpha.com`. Changing this address changes who receives the credential; it is not a mechanism for bypassing refusals. DuckDuckGo does not use custom endpoints.
 
 SearXNG's `base_url` is the instance root and may include a deployment subpath. HTTP is allowed for local instances. Its administrator must enable `json` in `search.formats`. The program does not find or rotate public instances.
 

@@ -5,9 +5,6 @@ export const SEARCH_IDS = [
   'duckduckgo',
   'tavily',
   'exa',
-  'baidu',
-  'bing',
-  'sogou',
   'wolframalpha',
   'searxng',
 ] as const;
