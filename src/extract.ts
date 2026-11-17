@@ -1,3 +1,4 @@
+import { contentMode, fallbackReason, type ContentMode } from './content-mode.ts';
 import type { HttpResponse } from './types.ts';
 import { createRequire } from 'node:module';
 const _require = createRequire(import.meta.url);
@@ -25,7 +26,12 @@ const TRAILING_NOISE_RE =
 const MULTI_BLANK_RE = /\n{3,}/g;
 
 /** Extract the main article body from raw HTML and return it as Markdown. */
-export function extractMarkdown(html: string, url: string): string {
+export function extractMarkdown(
+  html: string,
+  url: string,
+  selection?: ContentMode | boolean,
+  debug: (message: string) => void = () => undefined,
+): string {
   // Dynamic require to avoid circular ESM/CJS issues with jsdom and readability
   const { JSDOM, VirtualConsole } = _require('jsdom') as typeof import('jsdom');
   const { Readability } = _require('@mozilla/readability') as typeof import('@mozilla/readability');
@@ -35,8 +41,53 @@ export function extractMarkdown(html: string, url: string): string {
   vc.on('jsdomError', () => undefined);
 
   const dom = new JSDOM(html, { url, virtualConsole: vc });
-  const reader = new Readability(dom.window.document);
+  const mode = contentMode(selection);
+  if (mode === 'full') {
+    dom.window.document
+      .querySelectorAll('script, style, noscript, template')
+      .forEach((node) => node.remove());
+    // Resolve relative URLs without Readability preprocessing.
+    for (const node of dom.window.document.querySelectorAll('[href], [src]')) {
+      for (const attr of ['href', 'src']) {
+        const value = node.getAttribute(attr);
+        if (value) {
+          try {
+            node.setAttribute(attr, new URL(value, url).href);
+          } catch {
+            /* Preserve malformed URLs. */
+          }
+        }
+      }
+    }
+    const markdown = _td.turndown(dom.window.document.body.innerHTML).trim();
+    if (!markdown) throw new ExtractError(`Empty page content at ${url}`);
+    return markdown;
+  }
+
+  const original = dom.window.document;
+  const reader = new Readability(original.cloneNode(true) as Document);
   const article = reader.parse();
+
+  if (mode === 'auto') {
+    const candidate = original.cloneNode(true) as Document;
+    candidate
+      .querySelectorAll('nav, footer, form, script, style, noscript, template, [role="navigation"]')
+      .forEach((node) => node.remove());
+    const region = candidate.querySelector('main, [role="main"], article');
+    const baseline = region ?? candidate.body;
+    const parsed = new JSDOM(article?.content ?? '').window.document.body;
+    const reason =
+      !article?.content || (article.textContent?.trim().length ?? 0) < 200
+        ? 'article extraction failed or returned too little text'
+        : region
+          ? fallbackReason(region, parsed)
+          : undefined;
+    if (reason) {
+      debug(`content mode: ${region ? 'main region' : 'full page'}; ${reason}`);
+      return extractMarkdown(baseline.outerHTML, url, 'full', debug);
+    }
+    debug('content mode: article; content retention checks passed');
+  }
 
   if (!article?.content) {
     throw new ExtractError(`Readability found no article content at ${url}`);
@@ -55,11 +106,15 @@ export function extractMarkdown(html: string, url: string): string {
 }
 
 /** Reject unsuccessful HTTP responses before treating their content as an article. */
-export function extractResponse(response: HttpResponse): string {
+export function extractResponse(
+  response: HttpResponse,
+  selection?: ContentMode | boolean,
+  debug?: (message: string) => void,
+): string {
   if (response.status < 200 || response.status >= 300) {
     throw new ExtractError(
       `HTTP ${response.status} at ${response.finalUrl}; article content unavailable`,
     );
   }
-  return extractMarkdown(response.html, response.finalUrl);
+  return extractMarkdown(response.html, response.finalUrl, selection, debug);
 }

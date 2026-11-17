@@ -34,7 +34,18 @@ export const providerSchema = z
   })
   .strict();
 export const schema = z
-  .object({ providers: z.partialRecord(z.enum(SEARCH_IDS), providerSchema).optional() })
+  .object({
+    providers: z.partialRecord(z.enum(SEARCH_IDS), providerSchema).optional(),
+    reader: z
+      .object({
+        only_main_content: z.boolean().optional(),
+        mode: z.enum(['auto', 'article', 'full']).optional(),
+      })
+      .strict()
+      .optional(),
+  })
   .strict();
 export type ProviderConfig = z.infer<typeof providerSchema>;
-export type SearchConfig = Partial<Record<(typeof SEARCH_IDS)[number], ProviderConfig>>;
+export type SearchConfig = Partial<Record<(typeof SEARCH_IDS)[number], ProviderConfig>> & {
+  reader?: { only_main_content?: boolean; mode?: 'auto' | 'article' | 'full' };
+};

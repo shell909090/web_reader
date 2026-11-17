@@ -11,6 +11,9 @@ export function parseOptions(argv: string[]): RawArgs | null {
       args: argv,
       options: {
         config: { type: 'string' },
+        'content-mode': { type: 'string' },
+        'only-main-content': { type: 'boolean' },
+        'no-only-main-content': { type: 'boolean' },
         sources: { type: 'string', short: 's' },
         query: { type: 'string', short: 'q' },
         limit: { type: 'string', short: 'n', default: String(CONFIG.DEFAULT_LIMIT) },

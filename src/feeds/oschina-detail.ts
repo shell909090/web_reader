@@ -28,7 +28,11 @@ function renderArticle(article: NonNullable<NewsResponse['result']>, url: string
     throw new Error('OSChina article is an external redirect; read the publisher URL directly');
   if (typeof article.detail !== 'string' || !article.detail.trim())
     throw new Error('OSChina article API returned empty content');
-  const md = extractMarkdown(`<html><body><article>${article.detail}</article></body></html>`, url);
+  const md = extractMarkdown(
+    `<html><body><article>${article.detail}</article></body></html>`,
+    url,
+    'article',
+  );
   const title = typeof article.title === 'string' ? article.title.replace(/\s+/g, ' ').trim() : '';
   return title ? `# ${title}\n\n${md}` : md;
 }

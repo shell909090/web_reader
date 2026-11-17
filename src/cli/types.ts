@@ -11,7 +11,15 @@ export type ParsedArgs = { config?: string } & (
       loglevel: LogLevel;
       profile: ProfileName;
     }
-  | { mode: 'detail'; urls: string[]; out: string | null; loglevel: LogLevel; profile: ProfileName }
+  | {
+      mode: 'detail';
+      onlyMainContent?: boolean;
+      contentMode?: 'auto' | 'article' | 'full';
+      urls: string[];
+      out: string | null;
+      loglevel: LogLevel;
+      profile: ProfileName;
+    }
   | {
       mode: 'query';
       source: string;

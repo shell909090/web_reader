@@ -178,3 +178,27 @@ for (const status of [403, 429, 521]) {
     }
   });
 }
+
+test('CLI content switches are optional and mutually exclusive', (t) => {
+  const parse = (flags: string[]) => {
+    const result = parseCLI([...flags, 'https://example.com']);
+    assert.equal(result?.mode, 'detail');
+    return result?.mode === 'detail' ? result.onlyMainContent : undefined;
+  };
+  assert.equal(parse([]), undefined);
+  assert.equal(parse(['--no-only-main-content']), false);
+  assert.equal(parse(['--only-main-content']), true);
+  t.mock.method(process.stderr, 'write', () => true);
+  assert.equal(parseCLI(['--only-main-content', '--no-only-main-content']), null);
+});
+
+test('CLI supports automatic, article and full content modes', (t) => {
+  for (const mode of ['auto', 'article', 'full']) {
+    const result = parseCLI(['--content-mode', mode, 'https://example.com']);
+    assert.ok(result?.mode === 'detail');
+    assert.equal(result.contentMode, mode);
+  }
+  t.mock.method(process.stderr, 'write', () => true);
+  assert.equal(parseCLI(['--content-mode', 'invalid']), null);
+  assert.equal(parseCLI(['--content-mode', 'auto', '--only-main-content']), null);
+});

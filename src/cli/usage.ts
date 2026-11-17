@@ -10,6 +10,9 @@ Usage:
   Mode is inferred: -s → list, -q → query, otherwise → detail.
 
 Options:
+      --content-mode MODE    auto (default), article, or full
+      --no-only-main-content Convert the full HTML page to Markdown
+      --only-main-content    Force article extraction (overrides config)
       --config PATH        Optional TOML configuration file (also with --mcp)
   -s, --sources <ids|all>  Comma-separated source IDs, set names, or "all"
                            Presets: news (bbc+nytimes+xinhua+thepaper)

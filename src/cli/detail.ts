@@ -1,3 +1,4 @@
+import { contentMode, type ContentMode } from '../content-mode.ts';
 import { extractResponse } from '../extract.ts';
 import { httpGet, type Ctx, type Logger } from '../../lib.ts';
 import type { ParsedArgs } from './types.ts';
@@ -12,17 +13,18 @@ async function readArticle(
   url: string,
   dispatch: { pattern: RegExp; plugin: Plugin }[],
   log: Logger,
+  selection?: ContentMode | boolean,
 ): Promise<string> {
   const matched = dispatch.find(({ pattern }) => pattern.test(url));
   let md: string;
   let title: string;
-  if (matched) {
+  if (matched && contentMode(selection) !== 'full') {
     const ctx: Ctx = { mode: 'http', httpGet, log };
     const item: Item = { source: matched.plugin.id, title: '', url, notes: '' };
     md = await matched.plugin.detail!(ctx, item);
     title = url;
   } else {
-    md = extractResponse(await httpGet(url));
+    md = extractResponse(await httpGet(url), selection, (message) => log.debug(message));
     title = decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop() ?? url);
   }
   return `---\n# ${title}\n\n${md}\n`;
@@ -51,7 +53,12 @@ export async function runDetail(
   let failures = 0;
   for (const url of urls) {
     try {
-      const chunk = await readArticle(url, detailDispatch, log);
+      const chunk = await readArticle(
+        url,
+        detailDispatch,
+        log,
+        args.contentMode ?? args.onlyMainContent,
+      );
       chunks.push(chunk);
     } catch (err) {
       failures++;

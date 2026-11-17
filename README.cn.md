@@ -334,3 +334,14 @@ Shell <shell909090@gmail.com>
 
 MIT License  
 Copyright © 2026 Shell
+
+URL 阅读默认自动选择：比较 Readability 结果与清理后的主内容区域；大量链接条目或文本区块丢失、正文提取失败或过短时回退。没有可靠主区域时不做内容损失判断，提取失败则回退到清理后的页面。不执行 JavaScript 或翻页。已有站点详情插件继续使用专用提取逻辑。
+
+每次调用可指定 `--content-mode auto|article|full`。旧开关 `--only-main-content` 和 `--no-only-main-content` 分别等价于 article 和 full；full 绕过站点插件并保留导航、页脚。命令行优先于配置，`-l debug` 显示自动选择原因。
+
+```bash
+web_reader --content-mode auto -l debug https://artificialanalysis.ai/changelog
+web_reader --content-mode full URL
+```
+
+可选 TOML 配置：`[reader]` 下设置 `mode = "auto"`。未设置 mode 时兼容旧的 only_main_content 布尔值。

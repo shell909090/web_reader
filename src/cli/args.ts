@@ -42,5 +42,34 @@ export function parseCLI(argv: string[]): ParsedArgs | null {
   if (!common) return null;
   if (raw.values.query !== undefined) return parseQueryArgs(raw, common);
   if (raw.values.sources) return parseListArgs(raw, common);
-  return { mode: 'detail', urls: raw.positionals, ...common };
+  if (raw.values['only-main-content'] && raw.values['no-only-main-content']) {
+    process.stderr.write('[ERROR] Content switches are mutually exclusive\n');
+    return null;
+  }
+  const contentMode = raw.values['content-mode'];
+  if (
+    contentMode !== undefined &&
+    (!['auto', 'article', 'full'].includes(String(contentMode)) ||
+      raw.values['only-main-content'] ||
+      raw.values['no-only-main-content'])
+  ) {
+    process.stderr.write(
+      '[ERROR] --content-mode requires auto|article|full and cannot be combined with content switches\n',
+    );
+    return null;
+  }
+  const onlyMainContent = raw.values['no-only-main-content']
+    ? false
+    : raw.values['only-main-content']
+      ? true
+      : undefined;
+  return {
+    mode: 'detail',
+    ...(contentMode === undefined
+      ? {}
+      : { contentMode: contentMode as 'auto' | 'article' | 'full' }),
+    urls: raw.positionals,
+    ...common,
+    ...(onlyMainContent === undefined ? {} : { onlyMainContent }),
+  };
 }

@@ -24,7 +24,8 @@ function fileConfig(path: string, explicit: boolean): SearchConfig {
     throw new Error('Cannot read search configuration file');
   }
   try {
-    return schema.parse(parse(content)).providers ?? {};
+    const parsed = schema.parse(parse(content));
+    return { ...parsed.providers, ...(parsed.reader ? { reader: parsed.reader } : {}) };
   } catch {
     throw new Error('Invalid search configuration: check TOML, provider names and field types');
   }

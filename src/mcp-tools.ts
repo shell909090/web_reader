@@ -1,3 +1,4 @@
+import { contentMode } from './content-mode.ts';
 import { extractResponse } from './extract.ts';
 import { OSCHINA_ARTICLE, readOSChina } from './feeds/oschina-detail.ts';
 import { makeLogger, httpGet, type Ctx } from '../lib.ts';
@@ -7,12 +8,13 @@ export async function readUrls({ urls }: { urls: string[] }) {
   const chunks: string[] = [];
   for (const url of urls) {
     try {
-      const md = OSCHINA_ARTICLE.test(url)
-        ? await readOSChina(
-            { mode: 'http', httpGet, log: makeLogger('warn') },
-            { source: 'oschina', title: '', url, notes: '' },
-          )
-        : extractResponse(await httpGet(url));
+      const md =
+        contentMode() !== 'full' && OSCHINA_ARTICLE.test(url)
+          ? await readOSChina(
+              { mode: 'http', httpGet, log: makeLogger('warn') },
+              { source: 'oschina', title: '', url, notes: '' },
+            )
+          : extractResponse(await httpGet(url));
       const title = decodeURIComponent(
         new URL(url).pathname.split('/').filter(Boolean).pop() ?? url,
       );

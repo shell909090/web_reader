@@ -334,3 +334,14 @@ Shell <shell909090@gmail.com>
 
 MIT License  
 Copyright © 2026 Shell
+
+URL reading defaults to automatic content selection. It compares Readability output against a cleaned main region and falls back when substantial linked entries or text blocks disappear, or article extraction fails. Without a reliable main region, content-loss checks are skipped; failed extraction falls back to the cleaned page. No JavaScript execution or pagination is performed. Existing site detail plugins retain their specialized extraction.
+
+Use `--content-mode auto|article|full` for each invocation. Legacy `--only-main-content` and `--no-only-main-content` remain aliases for article and full. Full mode bypasses site detail plugins and preserves navigation and footer content. CLI choices override configuration.
+
+```bash
+web_reader --content-mode auto -l debug https://artificialanalysis.ai/changelog
+web_reader --content-mode full URL
+```
+
+Optional TOML: `[reader]` with `mode = "auto"`. The legacy `only_main_content` boolean is supported when `mode` is absent.
