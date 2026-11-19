@@ -11,6 +11,8 @@ permissions:
 
 jobs:
   scan:
+    # Paused pending resolution of the CVE-2026-112366 scanner advisory.
+    if: ${{ false }}
     name: Dependency vulnerabilities
     runs-on: ubuntu-24.04
     timeout-minutes: 20
